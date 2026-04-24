@@ -153,11 +153,22 @@ def insert_result(con: sqlite3.Connection, event_id: int, r: dict) -> None:
 
 def upsert_pdf_manifest(con: sqlite3.Connection, comp_name: str, files: list) -> None:
     """files: list of dicts with 'file_path' and optional 'source_url'."""
+    # Insert new rows; ignore conflicts to avoid overwriting already-resolved URLs
     con.executemany(
-        "INSERT OR REPLACE INTO pdf_manifest (competition_name, file_path, source_url) "
+        "INSERT OR IGNORE INTO pdf_manifest (competition_name, file_path, source_url) "
         "VALUES (?, ?, ?)",
         [(comp_name, f["file_path"], f.get("source_url")) for f in files],
     )
+    # Update source_url only when we have a resolved URL (never write NULL over a real URL)
+    with_url = [
+        (f["source_url"], comp_name, f["file_path"])
+        for f in files if f.get("source_url")
+    ]
+    if with_url:
+        con.executemany(
+            "UPDATE pdf_manifest SET source_url = ? WHERE competition_name = ? AND file_path = ?",
+            with_url,
+        )
 
 
 def update_manifest_url(con: sqlite3.Connection, comp_name: str, file_path: str, url: str) -> None:

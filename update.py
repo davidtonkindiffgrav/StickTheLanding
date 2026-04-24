@@ -233,14 +233,147 @@ def _resolve_comp_all_files(comp_name_str: str, url_map: dict) -> None:
         pdf_files = _sc.list_sharepoint_folder(sp_path, session)
         comp_map = url_map.setdefault(comp_name_str, {})
         for pf in pdf_files:
-            dl_url = _sc.pdf_download_url(pf["ServerRelativeUrl"])
-            comp_map[pf["Name"]] = dl_url
+            # Store Viewing.aspx URL — the download URL returns Access Denied
+            view_url = _sc.pdf_view_url(pf["ServerRelativeUrl"])
+            comp_map[pf["Name"]] = view_url
         if not pdf_files:
             comp_map["__comp__"] = NOT_FOUND_MARKER
         time.sleep(0.3)
     except Exception as exc:
         print(f"  [WARN] Folder resolve failed for '{comp_name_str}': {exc}")
         url_map.setdefault(comp_name_str, {})["__comp__"] = NOT_FOUND_MARKER
+
+
+_TYPE_MAP = {
+    "team": "team", "teams": "team",
+    "meet": "meet", "individual": "meet",
+    "aa": "meet", "apparatus": "meet",
+    # "results" alone is too ambiguous — handled separately below
+}
+
+
+def _parse_pdf_attrs(filename: str) -> dict:
+    """
+    Extract structured attributes from a PDF filename:
+    sessions, levels, divs, alps, types.
+    Handles both verbose ("Session 3", "Level 4", "Division 2") and
+    abbreviated ("S3", "L4", "D2", "L4D2") formats.
+    """
+    name = Path(filename).name
+    s = re.sub(r"[^a-z0-9]", " ", name.lower())
+    tokens = s.split()
+
+    sessions, levels, divs, alps, types = set(), set(), set(), set(), set()
+
+    for i, t in enumerate(tokens):
+        nxt = tokens[i + 1] if i + 1 < len(tokens) else ""
+
+        # "session N" or "session Na"
+        if t == "session" and nxt and nxt[0].isdigit():
+            m = re.match(r"(\d+)", nxt)
+            if m:
+                sessions.add(m.group(1))
+
+        # Standalone "S3" or "S3a" token
+        m = re.fullmatch(r"s(\d+)[a-z]?", t)
+        if m:
+            sessions.add(m.group(1))
+
+        # "level N" with keyword
+        if t in ("level",) and nxt and nxt.isdigit():
+            levels.add(nxt)
+
+        # Standalone "L4" token (but not "l" alone)
+        m = re.fullmatch(r"l(\d+)", t)
+        if m and len(t) >= 2:
+            levels.add(m.group(1))
+
+        # Compact "L4D2" token
+        m = re.fullmatch(r"l(\d+)d(\d+)", t)
+        if m:
+            levels.add(m.group(1))
+            divs.add(m.group(2))
+
+        # "div N" or "division N"
+        if t in ("div", "division") and nxt and nxt[0].isdigit():
+            m = re.match(r"(\d+)", nxt)
+            if m:
+                divs.add(m.group(1))
+
+        # Standalone "D1" token (but not "d" alone)
+        m = re.fullmatch(r"d(\d+)", t)
+        if m and len(t) >= 2:
+            divs.add(m.group(1))
+
+        # "ALP N" or standalone "ALP5"
+        if t == "alp" and nxt and nxt[0].isdigit():
+            alps.add(nxt[0])
+        m = re.fullmatch(r"alp(\d+)[a-z]?", t)
+        if m:
+            alps.add(m.group(1))
+
+        # Type keyword
+        if t in _TYPE_MAP:
+            types.add(_TYPE_MAP[t])
+
+    # "results" alone (without "team") implies a meet/individual sheet
+    name_lower = name.lower()
+    if "result" in name_lower and "team" not in name_lower:
+        types.add("meet")
+
+    return {"sessions": sessions, "levels": levels, "divs": divs,
+            "alps": alps, "types": types}
+
+
+def _fuzzy_url_match(local_key: str, comp_map: dict):
+    """
+    Fallback filename match using structured attribute comparison
+    (session, level, division, ALP, type).
+    Returns a URL only when the match is unambiguous.
+    """
+    lp = _parse_pdf_attrs(local_key)
+
+    candidates = []
+    for gymvic_name, url in comp_map.items():
+        if gymvic_name.startswith("__") or url == NOT_FOUND_MARKER:
+            continue
+        gp = _parse_pdf_attrs(gymvic_name)
+
+        score = 0
+        conflict = False
+
+        def _check(la, ga, weight):
+            nonlocal score, conflict
+            if la and ga:
+                shared = la & ga
+                if shared:
+                    score += len(shared) * weight
+                else:
+                    conflict = True
+
+        _check(lp["sessions"], gp["sessions"], 3)
+        _check(lp["levels"],   gp["levels"],   3)
+        _check(lp["alps"],     gp["alps"],      3)
+        _check(lp["divs"],     gp["divs"],      2)
+        _check(lp["types"],    gp["types"],     1)
+
+        # Levels and ALPs are different gymnastics programs — reject cross-system matches
+        if lp["levels"] and gp["alps"] and not gp["levels"]:
+            conflict = True
+        if lp["alps"] and gp["levels"] and not gp["alps"]:
+            conflict = True
+
+        if not conflict and score > 0:
+            candidates.append((score, gymvic_name, url))
+
+    if not candidates:
+        return None
+
+    candidates.sort(key=lambda x: -x[0])
+    # Require a clear winner (no tie at top score)
+    if len(candidates) == 1 or candidates[0][0] > candidates[1][0]:
+        return candidates[0][2]
+    return None
 
 
 def resolve_pdf_url(comp_name_str: str, source_key_str: str, url_map: dict):
@@ -277,7 +410,9 @@ def resolve_pdf_url(comp_name_str: str, source_key_str: str, url_map: dict):
     cached = comp_cache.get(source_key_str) or comp_cache.get(filename) or comp_cache.get("__pdf__")
     if cached and cached != NOT_FOUND_MARKER:
         return cached
-    return None
+
+    # Fuzzy fallback: match by session/level/division identifiers
+    return _fuzzy_url_match(source_key_str, comp_cache)
 
 
 # ---------------------------------------------------------------------------
@@ -405,18 +540,16 @@ def main():
     for key, cname in newly_processed:
         db.add_processed_file(con, key, cname)
 
-    # Build pdf_manifest entries with URL resolution
+    # Build pdf_manifest entries — source_url is the repo-relative path for direct hosting
     by_comp: dict[str, list] = {}
     for pdf in all_pdfs:
         cname = comp_name(pdf)
         key   = source_key(pdf)
-        src_url = resolve_pdf_url(cname, key, url_map)
+        src_url = str(pdf).replace("\\", "/")
         by_comp.setdefault(cname, []).append({"file_path": key, "source_url": src_url})
 
     for cname, files in by_comp.items():
         db.upsert_pdf_manifest(con, cname, files)
-
-    save_url_map(url_map)
 
     _finalize(con)
 
@@ -427,35 +560,33 @@ def main():
 
 
 def _cmd_resolve_urls(con) -> None:
-    """Bulk-populate source_url for all pdf_manifest rows missing a URL."""
+    """Backfill source_url for all pdf_manifest rows using local repo-relative paths."""
+    # Build index of all local PDFs: (comp_name, source_key) -> relative path
+    pdf_index = {}
+    for pdf in sorted(PDF_ROOT.rglob("*.pdf")):
+        cname = comp_name(pdf)
+        key   = source_key(pdf)
+        pdf_index[(cname, key)] = str(pdf).replace("\\", "/")
+
     rows = con.execute(
-        "SELECT competition_name, file_path FROM pdf_manifest WHERE source_url IS NULL"
+        "SELECT competition_name, file_path, source_url FROM pdf_manifest"
     ).fetchall()
-    if not rows:
-        print("All pdf_manifest entries already have URLs.")
-        return
 
-    print(f"Resolving URLs for {len(rows)} manifest entries...")
-    url_map = load_url_map()
     updated = 0
-
-    # Pre-fetch GymVic page once so scraper re-uses the parsed data
-    # (live lookup will fetch lazily the first time it runs)
     for row in rows:
         cname = row["competition_name"]
         fpath = row["file_path"]
-        url = resolve_pdf_url(cname, fpath, url_map)
-        if url:
-            db.update_manifest_url(con, cname, fpath, url)
+        current = row["source_url"]
+        local_url = pdf_index.get((cname, fpath))
+        if local_url and local_url != current:
+            db.update_manifest_url(con, cname, fpath, local_url)
             updated += 1
             print(f"  [OK]   {cname}/{fpath}")
-        else:
-            print(f"  [MISS] {cname}/{fpath}")
-        time.sleep(0.2)
+        elif not local_url:
+            print(f"  [MISS] {cname}/{fpath} — PDF not found locally")
 
     con.commit()
-    save_url_map(url_map)
-    print(f"\nDone — {updated}/{len(rows)} URLs resolved.")
+    print(f"\nDone — {updated} URL(s) updated.")
 
 
 DBCONFIG_FILE = Path("data/dbconfig.json")

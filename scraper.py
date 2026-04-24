@@ -173,10 +173,30 @@ def list_sharepoint_folder(server_relative_path, session):
     return []
 
 
+SP_VIEW_ID = "e6406da1-023f-4119-9f6c-dba429c0526b"
+SP_LIBRARY_FORMS = f"{SP_BASE}{SP_SITE}/Shared%20Documents/Forms/Viewing.aspx"
+
+
 def pdf_download_url(server_relative_path):
-    """Construct a direct download URL from a SharePoint server-relative path."""
+    """Direct download URL — used by the scraper to fetch the file bytes."""
     encoded = quote(server_relative_path, safe="/:")
     return f"{SP_BASE}{encoded}?download=1"
+
+
+def pdf_view_url(server_relative_path):
+    """
+    SharePoint Viewing.aspx URL — what gets stored in url_map and shown to users.
+    The ?download=1 format returns Access Denied; this viewer URL works.
+    """
+    parent = server_relative_path.rsplit("/", 1)[0]
+    encoded_id = quote(server_relative_path, safe="")
+    encoded_parent = quote(parent, safe="")
+    return (
+        f"{SP_LIBRARY_FORMS}"
+        f"?viewid={SP_VIEW_ID}"
+        f"&id={encoded_id}"
+        f"&parent={encoded_parent}"
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -222,6 +242,14 @@ def slugify(text):
 # ---------------------------------------------------------------------------
 
 def main():
+    import argparse
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "--no-download", action="store_true",
+        help="Update url_map with fresh GymVic URLs without downloading any PDFs"
+    )
+    args = parser.parse_args()
+
     session = requests.Session()
     session.headers.update(HEADERS)
 
@@ -257,17 +285,16 @@ def main():
         print(f"\n[{i:2d}/{len(comps)}] {name} ({date}) [{ltype}]")
 
         if ltype == "pdf":
-            # Single PDF — store in a comp subfolder so update.py can find it
             filename = f"{comp_slug}.pdf"
-            dest = PDF_DIR / name / filename
             dl_url = url if "download=1" in url else url + ("&" if "?" in url else "?") + "download=1"
-            success = download_pdf(url, dest, session)
-            if success:
-                ok_total += 1
-                manifest.append({**comp, "files": [str(dest)]})
-                url_map.setdefault(name, {})[filename] = dl_url
-            else:
-                fail_total += 1
+            if not args.no_download:
+                dest = PDF_DIR / name / filename
+                if download_pdf(dl_url, dest, session):
+                    ok_total += 1
+                    manifest.append({**comp, "files": [str(dest)]})
+                else:
+                    fail_total += 1
+            url_map.setdefault(name, {})["__pdf__"] = dl_url
         else:
             # Folder — resolve path and list PDFs
             path = resolve_folder_path(url, session)
@@ -276,27 +303,28 @@ def main():
                 fail_total += 1
                 continue
 
-            if "2025" not in path:
-                print(f"    [SKIP] Not a 2025 event (path: {path.split('/')[-3]})")
-                continue
-
-            print(f"    Path: .../{'/'.join(path.split('/')[-3:])}")
+            year_tag = "2025" if "2025" in path else "archive"
+            print(f"    Path: .../{'/'.join(path.split('/')[-3:])}  [{year_tag}]")
             pdf_files = list_sharepoint_folder(path, session)
             print(f"    Found {len(pdf_files)} PDF(s) in folder")
 
+            # Replace stale entries for this competition with fresh data
+            url_map[name] = {}
             comp_dir = PDF_DIR / name
             downloaded = []
             for pf in pdf_files:
                 sr_path = pf["ServerRelativeUrl"]
                 filename = pf["Name"]
-                dl_url = pdf_download_url(sr_path)
-                dest = comp_dir / filename
-                if download_pdf(dl_url, dest, session):
-                    ok_total += 1
-                    downloaded.append(str(dest))
-                    url_map.setdefault(name, {})[filename] = dl_url
-                else:
-                    fail_total += 1
+                view_url = pdf_view_url(sr_path)
+                url_map[name][filename] = view_url
+                if not args.no_download:
+                    dl_url = pdf_download_url(sr_path)
+                    dest = comp_dir / filename
+                    if download_pdf(dl_url, dest, session):
+                        ok_total += 1
+                        downloaded.append(str(dest))
+                    else:
+                        fail_total += 1
                 time.sleep(0.3)
 
             if downloaded:
