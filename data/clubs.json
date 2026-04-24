@@ -58,7 +58,7 @@
     { "code": "MOR",  "name": "Mordialloc Gymnastics",                  "region": "Metro South",    "aliases": ["MCC"],                                                      "logo": null },
     { "code": "NGS",  "name": "NGS (Unknown Club Data)",                "region": "Unknown",        "aliases": [],                                                           "logo": null },
     { "code": "MOY",  "name": "Moyhu and District Youth Club Inc",       "region": "Regional NE",    "aliases": ["MOYHU"],                                                    "logo": null },
-    { "code": "MYC",  "name": "MYC Gymnastics",                        "region": "Metro South",    "aliases": [],                                                           "logo": null },
+    { "code": "MYC",  "name": "MYC Gymnastics",                        "region": "Metro South",    "aliases": ["MYC GOLD", "MYC NAVY", "GILCRIST MYC", "RODWELL MYC"],        "logo": null },
     { "code": "NAT",  "name": "Natimuk and District Gymnastic Club",    "region": "Regional West",  "aliases": ["NATIMUK"],                                                  "logo": null },
     { "code": "NID",  "name": "Niddrie Gymnastic Club",                 "region": "Metro West",     "aliases": ["NIDDRIE"],                                                  "logo": null },
     { "code": "NUN",  "name": "Nunawading Gymnastics and Sports Club",  "region": "Metro East",     "aliases": ["NUNAWADING"],                                               "logo": null },
