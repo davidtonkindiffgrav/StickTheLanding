@@ -406,19 +406,18 @@
 
 <script>
 // ---------------------------------------------------------------------------
-// Data loading
+// State
 // ---------------------------------------------------------------------------
-let DATA = null;
-let DB   = null;
-let CLUBS = {}; // code → full name
+let DB         = null;
+let CLUBS      = {};   // code → full name
 let CLUBS_LIST = [];
-let INTERSTATE = new Set(); // interstate club codes
-let PDF_MANIFEST = {}; // comp name → [{file_path, source_url}]
-let LEVEL_DIVS = []; // [{level, division}] sorted
-let activeLevel    = null; // null = All, or a number
-let activeDivision = null; // null = All, or a number
-let activeRegion   = null; // null = All, or region string
+let INTERSTATE = new Set();
+let LEVEL_DIVS = [];   // [{level, division}] sorted, loaded at init
+let activeLevel    = null;
+let activeDivision = null;
+let activeRegion   = null;
 let activeView = "clubs";
+let _compList  = [];   // [{id, name, event_count, athlete_count}] cached by renderCompetitions
 
 function _execRows(resultSet) {
   if (!resultSet || !resultSet.length) return [];
@@ -430,19 +429,16 @@ async function loadData() {
     const workerUrl = new URL("sql/sqlite.worker.js", location.href).toString();
     const wasmUrl   = new URL("sql/sql-wasm.wasm",   location.href).toString();
     const dbUrl     = new URL("data/stick.db",        location.href).toString();
-    // dbconfig.json is written by update.py and includes fileSize so GitHub Pages
-    // CDN doesn't need to return Content-Length
-    const cfgResp = await fetch(new URL("data/dbconfig.json", location.href).toString());
-    const dbCfg   = await cfgResp.json();
-    dbCfg.url     = dbUrl;
-    const worker = await createDbWorker(
+    const cfgResp   = await fetch(new URL("data/dbconfig.json", location.href).toString());
+    const dbCfg     = await cfgResp.json();
+    dbCfg.url       = dbUrl;
+    const worker    = await createDbWorker(
       [{ from: "inline", config: dbCfg }],
-      workerUrl,
-      wasmUrl
+      workerUrl, wasmUrl
     );
     DB = worker.db;
 
-    // Clubs
+    // Clubs — small, needed everywhere for clubDisplay() and region filters
     const clubRows = _execRows(await DB.exec("SELECT code, name, region, logo FROM clubs ORDER BY name"));
     for (const [code, name, region, logo] of clubRows) {
       CLUBS[code] = name;
@@ -450,110 +446,27 @@ async function loadData() {
     }
     INTERSTATE = new Set(CLUBS_LIST.filter(c => c.region === "Interstate").map(c => c.code));
 
-    // PDF manifest
-    const mfRows = _execRows(await DB.exec(
-      "SELECT competition_name, file_path, source_url FROM pdf_manifest ORDER BY competition_name, file_path"
+    // Level/division list for filter buttons — tiny
+    const ldRows = _execRows(await DB.exec(
+      "SELECT DISTINCT level, division FROM events ORDER BY level, division"
     ));
-    for (const [comp_name, file_path, source_url] of mfRows) {
-      if (!PDF_MANIFEST[comp_name]) PDF_MANIFEST[comp_name] = [];
-      PDF_MANIFEST[comp_name].push({ file_path: file_path.replace(/\\/g, "/"), source_url });
-    }
-
-    // Competitions
-    DATA = { competitions: [], season: "2025", sport: "WAG" };
-    const compRows = _execRows(await DB.exec("SELECT id, name, season, sport FROM competitions ORDER BY name"));
-    const compById = {};
-    for (const [id, name, season, sport] of compRows) {
-      const comp = { id, name, season, sport, events: [] };
-      DATA.competitions.push(comp);
-      compById[id] = comp;
-    }
-
-    // Events
-    const evRows = _execRows(await DB.exec(
-      "SELECT id, competition_id, level, division, event_type, source_file FROM events"
-    ));
-    const evById = {};
-    for (const [id, competition_id, level, division, event_type, source_file] of evRows) {
-      const ev = { id, level, division, event_type, source_file, results: [] };
-      evById[id] = ev;
-      if (compById[competition_id]) compById[competition_id].events.push(ev);
-    }
-
-    // Results
-    const resRows = _execRows(await DB.exec(
-      "SELECT event_id, rank, athlete, club, vault, bars, beam, floor, total FROM results"
-    ));
-    for (const [event_id, rank, athlete, club, vault, bars, beam, floor, total] of resRows) {
-      if (evById[event_id]) evById[event_id].results.push({ rank, athlete, club, vault, bars, beam, floor, total });
-    }
+    LEVEL_DIVS = ldRows.map(([level, division]) => ({ level, division }));
 
   } catch (e) {
-    DATA = null;
     showNoData(`Could not load database: ${e.message || e}. Run update.py first.`);
     return;
   }
 
   document.getElementById("updated-at").textContent = "";
-
-  LEVEL_DIVS = extractLevelDivisions(DATA);
   buildLevelFilters();
   buildRegionFilters();
-  // Auto-select first level on initial load (no "All Levels" option exists)
   const firstLevelBtn = document.querySelector("#level-filter-bar .filter-btn");
   if (firstLevelBtn) firstLevelBtn.click();
   else render();
 }
 
-function extractLevelDivisions(data) {
-  const seen = new Map();
-  for (const comp of data.competitions || []) {
-    for (const ev of comp.events || []) {
-      const key = `${ev.level}||${ev.division}`;
-      if (!seen.has(key)) seen.set(key, { level: ev.level, division: ev.division });
-    }
-  }
-  return [...seen.values()].sort((a, b) =>
-    a.level !== b.level ? a.level - b.level : a.division - b.division
-  );
-}
-
-function filterKey(ld) { return `${ld.level}||${ld.division}`; }
-function filterLabel(ld) { return `L${ld.level} D${ld.division}`; }
 function levelDivDisplay(level, division) {
   return level != null ? `L${level} D${division}` : "-";
-}
-
-function filteredResults() {
-  if (!DATA) return [];
-  const rows = [];
-  for (const comp of DATA.competitions || []) {
-    for (const ev of comp.events || []) {
-      if (ev.event_type === "Team") continue;
-      if (activeLevel    !== null && ev.level    !== activeLevel)    continue;
-      if (activeDivision !== null && ev.division !== activeDivision) continue;
-      for (const r of ev.results || []) {
-        rows.push({ ...r, competition: comp.name, level: ev.level, division: ev.division, event_type: ev.event_type });
-      }
-    }
-  }
-  return rows;
-}
-
-function teamResults() {
-  if (!DATA) return [];
-  const rows = [];
-  for (const comp of DATA.competitions || []) {
-    for (const ev of comp.events || []) {
-      if (ev.event_type !== "Team") continue;
-      if (activeLevel    !== null && ev.level    !== activeLevel)    continue;
-      if (activeDivision !== null && ev.division !== activeDivision) continue;
-      for (const r of ev.results || []) {
-        rows.push({ ...r, competition: comp.name, level: ev.level, division: ev.division });
-      }
-    }
-  }
-  return rows;
 }
 
 // ---------------------------------------------------------------------------
@@ -588,17 +501,28 @@ function buildTeamStandings(rows) {
   }));
 }
 
-function renderClubs() {
-  const rows = teamResults();
+async function renderClubs() {
+  let sql = `
+    SELECT r.club, r.rank, r.total, c.name, e.level, e.division
+    FROM results r
+    JOIN events e ON r.event_id = e.id
+    JOIN competitions c ON e.competition_id = c.id
+    WHERE e.event_type = 'Team'`;
+  const params = [];
+  if (activeLevel    !== null) { sql += ` AND e.level = ?`;    params.push(activeLevel); }
+  if (activeDivision !== null) { sql += ` AND e.division = ?`; params.push(activeDivision); }
+
+  const raw = _execRows(await DB.exec(sql, params));
+  const rows = raw.map(([club, rank, total, competition, level, division]) =>
+    ({ club, rank, total, competition, level, division }));
+
   let standings = buildTeamStandings(rows);
   if (activeRegion) {
     const clubRegion = {};
     for (const c of CLUBS_LIST) clubRegion[c.code] = c.region;
     standings = standings.filter(s => clubRegion[s.club] === activeRegion);
   }
-  const tip = (arr) => arr.length ? ` title="${esc(arr.join('\n'))}"` : "";
 
-  // High Score table
   const byHighScore = [...standings].sort((a, b) => b.highScore - a.highScore);
   const hsTbody = document.getElementById("team-highscore-tbody");
   if (!byHighScore.length) {
@@ -617,7 +541,6 @@ function renderClubs() {
       </tr>`;
     }).join("");
   }
-
 }
 
 // ---------------------------------------------------------------------------
@@ -641,7 +564,7 @@ function buildAthleteStandings(rows) {
     .sort((a, b) => b.bestScore - a.bestScore || b.wins - a.wins);
 }
 
-function renderAthletes() {
+async function renderAthletes() {
   const tbody = document.getElementById("athlete-tbody");
 
   if (activeLevel === null && activeDivision === null) {
@@ -650,7 +573,19 @@ function renderAthletes() {
     return;
   }
 
-  const rows = filteredResults();
+  let sql = `
+    SELECT r.athlete, r.club, r.rank, r.total, c.name, e.level, e.division
+    FROM results r
+    JOIN events e ON r.event_id = e.id
+    JOIN competitions c ON e.competition_id = c.id
+    WHERE e.event_type != 'Team'`;
+  const params = [];
+  if (activeLevel    !== null) { sql += ` AND e.level = ?`;    params.push(activeLevel); }
+  if (activeDivision !== null) { sql += ` AND e.division = ?`; params.push(activeDivision); }
+
+  const raw = _execRows(await DB.exec(sql, params));
+  const rows = raw.map(([athlete, club, rank, total, competition, level, division]) =>
+    ({ athlete, club, rank, total, competition, level, division }));
   const standings = buildAthleteStandings(rows);
 
   if (!standings.length) { tbody.innerHTML = `<tr><td colspan="7" class="no-data">No data for this filter.</td></tr>`; return; }
@@ -677,35 +612,39 @@ function renderAthletes() {
 // ---------------------------------------------------------------------------
 // Competitions
 // ---------------------------------------------------------------------------
-function renderCompetitions() {
-  if (!DATA) return;
+async function renderCompetitions() {
   const grid = document.getElementById("comp-grid");
-  const comps = DATA.competitions || [];
 
-  if (!comps.length) {
-    grid.innerHTML = `<div class="no-data" style="grid-column:1/-1"><strong>No competitions loaded</strong>Run scraper.py and parser.py first.</div>`;
+  const raw = _execRows(await DB.exec(`
+    SELECT c.id, c.name, COUNT(DISTINCT e.id), COUNT(r.id)
+    FROM competitions c
+    JOIN events e ON e.competition_id = c.id
+    LEFT JOIN results r ON r.event_id = e.id
+    GROUP BY c.id ORDER BY c.name
+  `));
+  _compList = raw.map(([id, name, event_count, athlete_count]) => ({ id, name, event_count, athlete_count }));
+
+  if (!_compList.length) {
+    grid.innerHTML = `<div class="no-data" style="grid-column:1/-1"><strong>No competitions loaded</strong>Run update.py first.</div>`;
     return;
   }
 
-  grid.innerHTML = comps.map((c, i) => {
-    const totalAthletes = c.events.reduce((s, ev) => s + (ev.results || []).length, 0);
-    return `
-      <div class="comp-card" data-comp="${i}">
-        <h3>${esc(c.name)}</h3>
-        <p class="comp-meta">${c.events.length} event(s) &bull; ${totalAthletes} athlete result(s)</p>
-        <span class="comp-pill">WAG 2025</span>
-        <div class="comp-actions">
-          <button class="comp-btn btn-results" data-comp="${i}">Results</button>
-          <button class="comp-btn btn-pdfs" data-comp="${i}">Raw PDFs</button>
-        </div>
-      </div>`;
-  }).join("");
+  grid.innerHTML = _compList.map((c, i) => `
+    <div class="comp-card">
+      <h3>${esc(c.name)}</h3>
+      <p class="comp-meta">${c.event_count} event(s) &bull; ${c.athlete_count} athlete result(s)</p>
+      <span class="comp-pill">WAG 2025</span>
+      <div class="comp-actions">
+        <button class="comp-btn btn-results" data-idx="${i}">Results</button>
+        <button class="comp-btn btn-pdfs" data-idx="${i}">Raw PDFs</button>
+      </div>
+    </div>`).join("");
 
   grid.querySelectorAll(".btn-results").forEach(btn =>
-    btn.addEventListener("click", e => { e.stopPropagation(); openDrill(+btn.dataset.comp); })
+    btn.addEventListener("click", e => { e.stopPropagation(); openDrill(_compList[+btn.dataset.idx]); })
   );
   grid.querySelectorAll(".btn-pdfs").forEach(btn =>
-    btn.addEventListener("click", e => { e.stopPropagation(); openPDFList(+btn.dataset.comp); })
+    btn.addEventListener("click", e => { e.stopPropagation(); openPDFList(_compList[+btn.dataset.idx].name); })
   );
 }
 
@@ -795,82 +734,84 @@ function initClubDirectory() {
 // ---------------------------------------------------------------------------
 // Drill-down overlay
 // ---------------------------------------------------------------------------
-function openDrill(compIdx) {
-  const comp = (DATA.competitions || [])[compIdx];
-  if (!comp) return;
-
+async function openDrill(comp) {
   document.getElementById("drill-title").textContent = comp.name;
-  document.getElementById("drill-meta").textContent =
-    `${comp.events.length} event(s) · WAG · 2025`;
+  document.getElementById("drill-meta").textContent = "";
+  document.getElementById("drill-events").innerHTML = `<p style="color:var(--muted);padding:12px">Loading…</p>`;
+  document.getElementById("drill-overlay").classList.add("open");
 
-  const eventsEl = document.getElementById("drill-events");
-  eventsEl.innerHTML = comp.events.map(ev => {
+  const raw = _execRows(await DB.exec(`
+    SELECT e.id, e.level, e.division, e.event_type, r.rank, r.athlete, r.club, r.total
+    FROM events e
+    LEFT JOIN results r ON r.event_id = e.id
+    WHERE e.competition_id = ?
+    ORDER BY e.id, r.rank
+  `, [comp.id]));
+
+  // Group rows by event id
+  const evMap = new Map();
+  for (const [eid, level, division, event_type, rank, athlete, club, total] of raw) {
+    if (!evMap.has(eid)) evMap.set(eid, { level, division, event_type, results: [] });
+    if (rank !== null) evMap.get(eid).results.push({ rank, athlete, club, total });
+  }
+  const events = [...evMap.values()];
+
+  document.getElementById("drill-meta").textContent = `${events.length} event(s) · WAG · 2025`;
+  document.getElementById("drill-events").innerHTML = events.map(ev => {
     const title = [ev.level ? `Level ${ev.level}` : "", ev.division ? `Div ${ev.division}` : "", ev.event_type || ""]
       .filter(Boolean).join(" · ");
-    let rows, header;
+    let trows, header;
     if (ev.event_type === "Team") {
       header = `<tr><th>#</th><th>Club</th><th>Total</th></tr>`;
-      rows = (ev.results || []).map((r, i) => `
+      trows = ev.results.map(r => `
         <tr>
-          <td>${rankBadge(r.rank || i + 1)}</td>
+          <td>${rankBadge(r.rank)}</td>
           <td><strong>${clubDisplay(r.club || "")}</strong></td>
           <td class="score">${r.total != null ? r.total.toFixed(3) : "-"}</td>
         </tr>`).join("");
     } else {
       header = `<tr><th>#</th><th>Athlete</th><th>Club</th><th>Total</th></tr>`;
-      rows = (ev.results || []).map((r, i) => `
+      trows = ev.results.map(r => `
         <tr>
-          <td>${rankBadge(r.rank || i + 1)}</td>
+          <td>${rankBadge(r.rank)}</td>
           <td><strong>${esc(r.athlete || "")}</strong></td>
           <td>${clubDisplay(r.club || "")}</td>
           <td class="score">${r.total != null ? r.total.toFixed(3) : "-"}</td>
         </tr>`).join("");
     }
-
     return `
       <div class="event-section">
         <h4>${esc(title)}</h4>
         <table class="leaderboard">
           <thead>${header}</thead>
-          <tbody>${rows || `<tr><td colspan="4" style="color:var(--muted);padding:12px">No results parsed</td></tr>`}</tbody>
+          <tbody>${trows || `<tr><td colspan="4" style="color:var(--muted);padding:12px">No results parsed</td></tr>`}</tbody>
         </table>
       </div>`;
   }).join("");
-
-  document.getElementById("drill-overlay").classList.add("open");
 }
 
-function openPDFList(compIdx) {
-  const comp = (DATA.competitions || [])[compIdx];
-  if (!comp) return;
-
-  document.getElementById("drill-title").textContent = comp.name + " — PDF Files";
+async function openPDFList(compName) {
+  document.getElementById("drill-title").textContent = compName + " — PDF Files";
   document.getElementById("drill-meta").textContent = "";
+  document.getElementById("drill-events").innerHTML = `<p style="color:var(--muted);padding:12px">Loading…</p>`;
+  document.getElementById("drill-overlay").classList.add("open");
 
-  // Use manifest for full file list; fall back to source_files from events
-  let files = PDF_MANIFEST[comp.name] || [];
-  if (!files.length) {
-    const seen = new Set();
-    for (const ev of comp.events || []) {
-      const sf = ev.source_file;
-      if (sf && !seen.has(sf)) { seen.add(sf); files.push({ file_path: sf.replace(/\\/g, "/"), source_url: null }); }
-    }
-  }
+  const rows = _execRows(await DB.exec(
+    "SELECT file_path, source_url FROM pdf_manifest WHERE competition_name = ? ORDER BY file_path",
+    [compName]
+  ));
 
-  const links = files.map(f => {
-    const fp = f.file_path || f;
+  const links = rows.map(([file_path, source_url]) => {
+    const fp = (file_path || "").replace(/\\/g, "/");
     const label = fp.replace(/\//g, " / ");
-    if (f.source_url) {
-      return `<li><a href="${f.source_url}" target="_blank">${esc(label)}</a></li>`;
-    }
-    return `<li><span style="color:var(--muted)">${esc(label)}</span></li>`;
+    return source_url
+      ? `<li><a href="${source_url}" target="_blank">${esc(label)}</a></li>`
+      : `<li><span style="color:var(--muted)">${esc(label)}</span></li>`;
   }).join("");
 
-  document.getElementById("drill-events").innerHTML = files.length
+  document.getElementById("drill-events").innerHTML = rows.length
     ? `<ul class="pdf-list">${links}</ul>`
     : `<p style="color:var(--muted);padding:12px">No PDF files recorded for this competition.</p>`;
-
-  document.getElementById("drill-overlay").classList.add("open");
 }
 
 document.getElementById("close-drill").addEventListener("click", () => {
@@ -986,6 +927,7 @@ function render() {
   else if (activeView === "athletes") renderAthletes();
   else if (activeView === "competitions") renderCompetitions();
   else if (activeView === "club-directory") renderClubDirectory();
+  // async — callers intentionally don't await; last-write-wins is fine at this scale
 }
 
 function rankBadge(rank) {
