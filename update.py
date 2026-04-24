@@ -470,7 +470,7 @@ def _finalize(con) -> None:
         json.dump({
             "serverMode": "full",
             "requestChunkSize": 1024,
-            "fileSize": file_size,
+            "fileLength": file_size,
         }, f)
     print(f"  dbconfig.json updated (fileSize: {file_size:,} bytes)")
 
