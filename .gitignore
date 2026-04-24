@@ -1,0 +1,13 @@
+pdfs/
+*.pdf
+__pycache__/
+*.pyc
+*.pyo
+temp/
+.claude/
+data/competitions.json
+data/pdf_manifest.json
+data/all_links.json
+data/links_2025_wag.json
+test.py
+testResults.txt

@@ -1,0 +1,1021 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Stick The Landing - WAG 2025 Leaderboards</title>
+  <script src="sql/sql-httpvfs.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0f0f13;
+      --surface: #1a1a24;
+      --surface2: #222230;
+      --border: #2e2e42;
+      --accent: #7c6dfa;
+      --accent2: #fa6d9a;
+      --gold: #f5c518;
+      --silver: #b0b8c4;
+      --bronze: #cd7f32;
+      --text: #e8e8f0;
+      --muted: #8888aa;
+      --green: #4ade80;
+      --radius: 10px;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: system-ui, -apple-system, sans-serif;
+      font-size: 15px;
+      line-height: 1.5;
+    }
+
+    header {
+      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+      border-bottom: 2px solid var(--accent);
+      padding: 24px 32px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+    header h1 { font-size: 1.75rem; font-weight: 800; letter-spacing: -0.5px; }
+    header h1 span { color: var(--accent); }
+    header p { color: var(--muted); font-size: 0.85rem; margin-top: 2px; }
+    .badge {
+      background: var(--accent);
+      color: #fff;
+      font-size: 0.7rem;
+      font-weight: 700;
+      padding: 3px 8px;
+      border-radius: 999px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+    }
+
+    nav {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      gap: 0;
+      padding: 0 32px;
+      overflow-x: auto;
+    }
+    nav button {
+      background: none;
+      border: none;
+      color: var(--muted);
+      cursor: pointer;
+      font-size: 0.9rem;
+      font-weight: 600;
+      padding: 14px 20px;
+      border-bottom: 3px solid transparent;
+      transition: color 0.15s, border-color 0.15s;
+      white-space: nowrap;
+    }
+    nav button:hover { color: var(--text); }
+    nav button.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+    main { padding: 32px; max-width: 1200px; margin: 0 auto; }
+
+    .view { display: none; }
+    .view.active { display: block; }
+
+    h2 { font-size: 1.25rem; font-weight: 700; margin-bottom: 20px; }
+    h3 { font-size: 1rem; font-weight: 600; margin-bottom: 12px; color: var(--muted); }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px 24px;
+      margin-bottom: 16px;
+    }
+
+    /* Leaderboard table */
+    .leaderboard {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    .leaderboard th {
+      text-align: left;
+      color: var(--muted);
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 0.8px;
+      text-transform: uppercase;
+      padding: 8px 12px;
+      border-bottom: 1px solid var(--border);
+    }
+    .leaderboard td {
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--border);
+    }
+    .leaderboard tr:last-child td { border-bottom: none; }
+    .leaderboard tr:hover td { background: var(--surface2); }
+
+    .rank-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 28px; height: 28px;
+      border-radius: 50%;
+      font-weight: 800;
+      font-size: 0.8rem;
+    }
+    .rank-1 { background: var(--gold); color: #000; }
+    .rank-2 { background: var(--silver); color: #000; }
+    .rank-3 { background: var(--bronze); color: #fff; }
+    .rank-n { background: var(--surface2); color: var(--muted); }
+
+    .stat-row {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+    .stat-chip {
+      background: var(--surface2);
+      border-radius: 6px;
+      padding: 2px 8px;
+      font-size: 0.78rem;
+      font-weight: 600;
+    }
+    .stat-chip.gold { background: rgba(245,197,24,0.15); color: var(--gold); }
+    .stat-chip.silver { background: rgba(176,184,196,0.15); color: var(--silver); }
+    .stat-chip.bronze { background: rgba(205,127,50,0.15); color: var(--bronze); }
+    .stat-chip.green { background: rgba(74,222,128,0.12); color: var(--green); }
+
+    .score { font-variant-numeric: tabular-nums; font-weight: 600; }
+    .score-hi { color: var(--green); }
+
+    /* Competition cards */
+    .comp-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 16px;
+    }
+    .comp-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 18px 20px;
+      cursor: pointer;
+      transition: border-color 0.15s, transform 0.1s;
+    }
+    .comp-card:hover { border-color: var(--accent); transform: translateY(-2px); }
+    .comp-card h3 { font-size: 1rem; font-weight: 700; color: var(--text); margin-bottom: 6px; }
+    .comp-meta { color: var(--muted); font-size: 0.82rem; }
+    .comp-actions { display: flex; gap: 8px; margin-top: 10px; }
+    .comp-btn { flex: 1; padding: 6px 10px; border: none; border-radius: 6px; cursor: pointer; font-size: 0.8rem; font-weight: 600; }
+    .btn-results { background: var(--accent); color: #fff; }
+    .btn-pdfs { background: var(--surface2, #2a2a3a); color: var(--text); border: 1px solid var(--border); }
+    .pdf-list { list-style: none; padding: 12px 0; margin: 0; }
+    .pdf-list li { padding: 8px 12px; border-bottom: 1px solid var(--border, #333); }
+    .pdf-list li a { color: var(--accent); text-decoration: none; font-size: 0.9rem; }
+    .pdf-list li a:hover { text-decoration: underline; }
+    .standings-subtitle { margin: 20px 0 8px; font-size: 1rem; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; }
+    .club-code { font-size: 0.72rem; font-weight: 700; color: var(--muted); background: rgba(255,255,255,0.06); border: 1px solid var(--border); border-radius: 4px; padding: 1px 5px; margin-left: 4px; vertical-align: middle; letter-spacing: 0.04em; }
+    .club-logo-sm { height: 28px; width: 28px; object-fit: contain; border-radius: 4px; vertical-align: middle; }
+    .club-logo-md { height: 44px; width: 44px; object-fit: contain; border-radius: 5px; vertical-align: middle; }
+    .logo-hover-wrap { position: relative; display: inline-block; }
+    .logo-preview { display: none; position: fixed; width: 256px; height: 256px; object-fit: contain; background: rgba(255,255,255,0.3); border: 1px solid var(--border); border-radius: 8px; box-shadow: 0 8px 32px rgba(0,0,0,0.5); z-index: 1000; pointer-events: none; }
+    td.logo-cell { width: 48px; text-align: center; padding: 6px 8px; }
+    td.logo-cell-md { width: 60px; text-align: center; padding: 8px 10px; }
+    .sortable:hover { color: var(--accent); }
+    .sort-icon { font-size: 0.7rem; opacity: 0.5; margin-left: 2px; }
+    .sort-icon.asc::after { content: "↑"; }
+    .sort-icon.desc::after { content: "↓"; }
+    .sort-icon.asc, .sort-icon.desc { opacity: 1; color: var(--accent); }
+    .region-pill { display: inline-block; font-size: 0.72rem; font-weight: 600; padding: 2px 8px; border-radius: 999px; white-space: nowrap; }
+    .venue-list { font-size: 0.7rem; color: var(--muted); margin-top: 3px; }
+    .region-metro-east    { background: rgba(124,109,250,0.18); color: #a99fff; }
+    .region-metro-north   { background: rgba(56,189,248,0.18);  color: #7dd3fc; }
+    .region-metro-south   { background: rgba(52,211,153,0.18);  color: #6ee7b7; }
+    .region-metro-west    { background: rgba(251,191,36,0.18);  color: #fcd34d; }
+    .region-regional-ne   { background: rgba(249,115,22,0.18);  color: #fdba74; }
+    .region-regional-se   { background: rgba(236,72,153,0.18);  color: #f9a8d4; }
+    .region-regional-west { background: rgba(163,230,53,0.18);  color: #bef264; }
+    .region-multi         { background: rgba(148,163,184,0.18); color: #94a3b8; }
+    .region-interstate    { background: rgba(148,163,184,0.12); color: #64748b; }
+    .standings-note { font-size: 0.82rem; color: var(--muted); margin: 0 0 16px; padding: 10px 14px; background: rgba(124,109,250,0.08); border-left: 3px solid var(--accent); border-radius: 0 6px 6px 0; }
+    .comp-pill {
+      display: inline-block;
+      background: rgba(124,109,250,0.15);
+      color: var(--accent);
+      font-size: 0.72rem;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 999px;
+      margin-top: 8px;
+    }
+
+    /* Level filter */
+    .filter-bar {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-bottom: 20px;
+      align-items: center;
+    }
+    .filter-bar label { color: var(--muted); font-size: 0.82rem; margin-right: 4px; }
+    .filter-btn {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--muted);
+      padding: 5px 14px;
+      border-radius: 999px;
+      cursor: pointer;
+      font-size: 0.82rem;
+      font-weight: 600;
+      transition: all 0.12s;
+    }
+    .filter-btn:hover { border-color: var(--accent); color: var(--text); }
+    .filter-btn.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+
+    /* Drill-down modal */
+    #drill-overlay {
+      display: none;
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,0.7);
+      z-index: 100;
+      overflow-y: auto;
+      padding: 40px 16px;
+    }
+    #drill-overlay.open { display: block; }
+    #drill-box {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      max-width: 700px;
+      margin: 0 auto;
+      padding: 28px;
+    }
+    #drill-box h2 { margin-bottom: 4px; }
+    #drill-box .close-btn {
+      float: right;
+      background: none;
+      border: none;
+      color: var(--muted);
+      font-size: 1.4rem;
+      cursor: pointer;
+      line-height: 1;
+      margin-top: -4px;
+    }
+    .event-section { margin-top: 20px; }
+    .event-section h4 {
+      font-size: 0.8rem;
+      font-weight: 700;
+      letter-spacing: 0.6px;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 8px;
+    }
+
+    .no-data {
+      text-align: center;
+      color: var(--muted);
+      padding: 48px 20px;
+      font-size: 0.95rem;
+    }
+    .no-data strong { display: block; font-size: 1.1rem; color: var(--text); margin-bottom: 8px; }
+
+    .updated { color: var(--muted); font-size: 0.78rem; margin-bottom: 24px; }
+  </style>
+</head>
+<body>
+
+<header>
+  <div>
+    <h1>Stick The <span>Landing</span></h1>
+    <p>Victorian WAG 2025 - Season Leaderboards</p>
+  </div>
+  <div class="badge">2025</div>
+</header>
+
+<nav>
+  <button class="active" data-view="clubs">Team Standings</button>
+  <button data-view="athletes">Individual Rankings</button>
+  <button data-view="competitions">Competitions</button>
+  <button data-view="club-directory">Clubs</button>
+</nav>
+
+<main>
+  <p class="updated" id="updated-at"></p>
+
+  <!-- TEAM STANDINGS -->
+  <section class="view active" id="view-clubs">
+    <h2>Team Standings - 2025 Season</h2>
+    <div class="filter-bar" id="level-filter-bar">
+      <label>Level:</label>
+    </div>
+    <div class="filter-bar" id="division-filter-bar">
+      <label>Division:</label>
+      <button class="filter-btn active" data-division="all">All</button>
+    </div>
+    <div class="filter-bar" id="region-filter-bar">
+      <label>Region:</label>
+      <button class="filter-btn active" data-region="all">All</button>
+    </div>
+
+    <p class="standings-note">Clubs may enter multiple squads in the same event. All squads from the same club are counted together — points and wins from every squad contribute to the club's total.</p>
+
+    <h3 class="standings-subtitle">By High Score</h3>
+    <div class="card" style="padding:0; overflow:hidden; margin-bottom:24px">
+      <table class="leaderboard" id="team-highscore-table">
+        <thead>
+          <tr>
+            <th style="width:52px">#</th>
+            <th style="width:48px"></th>
+            <th>Club</th>
+            <th title="Best single team score across all competitions">High Score</th>
+            <th title="Average team score across all competitions">Avg Score</th>
+            <th>Comps</th>
+          </tr>
+        </thead>
+        <tbody id="team-highscore-tbody"></tbody>
+      </table>
+    </div>
+
+  </section>
+
+  <!-- INDIVIDUAL LEADERBOARD -->
+  <section class="view" id="view-athletes">
+    <h2>Individual Rankings - 2025 Season</h2>
+    <div class="filter-bar" id="athlete-level-filter-bar">
+      <label>Level:</label>
+    </div>
+    <div class="filter-bar" id="athlete-division-filter-bar">
+      <label>Division:</label>
+      <button class="filter-btn active" data-division="all">All</button>
+    </div>
+    <div class="card" style="padding:0; overflow:hidden;">
+      <table class="leaderboard" id="athlete-table">
+        <thead>
+          <tr>
+            <th style="width:52px">#</th>
+            <th>Athlete</th>
+            <th style="width:48px"></th>
+            <th>Club</th>
+            <th>Level</th>
+            <th>Comps</th>
+            <th>Best Score</th>
+            <th>Wins</th>
+          </tr>
+        </thead>
+        <tbody id="athlete-tbody"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- COMPETITIONS -->
+  <section class="view" id="view-competitions">
+    <h2>All Competitions - 2025</h2>
+    <div class="comp-grid" id="comp-grid"></div>
+  </section>
+
+  <!-- CLUB DIRECTORY -->
+  <section class="view" id="view-club-directory">
+    <h2>Club Directory</h2>
+    <p class="standings-note" style="margin-bottom:20px">All Victorian WAG clubs participating in the 2025 season. Click a column heading to sort.</p>
+    <div class="card" style="padding:0; overflow:hidden">
+      <table class="leaderboard" id="club-dir-table">
+        <thead>
+          <tr>
+            <th style="width:60px"></th>
+            <th class="sortable" data-col="name" style="cursor:pointer">Club Name <span class="sort-icon" id="sort-name">↕</span></th>
+            <th class="sortable" data-col="code" style="cursor:pointer; width:80px">Code <span class="sort-icon" id="sort-code">↕</span></th>
+            <th class="sortable" data-col="region" style="cursor:pointer; width:160px">Region <span class="sort-icon" id="sort-region">↕</span></th>
+          </tr>
+        </thead>
+        <tbody id="club-dir-tbody"></tbody>
+      </table>
+    </div>
+  </section>
+</main>
+
+<!-- Drill-down overlay -->
+<div id="drill-overlay">
+  <div id="drill-box">
+    <button class="close-btn" id="close-drill">&#x2715;</button>
+    <h2 id="drill-title"></h2>
+    <p class="comp-meta" id="drill-meta"></p>
+    <div id="drill-events"></div>
+  </div>
+</div>
+
+<script>
+// ---------------------------------------------------------------------------
+// Data loading
+// ---------------------------------------------------------------------------
+let DATA = null;
+let DB   = null;
+let CLUBS = {}; // code → full name
+let CLUBS_LIST = [];
+let INTERSTATE = new Set(); // interstate club codes
+let PDF_MANIFEST = {}; // comp name → [{file_path, source_url}]
+let LEVEL_DIVS = []; // [{level, division}] sorted
+let activeLevel    = null; // null = All, or a number
+let activeDivision = null; // null = All, or a number
+let activeRegion   = null; // null = All, or region string
+let activeView = "clubs";
+
+function _execRows(resultSet) {
+  if (!resultSet || !resultSet.length) return [];
+  return resultSet[0].values || [];
+}
+
+async function loadData() {
+  try {
+    const workerUrl = new URL("sql/sqlite.worker.js", location.href).toString();
+    const wasmUrl   = new URL("sql/sql-wasm.wasm",   location.href).toString();
+    const dbUrl     = new URL("data/stick.db",        location.href).toString();
+    const worker = await createDbWorker(
+      [{ from: "inline", config: { serverMode: "full", requestChunkSize: 1024, url: dbUrl } }],
+      workerUrl,
+      wasmUrl
+    );
+    DB = worker.db;
+
+    // Clubs
+    const clubRows = _execRows(await DB.exec("SELECT code, name, region, logo FROM clubs ORDER BY name"));
+    for (const [code, name, region, logo] of clubRows) {
+      CLUBS[code] = name;
+      CLUBS_LIST.push({ code, name, region, logo });
+    }
+    INTERSTATE = new Set(CLUBS_LIST.filter(c => c.region === "Interstate").map(c => c.code));
+
+    // PDF manifest
+    const mfRows = _execRows(await DB.exec(
+      "SELECT competition_name, file_path, source_url FROM pdf_manifest ORDER BY competition_name, file_path"
+    ));
+    for (const [comp_name, file_path, source_url] of mfRows) {
+      if (!PDF_MANIFEST[comp_name]) PDF_MANIFEST[comp_name] = [];
+      PDF_MANIFEST[comp_name].push({ file_path: file_path.replace(/\\/g, "/"), source_url });
+    }
+
+    // Competitions
+    DATA = { competitions: [], season: "2025", sport: "WAG" };
+    const compRows = _execRows(await DB.exec("SELECT id, name, season, sport FROM competitions ORDER BY name"));
+    const compById = {};
+    for (const [id, name, season, sport] of compRows) {
+      const comp = { id, name, season, sport, events: [] };
+      DATA.competitions.push(comp);
+      compById[id] = comp;
+    }
+
+    // Events
+    const evRows = _execRows(await DB.exec(
+      "SELECT id, competition_id, level, division, event_type, source_file FROM events"
+    ));
+    const evById = {};
+    for (const [id, competition_id, level, division, event_type, source_file] of evRows) {
+      const ev = { id, level, division, event_type, source_file, results: [] };
+      evById[id] = ev;
+      if (compById[competition_id]) compById[competition_id].events.push(ev);
+    }
+
+    // Results
+    const resRows = _execRows(await DB.exec(
+      "SELECT event_id, rank, athlete, club, vault, bars, beam, floor, total FROM results"
+    ));
+    for (const [event_id, rank, athlete, club, vault, bars, beam, floor, total] of resRows) {
+      if (evById[event_id]) evById[event_id].results.push({ rank, athlete, club, vault, bars, beam, floor, total });
+    }
+
+  } catch (e) {
+    DATA = null;
+    showNoData(`Could not load database: ${e.message || e}. Run update.py first.`);
+    return;
+  }
+
+  document.getElementById("updated-at").textContent = "";
+
+  LEVEL_DIVS = extractLevelDivisions(DATA);
+  buildLevelFilters();
+  buildRegionFilters();
+  // Auto-select first level on initial load (no "All Levels" option exists)
+  const firstLevelBtn = document.querySelector("#level-filter-bar .filter-btn");
+  if (firstLevelBtn) firstLevelBtn.click();
+  else render();
+}
+
+function extractLevelDivisions(data) {
+  const seen = new Map();
+  for (const comp of data.competitions || []) {
+    for (const ev of comp.events || []) {
+      const key = `${ev.level}||${ev.division}`;
+      if (!seen.has(key)) seen.set(key, { level: ev.level, division: ev.division });
+    }
+  }
+  return [...seen.values()].sort((a, b) =>
+    a.level !== b.level ? a.level - b.level : a.division - b.division
+  );
+}
+
+function filterKey(ld) { return `${ld.level}||${ld.division}`; }
+function filterLabel(ld) { return `L${ld.level} D${ld.division}`; }
+function levelDivDisplay(level, division) {
+  return level != null ? `L${level} D${division}` : "-";
+}
+
+function filteredResults() {
+  if (!DATA) return [];
+  const rows = [];
+  for (const comp of DATA.competitions || []) {
+    for (const ev of comp.events || []) {
+      if (ev.event_type === "Team") continue;
+      if (activeLevel    !== null && ev.level    !== activeLevel)    continue;
+      if (activeDivision !== null && ev.division !== activeDivision) continue;
+      for (const r of ev.results || []) {
+        rows.push({ ...r, competition: comp.name, level: ev.level, division: ev.division, event_type: ev.event_type });
+      }
+    }
+  }
+  return rows;
+}
+
+function teamResults() {
+  if (!DATA) return [];
+  const rows = [];
+  for (const comp of DATA.competitions || []) {
+    for (const ev of comp.events || []) {
+      if (ev.event_type !== "Team") continue;
+      if (activeLevel    !== null && ev.level    !== activeLevel)    continue;
+      if (activeDivision !== null && ev.division !== activeDivision) continue;
+      for (const r of ev.results || []) {
+        rows.push({ ...r, competition: comp.name, level: ev.level, division: ev.division });
+      }
+    }
+  }
+  return rows;
+}
+
+// ---------------------------------------------------------------------------
+// Team standings
+// ---------------------------------------------------------------------------
+const POINTS_MAP = { 1: 6, 2: 5, 3: 4, 4: 3, 5: 2, 6: 1 };
+
+function buildTeamStandings(rows) {
+  const clubs = {};
+  for (const r of rows) {
+    const club = r.club || "Unknown";
+    if (!clubs[club]) clubs[club] = {
+      club, wins: 0, seconds: 0, thirds: 0, points: 0,
+      totalScore: 0, highScore: 0, highScoreDetail: "", count: 0, comps: new Set(),
+      winDetails: [], secondDetails: [], thirdDetails: []
+    };
+    const c = clubs[club];
+    const detail = `${r.competition} · L${r.level} D${r.division}`;
+    c.count++;
+    c.totalScore += r.total || 0;
+    if ((r.total || 0) > c.highScore) { c.highScore = r.total || 0; c.highScoreDetail = detail; }
+    if (r.rank === 1) { c.wins++;    c.winDetails.push(detail); }
+    if (r.rank === 2) { c.seconds++; c.secondDetails.push(detail); }
+    if (r.rank === 3) { c.thirds++;  c.thirdDetails.push(detail); }
+    c.points += POINTS_MAP[r.rank] || 0;
+    if (r.competition) c.comps.add(r.competition);
+  }
+  return Object.values(clubs).map(c => ({
+    ...c,
+    avgScore: c.count ? c.totalScore / c.count : 0,
+    comps: c.comps.size,
+  }));
+}
+
+function renderClubs() {
+  const rows = teamResults();
+  let standings = buildTeamStandings(rows);
+  if (activeRegion) {
+    const clubRegion = {};
+    for (const c of CLUBS_LIST) clubRegion[c.code] = c.region;
+    standings = standings.filter(s => clubRegion[s.club] === activeRegion);
+  }
+  const tip = (arr) => arr.length ? ` title="${esc(arr.join('\n'))}"` : "";
+
+  // High Score table
+  const byHighScore = [...standings].sort((a, b) => b.highScore - a.highScore);
+  const hsTbody = document.getElementById("team-highscore-tbody");
+  if (!byHighScore.length) {
+    hsTbody.innerHTML = `<tr><td colspan="6" class="no-data">No team data for this filter.</td></tr>`;
+  } else {
+    hsTbody.innerHTML = byHighScore.map((s, i) => {
+      const rank = i + 1;
+      const badge = rank <= 3 ? `<span class="rank-badge rank-${rank}">${rank}</span>` : `<span class="rank-badge rank-n">${rank}</span>`;
+      return `<tr>
+        <td>${badge}</td>
+        <td class="logo-cell">${clubLogo(s.club, "club-logo-sm")}</td>
+        <td><strong>${clubDisplay(s.club)}</strong></td>
+        <td class="score score-hi" title="${esc(s.highScoreDetail)}" style="cursor:${s.highScoreDetail?'help':'default'}">${s.highScore.toFixed(3)}</td>
+        <td class="score">${s.avgScore.toFixed(3)}</td>
+        <td class="score">${s.comps}</td>
+      </tr>`;
+    }).join("");
+  }
+
+}
+
+// ---------------------------------------------------------------------------
+// Individual athlete rankings
+// ---------------------------------------------------------------------------
+function buildAthleteStandings(rows) {
+  const athletes = {};
+  for (const r of rows) {
+    const key = `${r.athlete}||${r.club}||${r.level}||${r.division}`;
+    if (!athletes[key]) athletes[key] = {
+      athlete: r.athlete, club: r.club || "", level: r.level, division: r.division,
+      comps: new Set(), bestScore: 0, wins: 0, winDetails: []
+    };
+    const a = athletes[key];
+    if (r.competition) a.comps.add(r.competition);
+    if ((r.total || 0) > a.bestScore) a.bestScore = r.total || 0;
+    if (r.rank === 1) { a.wins++; a.winDetails.push(`${r.competition || "?"} (${(r.total||0).toFixed(3)})`); }
+  }
+  return Object.values(athletes)
+    .map(a => ({ ...a, comps: a.comps.size }))
+    .sort((a, b) => b.bestScore - a.bestScore || b.wins - a.wins);
+}
+
+function renderAthletes() {
+  const tbody = document.getElementById("athlete-tbody");
+
+  if (activeLevel === null && activeDivision === null) {
+    tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;color:var(--muted);padding:36px 12px">
+      Select a Level and/or Division above — athletes only rank within their own competitive group.</td></tr>`;
+    return;
+  }
+
+  const rows = filteredResults();
+  const standings = buildAthleteStandings(rows);
+
+  if (!standings.length) { tbody.innerHTML = `<tr><td colspan="7" class="no-data">No data for this filter.</td></tr>`; return; }
+
+  tbody.innerHTML = standings.map((a, i) => {
+    const rank = i + 1;
+    const badge = rank <= 3
+      ? `<span class="rank-badge rank-${rank}">${rank}</span>`
+      : `<span class="rank-badge rank-n">${rank}</span>`;
+    return `
+      <tr>
+        <td>${badge}</td>
+        <td><strong>${esc(a.athlete)}</strong></td>
+        <td class="logo-cell">${clubLogo(a.club, "club-logo-sm")}</td>
+        <td>${clubDisplay(a.club)}</td>
+        <td>${levelDivDisplay(a.level, a.division)}</td>
+        <td class="score">${a.comps}</td>
+        <td class="score score-hi">${a.bestScore.toFixed(3)}</td>
+        <td><span class="stat-chip gold"${a.winDetails.length ? ` title="${esc(a.winDetails.join('\n'))}"` : ""} style="cursor:${a.wins?'help':'default'}">${a.wins}</span></td>
+      </tr>`;
+  }).join("");
+}
+
+// ---------------------------------------------------------------------------
+// Competitions
+// ---------------------------------------------------------------------------
+function renderCompetitions() {
+  if (!DATA) return;
+  const grid = document.getElementById("comp-grid");
+  const comps = DATA.competitions || [];
+
+  if (!comps.length) {
+    grid.innerHTML = `<div class="no-data" style="grid-column:1/-1"><strong>No competitions loaded</strong>Run scraper.py and parser.py first.</div>`;
+    return;
+  }
+
+  grid.innerHTML = comps.map((c, i) => {
+    const totalAthletes = c.events.reduce((s, ev) => s + (ev.results || []).length, 0);
+    return `
+      <div class="comp-card" data-comp="${i}">
+        <h3>${esc(c.name)}</h3>
+        <p class="comp-meta">${c.events.length} event(s) &bull; ${totalAthletes} athlete result(s)</p>
+        <span class="comp-pill">WAG 2025</span>
+        <div class="comp-actions">
+          <button class="comp-btn btn-results" data-comp="${i}">Results</button>
+          <button class="comp-btn btn-pdfs" data-comp="${i}">Raw PDFs</button>
+        </div>
+      </div>`;
+  }).join("");
+
+  grid.querySelectorAll(".btn-results").forEach(btn =>
+    btn.addEventListener("click", e => { e.stopPropagation(); openDrill(+btn.dataset.comp); })
+  );
+  grid.querySelectorAll(".btn-pdfs").forEach(btn =>
+    btn.addEventListener("click", e => { e.stopPropagation(); openPDFList(+btn.dataset.comp); })
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Club directory
+// ---------------------------------------------------------------------------
+let dirSortCol = "region";
+let dirSortDir = 1; // 1 = asc, -1 = desc
+
+const REGION_ORDER = {
+  "Metro East": 1, "Metro North": 2, "Metro South": 3, "Metro West": 4,
+  "Regional NE": 5, "Regional SE": 6, "Regional West": 7,
+  "Multi-Region": 8, "Interstate": 9, "Unknown": 10,
+};
+
+function regionClass(region) {
+  const map = {
+    "Metro East": "region-metro-east", "Metro North": "region-metro-north",
+    "Metro South": "region-metro-south", "Metro West": "region-metro-west",
+    "Regional NE": "region-regional-ne", "Regional SE": "region-regional-se",
+    "Regional West": "region-regional-west", "Multi-Region": "region-multi",
+    "Interstate": "region-interstate",
+  };
+  return map[region] || "region-multi";
+}
+
+function renderClubDirectory() {
+  const tbody = document.getElementById("club-dir-tbody");
+  if (!tbody) return;
+
+  const sorted = [...CLUBS_LIST].filter(c => c.region !== "Interstate").sort((a, b) => {
+    let av, bv;
+    if (dirSortCol === "region") {
+      return dirSortDir * ((REGION_ORDER[a.region] || 99) - (REGION_ORDER[b.region] || 99) || (a.name || "").localeCompare(b.name || ""));
+    }
+    return dirSortDir * (a[dirSortCol] || "").toLowerCase().localeCompare((b[dirSortCol] || "").toLowerCase());
+  });
+
+  tbody.innerHTML = sorted.map(c => `
+    <tr>
+      <td class="logo-cell-md">${clubLogo(c.code, "club-logo-md", true)}</td>
+      <td><strong>${esc(c.name)}</strong></td>
+      <td><span class="club-code" style="margin-left:0">${esc(c.code)}</span></td>
+      <td>
+        ${c.region ? `<span class="region-pill ${regionClass(c.region)}">${esc(c.region)}</span>` : `<span style="color:var(--muted);font-size:0.8rem">Unknown</span>`}
+        ${c._venues ? `<div class="venue-list">${c._venues.map(v => esc(v)).join(' · ')}</div>` : ''}
+      </td>
+    </tr>`).join("");
+
+  // Update sort icons
+  ["name","code","region"].forEach(col => {
+    const el = document.getElementById(`sort-${col}`);
+    if (!el) return;
+    el.className = "sort-icon" + (dirSortCol === col ? (dirSortDir === 1 ? " asc" : " desc") : "");
+    el.textContent = dirSortCol === col ? "" : "↕";
+  });
+}
+
+function initClubDirectory() {
+  document.querySelectorAll("#club-dir-table .sortable").forEach(th => {
+    th.addEventListener("click", () => {
+      const col = th.dataset.col;
+      if (dirSortCol === col) dirSortDir *= -1;
+      else { dirSortCol = col; dirSortDir = 1; }
+      renderClubDirectory();
+    });
+  });
+
+  const table = document.getElementById("club-dir-table");
+  if (!table) return;
+  table.addEventListener("mousemove", e => {
+    const wrap = e.target.closest(".logo-hover-wrap");
+    const preview = wrap?.querySelector(".logo-preview");
+    document.querySelectorAll(".logo-preview").forEach(p => { if (p !== preview) p.style.display = "none"; });
+    if (!preview) return;
+    preview.style.display = "block";
+    const x = e.clientX + 16;
+    const y = e.clientY - 128;
+    preview.style.left = Math.min(x, window.innerWidth - 272) + "px";
+    preview.style.top  = Math.max(8, Math.min(y, window.innerHeight - 272)) + "px";
+  });
+  table.addEventListener("mouseleave", () => {
+    document.querySelectorAll(".logo-preview").forEach(p => p.style.display = "none");
+  });
+}
+
+// ---------------------------------------------------------------------------
+// Drill-down overlay
+// ---------------------------------------------------------------------------
+function openDrill(compIdx) {
+  const comp = (DATA.competitions || [])[compIdx];
+  if (!comp) return;
+
+  document.getElementById("drill-title").textContent = comp.name;
+  document.getElementById("drill-meta").textContent =
+    `${comp.events.length} event(s) · WAG · 2025`;
+
+  const eventsEl = document.getElementById("drill-events");
+  eventsEl.innerHTML = comp.events.map(ev => {
+    const title = [ev.level ? `Level ${ev.level}` : "", ev.division ? `Div ${ev.division}` : "", ev.event_type || ""]
+      .filter(Boolean).join(" · ");
+    let rows, header;
+    if (ev.event_type === "Team") {
+      header = `<tr><th>#</th><th>Club</th><th>Total</th></tr>`;
+      rows = (ev.results || []).map((r, i) => `
+        <tr>
+          <td>${rankBadge(r.rank || i + 1)}</td>
+          <td><strong>${clubDisplay(r.club || "")}</strong></td>
+          <td class="score">${r.total != null ? r.total.toFixed(3) : "-"}</td>
+        </tr>`).join("");
+    } else {
+      header = `<tr><th>#</th><th>Athlete</th><th>Club</th><th>Total</th></tr>`;
+      rows = (ev.results || []).map((r, i) => `
+        <tr>
+          <td>${rankBadge(r.rank || i + 1)}</td>
+          <td><strong>${esc(r.athlete || "")}</strong></td>
+          <td>${clubDisplay(r.club || "")}</td>
+          <td class="score">${r.total != null ? r.total.toFixed(3) : "-"}</td>
+        </tr>`).join("");
+    }
+
+    return `
+      <div class="event-section">
+        <h4>${esc(title)}</h4>
+        <table class="leaderboard">
+          <thead>${header}</thead>
+          <tbody>${rows || `<tr><td colspan="4" style="color:var(--muted);padding:12px">No results parsed</td></tr>`}</tbody>
+        </table>
+      </div>`;
+  }).join("");
+
+  document.getElementById("drill-overlay").classList.add("open");
+}
+
+function openPDFList(compIdx) {
+  const comp = (DATA.competitions || [])[compIdx];
+  if (!comp) return;
+
+  document.getElementById("drill-title").textContent = comp.name + " — PDF Files";
+  document.getElementById("drill-meta").textContent = "";
+
+  // Use manifest for full file list; fall back to source_files from events
+  let files = PDF_MANIFEST[comp.name] || [];
+  if (!files.length) {
+    const seen = new Set();
+    for (const ev of comp.events || []) {
+      const sf = ev.source_file;
+      if (sf && !seen.has(sf)) { seen.add(sf); files.push({ file_path: sf.replace(/\\/g, "/"), source_url: null }); }
+    }
+  }
+
+  const links = files.map(f => {
+    const fp = f.file_path || f;
+    const label = fp.replace(/\//g, " / ");
+    if (f.source_url) {
+      return `<li><a href="${f.source_url}" target="_blank">${esc(label)}</a></li>`;
+    }
+    return `<li><span style="color:var(--muted)">${esc(label)}</span></li>`;
+  }).join("");
+
+  document.getElementById("drill-events").innerHTML = files.length
+    ? `<ul class="pdf-list">${links}</ul>`
+    : `<p style="color:var(--muted);padding:12px">No PDF files recorded for this competition.</p>`;
+
+  document.getElementById("drill-overlay").classList.add("open");
+}
+
+document.getElementById("close-drill").addEventListener("click", () => {
+  document.getElementById("drill-overlay").classList.remove("open");
+});
+document.getElementById("drill-overlay").addEventListener("click", e => {
+  if (e.target === document.getElementById("drill-overlay"))
+    document.getElementById("drill-overlay").classList.remove("open");
+});
+
+// ---------------------------------------------------------------------------
+// Level+Division filters
+// ---------------------------------------------------------------------------
+function buildRegionFilters() {
+  const bar = document.getElementById("region-filter-bar");
+  if (!bar) return;
+  const regions = [...new Set(
+    CLUBS_LIST.filter(c => c.region && c.region !== "Multi-Region")
+              .map(c => c.region)
+  )].sort((a, b) => (REGION_ORDER[a] || 99) - (REGION_ORDER[b] || 99));
+
+  regions.forEach(region => {
+    const btn = document.createElement("button");
+    btn.className = "filter-btn";
+    btn.dataset.region = region;
+    btn.textContent = region;
+    bar.appendChild(btn);
+  });
+
+  bar.querySelectorAll(".filter-btn").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const r = btn.dataset.region;
+      activeRegion = r === "all" ? null : r;
+      bar.querySelectorAll(".filter-btn").forEach(b =>
+        b.classList.toggle("active", b.dataset.region === r)
+      );
+      render();
+    });
+  });
+}
+
+function buildLevelFilters() {
+  const levels = [...new Set(LEVEL_DIVS.map(ld => ld.level))].sort((a, b) => a - b);
+  const athleteLevels = levels.filter(l => l > 4);
+  const levelBars = document.querySelectorAll("#level-filter-bar, #athlete-level-filter-bar");
+  levelBars.forEach(bar => {
+    const barLevels = bar.id === "athlete-level-filter-bar" ? athleteLevels : levels;
+    barLevels.forEach(lvl => {
+      const btn = document.createElement("button");
+      btn.className = "filter-btn";
+      btn.dataset.level = lvl;
+      btn.textContent = `L${lvl}`;
+      bar.appendChild(btn);
+    });
+    bar.querySelectorAll(".filter-btn").forEach(btn => {
+      btn.addEventListener("click", () => {
+        activeLevel = btn.dataset.level === "all" ? null : Number(btn.dataset.level);
+        document.querySelectorAll("#level-filter-bar .filter-btn, #athlete-level-filter-bar .filter-btn")
+          .forEach(b => b.classList.toggle("active", b.dataset.level === btn.dataset.level));
+        render();
+      });
+    });
+  });
+
+  const divs = [...new Set(LEVEL_DIVS.map(ld => ld.division))].sort((a, b) => a - b);
+  const divBars = document.querySelectorAll("#division-filter-bar, #athlete-division-filter-bar");
+  divBars.forEach(bar => {
+    divs.forEach(div => {
+      const btn = document.createElement("button");
+      btn.className = "filter-btn";
+      btn.dataset.division = div;
+      btn.textContent = `D${div}`;
+      bar.appendChild(btn);
+    });
+    bar.querySelectorAll(".filter-btn").forEach(btn => {
+      btn.addEventListener("click", () => {
+        activeDivision = btn.dataset.division === "all" ? null : Number(btn.dataset.division);
+        document.querySelectorAll("#division-filter-bar .filter-btn, #athlete-division-filter-bar .filter-btn")
+          .forEach(b => b.classList.toggle("active", b.dataset.division === btn.dataset.division));
+        render();
+      });
+    });
+  });
+}
+
+// ---------------------------------------------------------------------------
+// Navigation
+// ---------------------------------------------------------------------------
+initClubDirectory();
+
+document.querySelectorAll("nav button").forEach(btn => {
+  btn.addEventListener("click", () => {
+    activeView = btn.dataset.view;
+    document.querySelectorAll("nav button").forEach(b => b.classList.remove("active"));
+    document.querySelectorAll(".view").forEach(v => v.classList.remove("active"));
+    btn.classList.add("active");
+    document.getElementById(`view-${activeView}`).classList.add("active");
+    // Neither view has an "All Levels" option — auto-select first level if none set
+    if (activeLevel === null) {
+      const barId = activeView === "athletes" ? "#athlete-level-filter-bar" : "#level-filter-bar";
+      const firstBtn = document.querySelector(`${barId} .filter-btn`);
+      if (firstBtn) { firstBtn.click(); return; }
+    }
+    render();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Helpers
+// ---------------------------------------------------------------------------
+function render() {
+  if (activeView === "clubs") renderClubs();
+  else if (activeView === "athletes") renderAthletes();
+  else if (activeView === "competitions") renderCompetitions();
+  else if (activeView === "club-directory") renderClubDirectory();
+}
+
+function rankBadge(rank) {
+  if (rank <= 3) return `<span class="rank-badge rank-${rank}">${rank}</span>`;
+  return `<span class="rank-badge rank-n">${rank}</span>`;
+}
+
+function esc(str) {
+  return String(str || "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+}
+
+function clubLogo(code, cls, preview = false) {
+  const src = `assets/logos/${esc(code)}.png`;
+  const img = `<img src="${src}" class="${cls}" loading="lazy" onerror="this.style.display='none'" alt="">`;
+  if (!preview) return img;
+  return `<span class="logo-hover-wrap">${img}<img src="${src}" class="logo-preview" alt=""></span>`;
+}
+
+function clubDisplay(code) {
+  const name = CLUBS[code];
+  if (!name) return `<span class="club-code">${esc(code)}</span>`;
+  return `${esc(name)} <span class="club-code">${esc(code)}</span>`;
+}
+
+function showNoData(msg) {
+  document.querySelectorAll(".view").forEach(v => {
+    v.innerHTML = `<div class="no-data"><strong>No data loaded</strong>${msg}</div>`;
+    v.style.display = "block";
+  });
+}
+
+// ---------------------------------------------------------------------------
+// Boot
+// ---------------------------------------------------------------------------
+loadData();
+</script>
+</body>
+</html>

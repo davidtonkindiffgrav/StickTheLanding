@@ -1,0 +1,30 @@
+{
+  "_comment": "Manual club assignment overrides. Applied after alias normalisation. Athlete-level entries take priority over competition-level entries. Competition names must match exactly as they appear in competitions.json.",
+
+  "hosts": {
+    "_comment": "Maps competition name → hosting club code. Bare colour/team codes (WHI, BLU, RED etc.) in that competition are auto-assigned to the host.",
+    "Knox WAG Senior Invite": "KNO",
+    "BTYC Junior Invite": "BTY"
+  },
+
+  "by_competition": {
+    "_comment": "Format: { \"Competition Name\": { \"RAW_CODE\": \"CANONICAL_CODE\" } }. Colour codes for already-ingested data — future ingests use the hosts section automatically.",
+    "Knox WAG Senior Invite": {
+      "WHI": "KNO", "BLU": "KNO", "RED": "KNO",
+      "SIL": "KNO", "NAV": "KNO", "GOL": "KNO",
+      "BLA": "KNO", "MX1": "KNO", "MX2": "KNO", "MX3": "KNO"
+    },
+    "BTYC Junior Invite": {
+      "BLU": "BTY", "ORA": "BTY", "WHI": "BTY", "RED": "BTY",
+      "GRN": "BTY", "YEL": "BTY", "PUR": "BTY", "SIL": "BTY", "TEA": "BTY"
+    },
+    "Natimuk & District Gymnastic Club Annual Invitational Competition and WAG LAT": {
+      "EUREKA WHITE MILLIE": "EUR",
+      "NATIMUK WHITE BERNI": "NAT"
+    }
+  },
+
+  "by_athlete": [
+    { "_comment": "Format: { competition, athlete (exact name), club (canonical code) }" }
+  ]
+}
