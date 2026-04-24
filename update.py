@@ -458,9 +458,21 @@ def _cmd_resolve_urls(con) -> None:
     print(f"\nDone — {updated}/{len(rows)} URLs resolved.")
 
 
+DBCONFIG_FILE = Path("data/dbconfig.json")
+
+
 def _finalize(con) -> None:
     db.sync_clubs(con, CLUBS_FILE)
     db.vacuum(con)
+    # Write dbconfig.json with current file size so the browser never needs Content-Length
+    file_size = db.DB_PATH.stat().st_size
+    with open(DBCONFIG_FILE, "w", encoding="utf-8") as f:
+        json.dump({
+            "serverMode": "full",
+            "requestChunkSize": 1024,
+            "fileSize": file_size,
+        }, f)
+    print(f"  dbconfig.json updated (fileSize: {file_size:,} bytes)")
 
 
 if __name__ == "__main__":

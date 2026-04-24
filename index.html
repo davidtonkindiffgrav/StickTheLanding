@@ -430,8 +430,13 @@ async function loadData() {
     const workerUrl = new URL("sql/sqlite.worker.js", location.href).toString();
     const wasmUrl   = new URL("sql/sql-wasm.wasm",   location.href).toString();
     const dbUrl     = new URL("data/stick.db",        location.href).toString();
+    // dbconfig.json is written by update.py and includes fileSize so GitHub Pages
+    // CDN doesn't need to return Content-Length
+    const cfgResp = await fetch(new URL("data/dbconfig.json", location.href).toString());
+    const dbCfg   = await cfgResp.json();
+    dbCfg.url     = dbUrl;
     const worker = await createDbWorker(
-      [{ from: "inline", config: { serverMode: "full", requestChunkSize: 1024, url: dbUrl } }],
+      [{ from: "inline", config: dbCfg }],
       workerUrl,
       wasmUrl
     );
