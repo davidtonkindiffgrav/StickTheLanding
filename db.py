@@ -55,9 +55,17 @@ def create_schema(con: sqlite3.Connection) -> None:
             athlete     TEXT,
             club        TEXT,
             vault       REAL,
+            vault_d     REAL,
+            vault_e     REAL,
             bars        REAL,
+            bars_d      REAL,
+            bars_e      REAL,
             beam        REAL,
+            beam_d      REAL,
+            beam_e      REAL,
             floor       REAL,
+            floor_d     REAL,
+            floor_e     REAL,
             total       REAL
         );
 
@@ -81,6 +89,13 @@ def create_schema(con: sqlite3.Connection) -> None:
         CREATE INDEX IF NOT EXISTS idx_results_athlete   ON results(athlete);
         CREATE INDEX IF NOT EXISTS idx_comp_sport_season ON competitions(sport, season);
     """)
+    con.commit()
+    # Idempotent migration: add D/E columns to existing databases
+    for col in ("vault_d", "vault_e", "bars_d", "bars_e", "beam_d", "beam_e", "floor_d", "floor_e"):
+        try:
+            con.execute(f"ALTER TABLE results ADD COLUMN {col} REAL")
+        except Exception:
+            pass
     con.commit()
 
 
@@ -136,17 +151,19 @@ def insert_event(con: sqlite3.Connection, competition_id: str, ev: dict) -> int:
 
 def insert_result(con: sqlite3.Connection, event_id: int, r: dict) -> None:
     con.execute(
-        "INSERT INTO results (event_id, rank, athlete, club, vault, bars, beam, floor, total) "
-        "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+        "INSERT INTO results "
+        "(event_id, rank, athlete, club, vault, vault_d, vault_e, bars, bars_d, bars_e, "
+        "beam, beam_d, beam_e, floor, floor_d, floor_e, total) "
+        "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
         (
             event_id,
             r.get("rank"),
             r.get("athlete"),
             r.get("club"),
-            r.get("vault"),
-            r.get("bars"),
-            r.get("beam"),
-            r.get("floor"),
+            r.get("vault"),  r.get("vault_d"),  r.get("vault_e"),
+            r.get("bars"),   r.get("bars_d"),   r.get("bars_e"),
+            r.get("beam"),   r.get("beam_d"),   r.get("beam_e"),
+            r.get("floor"),  r.get("floor_d"),  r.get("floor_e"),
             r.get("total"),
         ),
     )

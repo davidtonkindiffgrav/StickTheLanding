@@ -260,13 +260,38 @@ def parse_new_proscore(text_pages, pdf_path):
         if total is None:
             continue
 
-        # Scan backward up to 5 lines for club and rank+name
+        # Scan backward up to 5 lines for club, rank+name, and D/E scores
         rank = bib = name = club = None
+        d_scores = []
+        e_scores = []
         for offset in range(1, 6):
             j = i - offset
             if j < 0:
                 break
             l = clean_lines[j]
+
+            # D scores from "Diff: d1 d2 d3 d4" (BTYC rank line suffix)
+            if not d_scores:
+                diff_m = re.search(r"\bDiff:\s+([\d.]+(?:\s+[\d.]+)*)", l)
+                if diff_m:
+                    d_scores = [_parse_score(x) for x in diff_m.group(1).split()][:4]
+
+            # D/E from "D/E: d1 e1 d2 e2 d3 e3 d4 e4" or "DN/DE: ..." (Knox rank line)
+            if not d_scores:
+                de_m = re.search(r"\b(?:D/E:|DN/DE:)\s+([\d.]+(?:\s+[\d.]+)*)", l)
+                if de_m:
+                    nums = [_parse_score(x) for x in de_m.group(1).split()]
+                    if len(nums) >= 8:
+                        d_scores = nums[0::2][:4]
+                        e_scores = nums[1::2][:4]
+                    elif len(nums) >= 4:
+                        d_scores = nums[:4]
+
+            # E scores from "CLUB Exec: e1 e2 e3 e4" (BTYC club line)
+            if not e_scores:
+                exec_m = re.search(r"\bExec:\s+([\d.]+(?:\s+[\d.]+)*)", l)
+                if exec_m:
+                    e_scores = [_parse_score(x) for x in exec_m.group(1).split()][:4]
 
             # Club: standalone club code OR "CLUB Exec: ..." (BTYC)
             if club is None:
@@ -284,16 +309,31 @@ def parse_new_proscore(text_pages, pdf_path):
                     name = _clean_name(m_rank.group(3))
 
         if rank is not None and name and club and total is not None:
+            d = d_scores if len(d_scores) >= 4 else [None] * 4
+            e = e_scores if len(e_scores) >= 4 else [None] * 4
+            app_totals = [
+                scores[0] if len(scores) > 0 else None,
+                scores[1] if len(scores) > 1 else None,
+                scores[2] if len(scores) > 2 else None,
+                scores[3] if len(scores) > 3 else None,
+            ]
+            # Extrapolate missing D or E component from apparatus total
+            for idx in range(4):
+                if app_totals[idx] is not None:
+                    if d[idx] is not None and e[idx] is None:
+                        e[idx] = round(app_totals[idx] - d[idx], 3)
+                    elif e[idx] is not None and d[idx] is None:
+                        d[idx] = round(app_totals[idx] - e[idx], 3)
             results.append({
-                "rank": rank,
-                "bib": bib,
+                "rank":    rank,
+                "bib":     bib,
                 "athlete": name,
-                "club": club,
-                "vault": scores[0] if len(scores) > 0 else None,
-                "bars":  scores[1] if len(scores) > 1 else None,
-                "beam":  scores[2] if len(scores) > 2 else None,
-                "floor": scores[3] if len(scores) > 3 else None,
-                "total": total,
+                "club":    club,
+                "vault":   app_totals[0], "vault_d": d[0], "vault_e": e[0],
+                "bars":    app_totals[1], "bars_d":  d[1], "bars_e":  e[1],
+                "beam":    app_totals[2], "beam_d":  d[2], "beam_e":  e[2],
+                "floor":   app_totals[3], "floor_d": d[3], "floor_e": e[3],
+                "total":   total,
             })
 
     if not results:
@@ -553,10 +593,13 @@ def parse_team_results(text_pages, pdf_path):
                 continue
             rank_str, raw_name, total, s1, s2, s3, s4 = m.groups()
             events_by_ld[key].append({
-                "rank": _parse_rank(rank_str),
-                "club": _gym_code_from_team_name(raw_name),
+                "rank":  _parse_rank(rank_str),
+                "club":  _gym_code_from_team_name(raw_name),
+                "vault": _parse_score(s1),
+                "bars":  _parse_score(s2),
+                "beam":  _parse_score(s3),
+                "floor": _parse_score(s4),
                 "total": _parse_score(total),
-                "scores": [_parse_score(s1), _parse_score(s2), _parse_score(s3), _parse_score(s4)],
             })
 
     return [
