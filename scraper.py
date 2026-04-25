@@ -1,16 +1,21 @@
 """
-scraper.py — Fetches 2025 WAG competition PDFs from Gymnastics Victoria results page.
+scraper.py — Fetches WAG competition PDFs from Gymnastics Victoria results page.
 
 Pipeline:
   1. Fetch vic.gymnastics.org.au/events/results → parse __NUXT_DATA__
-  2. Find WAG 2025 HTML content block → extract competition links
+  2. Find WAG <year> HTML content block → extract competition links
   3. For PDF links (:b:): download directly
   4. For folder links (:f:): resolve path via redirect, use SharePoint REST API
      to list PDF files, then download each one
-  5. Save manifest to data/links_2025_wag.json
+  5. Save manifest to data/links_<year>_wag.json
   6. Update data/url_map.json with {comp_name: {source_key: download_url}} entries
+
+Usage:
+  python scraper.py             # defaults to current calendar year
+  python scraper.py --year 2026
 """
 
+import datetime
 import json
 import re
 import sys
@@ -24,7 +29,6 @@ from bs4 import BeautifulSoup
 RESULTS_PAGE = "https://vic.gymnastics.org.au/events/results"
 SP_BASE = "https://gymnasticsvictoria.sharepoint.com"
 SP_SITE = "/sites/GymnasticsVictoriaHub"
-PDF_DIR = Path("pdfs/2025/WAG")
 DATA_DIR = Path("data")
 URL_MAP_FILE = DATA_DIR / "url_map.json"
 
@@ -56,16 +60,18 @@ def parse_nuxt_data(html):
     return json.loads(script.string)
 
 
-def find_wag_2025_html(nuxt):
+def find_wag_year_html(nuxt, year):
     """
-    Walk the Nuxt devalue array to find WAG 2025 competition HTML content.
+    Walk the Nuxt devalue array to find WAG <year> competition HTML content.
 
     Structure (discovered by inspection):
-      - '2025' string → accordion container → children list
+      - '<year>' string → accordion container → children list
       - Children include {title: idx_of_womens_gymnastics} section
-      - That section's content is the HTML table at index ~712
+      - That section's content is the HTML table
     """
-    # Find "Women's Gymnastics" and "Men's Gymnastics" title indices
+    year_str = str(year)
+
+    # Find "Women's Gymnastics" title index
     womens_idx = None
     for i, v in enumerate(nuxt):
         if isinstance(v, str) and v in ("Women's Gymnastics", "Women\u2019s Gymnastics"):
@@ -74,29 +80,24 @@ def find_wag_2025_html(nuxt):
     if womens_idx is None:
         raise ValueError("Could not find Women's Gymnastics section in Nuxt data")
 
-    # Find '2025' year string
+    # Find year string
     year_idx = None
     for i, v in enumerate(nuxt):
-        if v == "2025":
+        if v == year_str:
             year_idx = i
             break
     if year_idx is None:
-        raise ValueError("Could not find '2025' year in Nuxt data")
+        raise ValueError(f"Could not find '{year_str}' year in Nuxt data")
 
-    # From the '2025' entry, walk forward to find the accordion that has
-    # a child section with title == womens_idx.
-    # Structure: [year_idx+2] is the 2025 accordion container → children list
-    # → list of section objects → one has 'title': womens_idx
+    # From the year entry, walk forward to find the accordion with the Women's section
     for i in range(year_idx, min(len(nuxt), year_idx + 30)):
         v = nuxt[i]
         if isinstance(v, list) and len(v) > 2:
-            # This might be the children list for the 2025 sections
             for child_ref in v:
                 if not isinstance(child_ref, int) or child_ref >= len(nuxt):
                     continue
                 child = nuxt[child_ref]
                 if isinstance(child, dict) and child.get("title") == womens_idx:
-                    # Found the Women's section; get its content
                     ch_children = nuxt[child.get("children", -1)]
                     if isinstance(ch_children, list) and ch_children:
                         content_item = nuxt[ch_children[0]]
@@ -104,7 +105,7 @@ def find_wag_2025_html(nuxt):
                             content_str = nuxt[content_item.get("content", -1)]
                             if isinstance(content_str, str) and "<table" in content_str:
                                 return content_str
-    raise ValueError("Could not locate WAG 2025 HTML content block in Nuxt data")
+    raise ValueError(f"Could not locate WAG {year_str} HTML content block in Nuxt data")
 
 
 # ---------------------------------------------------------------------------
@@ -248,7 +249,13 @@ def main():
         "--no-download", action="store_true",
         help="Update url_map with fresh GymVic URLs without downloading any PDFs"
     )
+    parser.add_argument(
+        "--year", type=int, default=datetime.date.today().year,
+        help="Season year to scrape (default: current calendar year)"
+    )
     args = parser.parse_args()
+    year = args.year
+    pdf_dir = Path(f"pdfs/{year}/WAG")
 
     session = requests.Session()
     session.headers.update(HEADERS)
@@ -256,8 +263,8 @@ def main():
     html = fetch_results_page(session)
     nuxt = parse_nuxt_data(html)
 
-    print("Locating WAG 2025 competition section...")
-    wag_html = find_wag_2025_html(nuxt)
+    print(f"Locating WAG {year} competition section...")
+    wag_html = find_wag_year_html(nuxt, year)
 
     comps = extract_competitions(wag_html)
     print(f"  Found {len(comps)} competition entries")
@@ -288,7 +295,7 @@ def main():
             filename = f"{comp_slug}.pdf"
             dl_url = url if "download=1" in url else url + ("&" if "?" in url else "?") + "download=1"
             if not args.no_download:
-                dest = PDF_DIR / name / filename
+                dest = pdf_dir / name / filename
                 if download_pdf(dl_url, dest, session):
                     ok_total += 1
                     manifest.append({**comp, "files": [str(dest)]})
@@ -303,14 +310,13 @@ def main():
                 fail_total += 1
                 continue
 
-            year_tag = "2025" if "2025" in path else "archive"
-            print(f"    Path: .../{'/'.join(path.split('/')[-3:])}  [{year_tag}]")
+            print(f"    Path: .../{'/'.join(path.split('/')[-3:])}")
             pdf_files = list_sharepoint_folder(path, session)
             print(f"    Found {len(pdf_files)} PDF(s) in folder")
 
             # Replace stale entries for this competition with fresh data
             url_map[name] = {}
-            comp_dir = PDF_DIR / name
+            comp_dir = pdf_dir / name
             downloaded = []
             for pf in pdf_files:
                 sr_path = pf["ServerRelativeUrl"]
@@ -331,19 +337,19 @@ def main():
                 manifest.append({**comp, "resolved_path": path, "files": downloaded})
             time.sleep(0.5)
 
-    manifest_path = DATA_DIR / "links_2025_wag.json"
+    manifest_path = DATA_DIR / f"links_{year}_wag.json"
     with open(manifest_path, "w", encoding="utf-8") as f:
         json.dump(manifest, f, indent=2, ensure_ascii=False)
 
     with open(URL_MAP_FILE, "w", encoding="utf-8") as f:
         json.dump(url_map, f, indent=2, ensure_ascii=False)
 
-    PDF_DIR.mkdir(parents=True, exist_ok=True)
+    pdf_dir.mkdir(parents=True, exist_ok=True)
     print(f"\n{'='*60}")
     print(f"Done. {ok_total} PDFs downloaded, {fail_total} failed.")
     print(f"Manifest saved to {manifest_path}")
     print(f"URL map saved to {URL_MAP_FILE}")
-    print(f"PDFs in {PDF_DIR}/")
+    print(f"PDFs in {pdf_dir}/")
 
 
 if __name__ == "__main__":

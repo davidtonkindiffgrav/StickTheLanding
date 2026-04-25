@@ -9,6 +9,7 @@ Supports three ProScore layouts and a generic table fallback:
 Team Results PDFs are skipped in all cases.
 """
 
+import datetime
 import re
 import sys
 from pathlib import Path
@@ -276,16 +277,23 @@ def parse_new_proscore(text_pages, pdf_path):
                 if diff_m:
                     d_scores = [_parse_score(x) for x in diff_m.group(1).split()][:4]
 
-            # D/E from "D/E: d1 e1 d2 e2 d3 e3 d4 e4" or "DN/DE: ..." (Knox rank line)
+            # D/E from slash-separated pairs: "D/E: 2.5 / 9.000 ..." or "DN/DE:: ..." variant
             if not d_scores:
-                de_m = re.search(r"\b(?:D/E:|DN/DE:)\s+([\d.]+(?:\s+[\d.]+)*)", l)
+                de_m = re.search(r"\b(?:D/E:|DN/DE::?)\s+(.+)", l)
                 if de_m:
-                    nums = [_parse_score(x) for x in de_m.group(1).split()]
-                    if len(nums) >= 8:
-                        d_scores = nums[0::2][:4]
-                        e_scores = nums[1::2][:4]
-                    elif len(nums) >= 4:
-                        d_scores = nums[:4]
+                    rest = de_m.group(1)
+                    # Match each slot positionally: digit pair OR underscore placeholder
+                    slots = re.findall(r'(?:(\d+\.?\d*)|_+\.[\d_]*)\s*/\s*(?:(\d+\.?\d*)|_+\.[\d_]*)', rest)
+                    if slots:
+                        d_scores = [_parse_score(s[0]) if s[0] else None for s in slots[:4]]
+                        e_scores = [_parse_score(s[1]) if s[1] else None for s in slots[:4]]
+                    else:
+                        nums = [n for n in [_parse_score(x) for x in re.findall(r'\d+\.?\d*', rest)] if n is not None]
+                        if len(nums) >= 8:
+                            d_scores = nums[0::2][:4]
+                            e_scores = nums[1::2][:4]
+                        elif len(nums) >= 4:
+                            d_scores = nums[:4]
 
             # E scores from "CLUB Exec: e1 e2 e3 e4" (BTYC club line)
             if not e_scores:
@@ -301,7 +309,7 @@ def parse_new_proscore(text_pages, pdf_path):
 
             # Rank + bib + name: strip Diff:/D/E: suffix then match leading digits
             if rank is None:
-                left = re.split(r"\s+(?:Diff:|D/E:|DN/DE:)", l)[0].strip()
+                left = re.split(r"\s+(?:Diff:|D/E:|DN/DE::?)", l)[0].strip()
                 m_rank = re.match(r"^(\d+[T]?)\s+(\d+)\s+(.+)$", left)
                 if m_rank:
                     rank = _parse_rank(m_rank.group(1))
@@ -309,8 +317,8 @@ def parse_new_proscore(text_pages, pdf_path):
                     name = _clean_name(m_rank.group(3))
 
         if rank is not None and name and club and total is not None:
-            d = d_scores if len(d_scores) >= 4 else [None] * 4
-            e = e_scores if len(e_scores) >= 4 else [None] * 4
+            d = (d_scores + [None] * 4)[:4] if d_scores else [None] * 4
+            e = (e_scores + [None] * 4)[:4] if e_scores else [None] * 4
             app_totals = [
                 scores[0] if len(scores) > 0 else None,
                 scores[1] if len(scores) > 1 else None,
@@ -478,7 +486,7 @@ def parse_filename_meta(path):
 
 def infer_competition_name(pdf_path):
     parts = pdf_path.parts
-    if len(parts) >= 5 and parts[-2] not in ("WAG", "2025", "pdfs"):
+    if len(parts) >= 5 and parts[-2] not in ("WAG", "pdfs") and not re.match(r"^\d{4}$", parts[-2]):
         return parts[-2].replace("-", " ").replace("_", " ").title()
     return pdf_path.stem.replace("-", " ").title()
 
@@ -947,11 +955,13 @@ def group_into_competitions(all_entries):
     comp_map = {}
     for entry in all_entries:
         comp_name = entry["competition"]
-        if comp_name not in comp_map:
-            comp_map[comp_name] = {
-                "id": re.sub(r"[^a-z0-9]+", "-", comp_name.lower()).strip("-") + "-2025",
+        season = entry.get("season") or str(datetime.date.today().year)
+        map_key = (comp_name, season)
+        if map_key not in comp_map:
+            comp_map[map_key] = {
+                "id": re.sub(r"[^a-z0-9]+", "-", comp_name.lower()).strip("-") + f"-{season}",
                 "name": comp_name,
-                "season": "2025",
+                "season": season,
                 "sport": "WAG",
                 "events": [],
             }
@@ -965,5 +975,5 @@ def group_into_competitions(all_entries):
             }
             for r in ev_entry["results"]:
                 r.pop("bib", None)
-            comp_map[comp_name]["events"].append(ev_entry)
+            comp_map[map_key]["events"].append(ev_entry)
     return list(comp_map.values())

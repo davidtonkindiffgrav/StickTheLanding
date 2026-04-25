@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Stick The Landing</title>
   <script src="sql/sql-httpvfs.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -219,6 +220,7 @@
     .club-code { font-size: 0.72rem; font-weight: 700; color: var(--muted); background: rgba(255,255,255,0.06); border: 1px solid var(--border); border-radius: 4px; padding: 1px 5px; margin-left: 4px; vertical-align: middle; letter-spacing: 0.04em; }
     .club-logo-sm { height: 28px; width: 28px; object-fit: contain; border-radius: 4px; vertical-align: middle; }
     .club-logo-md { height: 44px; width: 44px; object-fit: contain; border-radius: 5px; vertical-align: middle; }
+    .club-logo-lg { height: 56px; width: 56px; object-fit: contain; border-radius: 6px; vertical-align: middle; }
     .logo-hover-wrap { position: relative; display: inline-block; }
     .logo-preview { display: none; position: fixed; width: 256px; height: 256px; object-fit: contain; background: rgba(255,255,255,0.3); border: 1px solid var(--border); border-radius: 8px; box-shadow: 0 8px 32px rgba(0,0,0,0.5); z-index: 1000; pointer-events: none; }
     td.logo-cell { width: 48px; text-align: center; padding: 6px 8px; }
@@ -318,6 +320,194 @@
       color: var(--muted);
       margin-bottom: 8px;
     }
+
+    /* ── SEARCH BUTTON ────────────────────────────────────────────────────── */
+    #search-btn {
+      background: none;
+      border: 1px solid var(--border);
+      color: var(--muted);
+      padding: 5px 11px;
+      border-radius: 999px;
+      cursor: pointer;
+      font-size: 0.88rem;
+      font-weight: 600;
+      transition: all 0.12s;
+      white-space: nowrap;
+    }
+    #search-btn:hover { border-color: var(--accent); color: var(--text); }
+
+    /* ── SEARCH OVERLAY ───────────────────────────────────────────────────── */
+    #search-overlay {
+      display: none;
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,0.75);
+      z-index: 200;
+      overflow-y: auto;
+      padding: 40px 16px;
+    }
+    #search-overlay.open { display: block; }
+    #search-box {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      max-width: 680px;
+      margin: 0 auto;
+      padding: 28px;
+    }
+    #search-box h2 { margin-bottom: 20px; font-size: 1.1rem; }
+    .search-close-btn {
+      float: right;
+      background: none;
+      border: none;
+      color: var(--muted);
+      font-size: 1.4rem;
+      cursor: pointer;
+      line-height: 1;
+      margin-top: -4px;
+      padding: 4px;
+    }
+    .search-input-wrap {
+      position: relative;
+      margin-bottom: 8px;
+    }
+    .search-input-wrap input {
+      width: 100%;
+      box-sizing: border-box;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text);
+      font-size: 1rem;
+      padding: 10px 14px 10px 36px;
+      outline: none;
+      transition: border-color 0.15s;
+    }
+    .search-input-wrap input:focus { border-color: var(--accent); }
+    .search-input-wrap .search-icon {
+      position: absolute;
+      left: 11px; top: 50%;
+      transform: translateY(-50%);
+      color: var(--muted);
+      font-size: 0.95rem;
+      pointer-events: none;
+    }
+    #search-suggestions {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      overflow: hidden;
+      margin-bottom: 20px;
+    }
+    .search-suggestion-item {
+      padding: 9px 14px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      border-bottom: 1px solid var(--border);
+      transition: background 0.1s;
+    }
+    .search-suggestion-item:last-child { border-bottom: none; }
+    .search-suggestion-item:hover { background: var(--surface); }
+    .search-suggestion-item .sug-name { font-weight: 600; flex: 1; }
+    .search-suggestion-item .sug-meta { font-size: 0.78rem; color: var(--muted); white-space: nowrap; }
+    .search-mode-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 20px;
+      font-size: 0.88rem;
+      color: var(--muted);
+      font-weight: 600;
+    }
+    .search-go-btn {
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      padding: 9px 20px;
+      font-size: 0.92rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: opacity 0.12s;
+    }
+    .search-go-btn:hover { opacity: 0.85; }
+    .search-go-btn:disabled { opacity: 0.4; cursor: default; }
+    .search-view-bar {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+    .search-back-btn {
+      background: none;
+      border: 1px solid var(--border);
+      color: var(--muted);
+      padding: 6px 14px;
+      border-radius: 999px;
+      cursor: pointer;
+      font-size: 0.82rem;
+      font-weight: 600;
+      white-space: nowrap;
+      transition: all 0.12s;
+    }
+    .search-back-btn:hover { border-color: var(--accent); color: var(--text); }
+    .browse-row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 20px;
+      align-items: center;
+    }
+    .browse-select {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text);
+      font-size: 0.88rem;
+      padding: 7px 10px;
+      cursor: pointer;
+      outline: none;
+      transition: border-color 0.15s;
+      flex: 1;
+      min-width: 120px;
+    }
+    .browse-select:focus { border-color: var(--accent); }
+    .browse-select:disabled { opacity: 0.4; cursor: default; }
+    .athlete-profile-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 20px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid var(--border);
+    }
+    .athlete-profile-header .ap-name { font-size: 1.15rem; font-weight: 700; }
+    .athlete-profile-header .ap-meta { font-size: 0.82rem; color: var(--muted); margin-top: 2px; }
+    .athlete-profile-table { width: 100%; border-collapse: collapse; }
+    .athlete-profile-table th {
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      color: var(--muted);
+      padding: 6px 8px;
+      text-align: right;
+      border-bottom: 1px solid var(--border);
+    }
+    .athlete-profile-table th:first-child,
+    .athlete-profile-table th:nth-child(2) { text-align: left; }
+    .athlete-profile-table td {
+      padding: 8px 8px;
+      font-size: 0.88rem;
+      border-bottom: 1px solid var(--border);
+      text-align: right;
+    }
+    .athlete-profile-table td:first-child,
+    .athlete-profile-table td:nth-child(2) { text-align: left; }
+    .athlete-profile-table tr:last-child td { border-bottom: none; }
+    .ap-comp-name { font-weight: 600; font-size: 0.88rem; }
+    .ap-comp-name small { display: block; font-weight: 400; color: var(--muted); font-size: 0.75rem; }
 
     /* ── LANDING PAGE ──────────────────────────────────────────────────────── */
     #landing-view {
@@ -659,12 +849,15 @@
 <div id="app-shell" style="display:none">
   <header class="site-header">
     <div class="header-inner">
-      <div>
-        <h1 style="cursor:pointer" onclick="exitToLanding()" title="Back to Sports">Stick The <span>Landing</span></h1>
-        <p id="header-subtitle">Victorian WAG · Season Leaderboards</p>
+      <div style="display:flex;align-items:center;gap:14px">
+        <div>
+          <h1 style="cursor:pointer" onclick="exitToLanding()" title="Back to Sports">Stick The <span>Landing</span></h1>
+          <p id="header-subtitle">Victorian WAG · Season Leaderboards</p>
+        </div>
+        <button id="search-btn" onclick="openSearchPanel()" title="Search athletes or browse results"><i class="fas fa-search"></i> Search</button>
       </div>
       <div id="sport-bar">
-        <button id="back-btn" onclick="exitToLanding()">← Sports</button>
+        <button id="back-btn" onclick="exitToLanding()"><i class="fas fa-arrow-left"></i> Sports</button>
         <span id="sport-label-pill" class="badge">WAG</span>
         <div id="season-selector"></div>
       </div>
@@ -684,6 +877,7 @@
     <button data-apparatus="UB">Bars</button>
     <button data-apparatus="BB">Beam</button>
     <button data-apparatus="FX">Floor</button>
+    <span id="apparatus-year" style="margin-left:auto;padding:0 20px;font-size:1.1rem;font-weight:700;color:var(--text);align-self:center;letter-spacing:1px"></span>
   </nav>
 
   <main>
@@ -771,6 +965,15 @@
         </table>
       </div>
     </section>
+
+    <!-- SEARCH RESULTS -->
+    <section class="view" id="view-search">
+      <div class="search-view-bar">
+        <button class="search-back-btn" onclick="clearSearchView()"><i class="fas fa-arrow-left"></i> Back</button>
+        <h2 id="search-view-title" style="margin:0;font-size:1.2rem"></h2>
+      </div>
+      <div id="search-view-content"></div>
+    </section>
   </main>
 </div>
 
@@ -779,14 +982,14 @@
   <header class="site-header">
     <div class="header-inner">
       <div>
-        <h1>Stick The <span>Landing</span></h1>
+        <h1 style="cursor:pointer" onclick="exitContact()" title="Back">Stick The <span>Landing</span></h1>
         <p>Get in touch</p>
       </div>
     </div>
   </header>
 
   <main class="contact-main">
-    <button class="back-btn-link" id="contact-back-btn" onclick="exitContact()">← Back</button>
+    <button class="back-btn-link" id="contact-back-btn" onclick="exitContact()"><i class="fas fa-arrow-left"></i> Back</button>
     <h2 style="margin-bottom:10px">Contact Us</h2>
     <p class="contact-intro">
       Found a results error? Know of a club name change? Just want to say hi?
@@ -830,6 +1033,43 @@
     <h2 id="drill-title"></h2>
     <p class="comp-meta" id="drill-meta"></p>
     <div id="drill-events"></div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════ SEARCH OVERLAY ═══ -->
+<div id="search-overlay">
+  <div id="search-box">
+    <button class="search-close-btn" id="close-search">&#x2715;</button>
+    <h2>Search</h2>
+
+    <div class="search-mode-row">
+      <label>Search by</label>
+      <select id="search-mode-select" class="browse-select" style="flex:0;min-width:160px">
+        <option value="athlete">By Athlete</option>
+        <option value="comp">By Competition</option>
+      </select>
+    </div>
+
+    <div id="search-athlete-section">
+      <div class="search-input-wrap">
+        <span class="search-icon"><i class="fas fa-search"></i></span>
+        <input type="text" id="search-input" placeholder="Athlete name…" autocomplete="off" spellcheck="false">
+      </div>
+      <div id="search-suggestions" style="display:none"></div>
+    </div>
+
+    <div id="search-comp-section" style="display:none">
+      <div class="browse-row">
+        <select class="browse-select" id="browse-season"></select>
+        <select class="browse-select" id="browse-comp" disabled><option value="">— Competition —</option></select>
+        <select class="browse-select" id="browse-level" disabled><option value="">— Level —</option></select>
+        <select class="browse-select" id="browse-div" disabled><option value="">— Division —</option></select>
+      </div>
+    </div>
+
+    <div style="text-align:right;margin-top:16px">
+      <button id="search-execute-btn" class="search-go-btn">Search</button>
+    </div>
   </div>
 </div>
 
@@ -877,6 +1117,10 @@ const APPARATUS_NAME  = { AA: "All Around", VT: "Vault", UB: "Uneven Bars", BB: 
 let _compList      = [];
 let _contactFrom   = "landing";
 
+let ATHLETE_LIST      = [];  // { athlete, club, level, division } — loaded once at sport entry
+let _searchDebounce   = null;
+let _browseCompId     = null;
+
 // ─────────────────────────────────────────────────────────────────────────────
 // DB init (lazy - only called when a sport is entered)
 // ─────────────────────────────────────────────────────────────────────────────
@@ -884,7 +1128,7 @@ async function initDB() {
   if (DB) return;
   const workerUrl = new URL("sql/sqlite.worker.js", location.href).toString();
   const wasmUrl   = new URL("sql/sql-wasm.wasm",   location.href).toString();
-  const dbUrl     = new URL("data/stick.db",        location.href).toString();
+  const dbUrl     = new URL("data/stick.db?v=4",     location.href).toString();
   const cfgResp   = await fetch(new URL("data/dbconfig.json", location.href).toString());
   const dbCfg     = await cfgResp.json();
   dbCfg.url       = dbUrl;
@@ -914,7 +1158,8 @@ async function enterSport(sport) {
       [sport]
     ));
     availableSeasons = seasRows.map(([s]) => s);
-    currentSeason    = availableSeasons[0] || "2025";
+    currentSeason    = availableSeasons[0] || new Date().getFullYear().toString();
+    document.getElementById("apparatus-year").textContent = currentSeason;
 
     // Clubs (only load once)
     if (!CLUBS_LIST.length) {
@@ -929,6 +1174,7 @@ async function enterSport(sport) {
     }
 
     await reloadLevelDivs();
+    await loadAthleteList();
   } catch (e) {
     showLoading(false);
     document.getElementById("landing-view").style.display = "";
@@ -988,6 +1234,7 @@ function renderSeasonButtons() {
   sel.querySelectorAll(".season-btn").forEach(btn => {
     btn.addEventListener("click", async () => {
       currentSeason = btn.dataset.season;
+      document.getElementById("apparatus-year").textContent = currentSeason;
       sel.querySelectorAll(".season-btn").forEach(b =>
         b.classList.toggle("active", b.dataset.season === currentSeason)
       );
@@ -1455,7 +1702,7 @@ async function openDrill(comp) {
   }
   const events = [...evMap.values()];
 
-  const fmt = v => v != null ? v.toFixed(3) : "-";
+  const fmt = v => v != null && v !== 0 ? v.toFixed(3) : "-";
 
   document.getElementById("drill-meta").textContent = `${events.length} event(s) · ${currentSport} · ${currentSeason}`;
   document.getElementById("drill-events").innerHTML = events.map(ev => {
@@ -1573,6 +1820,333 @@ document.getElementById("drill-overlay").addEventListener("click", e => {
 // Close coming soon modal on backdrop click
 document.getElementById("coming-soon-modal").addEventListener("click", e => {
   if (e.target === document.getElementById("coming-soon-modal")) closeComingSoon();
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Search panel
+// ─────────────────────────────────────────────────────────────────────────────
+let _searchMode        = "athlete";
+let _pendingAthlete    = null;  // athlete name confirmed via suggestion or input
+
+async function loadAthleteList() {
+  const rows = _execRows(await DB.exec(`
+    SELECT DISTINCT r.athlete, r.club, e.level, e.division
+    FROM results r
+    JOIN events e ON r.event_id = e.id
+    JOIN competitions c ON e.competition_id = c.id
+    WHERE c.sport = ? AND e.event_type != 'Team'
+    ORDER BY r.athlete
+  `, [currentSport]));
+  ATHLETE_LIST = rows.map(([athlete, club, level, division]) => ({ athlete, club, level, division }));
+}
+
+function openSearchPanel() {
+  document.getElementById("search-overlay").classList.add("open");
+  document.getElementById("search-input").value = "";
+  document.getElementById("search-suggestions").style.display = "none";
+  document.getElementById("search-suggestions").innerHTML = "";
+  _pendingAthlete = null;
+  _browseCompId   = null;
+  onSearchModeChange(_searchMode);
+  initBrowseSeasons();
+  if (_searchMode === "athlete") document.getElementById("search-input").focus();
+}
+
+function closeSearchPanel() {
+  document.getElementById("search-overlay").classList.remove("open");
+}
+
+function onSearchModeChange(mode) {
+  _searchMode = mode;
+  document.getElementById("search-mode-select").value = mode;
+  document.getElementById("search-athlete-section").style.display = mode === "athlete" ? "" : "none";
+  document.getElementById("search-comp-section").style.display    = mode === "comp"    ? "" : "none";
+}
+
+function onAthleteSearchInput(val) {
+  clearTimeout(_searchDebounce);
+  _pendingAthlete = null;
+  const q = val.trim().toLowerCase();
+  const sugBox = document.getElementById("search-suggestions");
+  if (q.length < 2) {
+    sugBox.style.display = "none";
+    sugBox.innerHTML = "";
+    return;
+  }
+  _searchDebounce = setTimeout(() => {
+    const matches = ATHLETE_LIST.filter(a => a.athlete.toLowerCase().includes(q)).slice(0, 12);
+    if (!matches.length) {
+      sugBox.innerHTML = `<div class="search-suggestion-item" style="cursor:default;color:var(--muted)">No athletes found</div>`;
+    } else {
+      sugBox.innerHTML = matches.map(a => `
+        <div class="search-suggestion-item" data-athlete="${esc(a.athlete)}">
+          <span class="sug-name">${esc(a.athlete)}</span>
+          ${clubLogo(a.club, "club-logo-lg", false)}
+          <span class="sug-meta">${esc(a.club)} · L${a.level} D${a.division}</span>
+        </div>`).join("");
+      sugBox.querySelectorAll(".search-suggestion-item[data-athlete]").forEach(el => {
+        el.addEventListener("click", () => {
+          document.getElementById("search-input").value = el.dataset.athlete;
+          _pendingAthlete = el.dataset.athlete;
+          sugBox.style.display = "none";
+        });
+      });
+    }
+    sugBox.style.display = "block";
+  }, 180);
+}
+
+async function executeSearch() {
+  if (_searchMode === "athlete") {
+    const name = _pendingAthlete || document.getElementById("search-input").value.trim();
+    if (!name) return;
+    closeSearchPanel();
+    switchToView("search");
+    document.getElementById("search-view-title").textContent = name;
+    document.getElementById("search-view-content").innerHTML =
+      `<p style="color:var(--muted);padding:12px 0">Loading…</p>`;
+    await renderAthleteResults(name);
+  } else {
+    const compId = _browseCompId;
+    const level  = document.getElementById("browse-level").value;
+    const div    = document.getElementById("browse-div").value;
+    const compName = document.getElementById("browse-comp").options[document.getElementById("browse-comp").selectedIndex]?.text || "";
+    if (!compId || !level || !div) return;
+    closeSearchPanel();
+    switchToView("search");
+    document.getElementById("search-view-title").textContent =
+      `${compName} · Level ${level} Div ${div}`;
+    document.getElementById("search-view-content").innerHTML =
+      `<p style="color:var(--muted);padding:12px 0">Loading…</p>`;
+    await renderCompResults(compId, level, div);
+  }
+}
+
+function switchToView(view) {
+  activeView = view;
+  document.querySelectorAll("#app-nav button[data-view]").forEach(b =>
+    b.classList.toggle("active", b.dataset.view === view)
+  );
+  document.querySelectorAll(".view").forEach(v =>
+    v.classList.toggle("active", v.id === `view-${view}`)
+  );
+  const isLeaderboard = view === "clubs" || view === "athletes";
+  document.getElementById("apparatus-nav").style.display = isLeaderboard ? "" : "none";
+}
+
+function clearSearchView() {
+  document.getElementById("search-view-content").innerHTML = "";
+  switchToView("clubs");
+  render();
+}
+
+async function renderAthleteResults(athleteName) {
+  const rows = _execRows(await DB.exec(`
+    SELECT c.name, c.season, r.rank, r.vault, r.bars, r.beam, r.floor, r.total,
+           e.level, e.division, r.club
+    FROM results r
+    JOIN events e ON r.event_id = e.id
+    JOIN competitions c ON e.competition_id = c.id
+    WHERE r.athlete = ? AND c.sport = ? AND e.event_type != 'Team'
+    ORDER BY c.season DESC, c.name, e.level, e.division
+  `, [athleteName, currentSport]));
+
+  const el = document.getElementById("search-view-content");
+  if (!rows.length) {
+    el.innerHTML = `<p style="color:var(--muted);padding:12px 0">No results found for "${esc(athleteName)}".</p>`;
+    return;
+  }
+
+  const fmt  = v => v != null && v !== 0 ? v.toFixed(3) : "-";
+  const club = rows[0][10];
+
+  const trows = rows.map(([compName, season, rank, vault, bars, beam, floor, total, level, division]) => `
+    <tr>
+      <td class="ap-comp-name">${esc(compName)}<small>${esc(season)}</small></td>
+      <td>${rankBadge(rank)}</td>
+      <td>${esc(levelDivDisplay(level, division))}</td>
+      <td class="score">${fmt(vault)}</td>
+      <td class="score">${fmt(bars)}</td>
+      <td class="score">${fmt(beam)}</td>
+      <td class="score">${fmt(floor)}</td>
+      <td class="score"><strong>${fmt(total)}</strong></td>
+    </tr>`).join("");
+
+  el.innerHTML = `
+    <div class="athlete-profile-header">
+      ${clubLogo(club, "club-logo-md", false)}
+      <div>
+        <div class="ap-name">${esc(athleteName)}</div>
+        <div class="ap-meta">${clubDisplay(club)}</div>
+      </div>
+    </div>
+    <div class="card table-card" style="overflow-x:auto">
+      <table class="athlete-profile-table">
+        <thead>
+          <tr>
+            <th style="text-align:left">Competition</th>
+            <th style="text-align:left">#</th>
+            <th style="text-align:left">Level</th>
+            <th>VT</th><th>UB</th><th>BB</th><th>FX</th><th>Total</th>
+          </tr>
+        </thead>
+        <tbody>${trows}</tbody>
+      </table>
+    </div>`;
+}
+
+async function renderCompResults(compId, level, div) {
+  const rows = _execRows(await DB.exec(`
+    SELECT r.rank, r.athlete, r.club, r.vault, r.bars, r.beam, r.floor, r.total,
+           r.vault_d, r.vault_e, r.bars_d, r.bars_e, r.beam_d, r.beam_e, r.floor_d, r.floor_e,
+           e.event_type
+    FROM results r
+    JOIN events e ON r.event_id = e.id
+    WHERE e.competition_id = ? AND e.level = ? AND e.division = ?
+    ORDER BY r.rank
+  `, [compId, level, div]));
+
+  const el = document.getElementById("search-view-content");
+  if (!rows.length) {
+    el.innerHTML = `<p style="color:var(--muted);padding:12px 0">No results found for this event.</p>`;
+    return;
+  }
+
+  const fmt      = v => v != null && v !== 0 ? v.toFixed(3) : "-";
+  const isTeam   = rows[0][16] === "Team";
+  const hasDE    = !isTeam && rows.some(r => r[8] != null || r[10] != null || r[12] != null || r[14] != null);
+  const hasAppar = rows.some(r => r[3] != null || r[4] != null || r[5] != null || r[6] != null);
+
+  let header, trows;
+  if (isTeam) {
+    if (hasAppar) {
+      header = `<tr><th>#</th><th>Club</th><th>Vault</th><th>Bars</th><th>Beam</th><th>Floor</th><th>Total</th></tr>`;
+      trows  = rows.map(([rank,,club,vault,bars,beam,floor,total]) => `
+        <tr>
+          <td>${rankBadge(rank)}</td>
+          <td><strong>${clubDisplay(club || "")}</strong></td>
+          <td class="score">${fmt(vault)}</td><td class="score">${fmt(bars)}</td>
+          <td class="score">${fmt(beam)}</td><td class="score">${fmt(floor)}</td>
+          <td class="score"><strong>${fmt(total)}</strong></td>
+        </tr>`).join("");
+    } else {
+      header = `<tr><th>#</th><th>Club</th><th>Total</th></tr>`;
+      trows  = rows.map(([rank,,club,,,,,total]) => `
+        <tr>
+          <td>${rankBadge(rank)}</td>
+          <td><strong>${clubDisplay(club || "")}</strong></td>
+          <td class="score"><strong>${fmt(total)}</strong></td>
+        </tr>`).join("");
+    }
+  } else {
+    header = `<tr><th>#</th><th>Athlete</th><th>Club</th><th>Vault</th><th>Bars</th><th>Beam</th><th>Floor</th><th>Total</th></tr>`;
+    trows  = rows.map(([rank, athlete, club, vault, bars, beam, floor, total,
+                        vault_d, vault_e, bars_d, bars_e, beam_d, beam_e, floor_d, floor_e]) => {
+      const vStr  = hasDE && vault_d != null ? `${fmt(vault_d)}/${vault_e != null ? vault_e.toFixed(3) : "-"}=${fmt(vault)}` : fmt(vault);
+      const bStr  = hasDE && bars_d  != null ? `${fmt(bars_d)}/${bars_e   != null ? bars_e.toFixed(3)  : "-"}=${fmt(bars)}`  : fmt(bars);
+      const beStr = hasDE && beam_d  != null ? `${fmt(beam_d)}/${beam_e   != null ? beam_e.toFixed(3)  : "-"}=${fmt(beam)}`  : fmt(beam);
+      const fStr  = hasDE && floor_d != null ? `${fmt(floor_d)}/${floor_e != null ? floor_e.toFixed(3) : "-"}=${fmt(floor)}` : fmt(floor);
+      return `<tr>
+        <td>${rankBadge(rank)}</td>
+        <td><strong>${esc(athlete || "")}</strong></td>
+        <td>${clubDisplay(club || "")}</td>
+        <td class="score">${vStr}</td><td class="score">${bStr}</td>
+        <td class="score">${beStr}</td><td class="score">${fStr}</td>
+        <td class="score"><strong>${fmt(total)}</strong></td>
+      </tr>`;
+    }).join("");
+  }
+
+  el.innerHTML = `
+    <div class="card table-card" style="overflow-x:auto">
+      <table class="leaderboard">
+        <thead>${header}</thead>
+        <tbody>${trows}</tbody>
+      </table>
+    </div>`;
+}
+
+function initBrowseSeasons() {
+  const sel = document.getElementById("browse-season");
+  sel.innerHTML = availableSeasons.map(s =>
+    `<option value="${esc(s)}"${s === currentSeason ? " selected" : ""}>${esc(s)}</option>`
+  ).join("");
+  onBrowseSeasonChange(sel.value);
+}
+
+async function onBrowseSeasonChange(season) {
+  const compSel  = document.getElementById("browse-comp");
+  const levelSel = document.getElementById("browse-level");
+  const divSel   = document.getElementById("browse-div");
+  compSel.innerHTML  = `<option value="">— Competition —</option>`;
+  levelSel.innerHTML = `<option value="">— Level —</option>`;
+  divSel.innerHTML   = `<option value="">— Division —</option>`;
+  levelSel.disabled  = true;
+  divSel.disabled    = true;
+  _browseCompId = null;
+
+  const rows = _execRows(await DB.exec(
+    "SELECT id, name FROM competitions WHERE sport = ? AND season = ? ORDER BY name",
+    [currentSport, season]
+  ));
+  compSel.innerHTML = `<option value="">— Competition —</option>` +
+    rows.map(([id, name]) => `<option value="${id}">${esc(name)}</option>`).join("");
+  compSel.disabled = rows.length === 0;
+}
+
+async function onBrowseCompChange(compId) {
+  const levelSel = document.getElementById("browse-level");
+  const divSel   = document.getElementById("browse-div");
+  levelSel.innerHTML = `<option value="">— Level —</option>`;
+  divSel.innerHTML   = `<option value="">— Division —</option>`;
+  divSel.disabled    = true;
+  _browseCompId = compId || null;
+  if (!compId) { levelSel.disabled = true; return; }
+
+  const rows = _execRows(await DB.exec(`
+    SELECT DISTINCT e.level FROM events e
+    WHERE e.competition_id = ?
+    ORDER BY e.level
+  `, [compId]));
+  levelSel.innerHTML = `<option value="">— Level —</option>` +
+    rows.map(([lvl]) => `<option value="${lvl}">Level ${lvl}</option>`).join("");
+  levelSel.disabled = rows.length === 0;
+}
+
+async function onBrowseLevelChange(level) {
+  const divSel = document.getElementById("browse-div");
+  divSel.innerHTML = `<option value="">— Division —</option>`;
+  if (!level || !_browseCompId) { divSel.disabled = true; return; }
+
+  const rows = _execRows(await DB.exec(`
+    SELECT DISTINCT e.division FROM events e
+    WHERE e.competition_id = ? AND e.level = ?
+    ORDER BY e.division
+  `, [_browseCompId, level]));
+  divSel.innerHTML = `<option value="">— Division —</option>` +
+    rows.map(([d]) => `<option value="${d}">Division ${d}</option>`).join("");
+  divSel.disabled = rows.length === 0;
+}
+
+document.getElementById("close-search").addEventListener("click", closeSearchPanel);
+document.getElementById("search-overlay").addEventListener("click", e => {
+  if (e.target === document.getElementById("search-overlay")) closeSearchPanel();
+});
+document.addEventListener("keydown", e => {
+  if (e.key === "Escape" && document.getElementById("search-overlay").classList.contains("open"))
+    closeSearchPanel();
+});
+document.getElementById("search-mode-select").addEventListener("change", e => onSearchModeChange(e.target.value));
+document.getElementById("search-input").addEventListener("input", e => onAthleteSearchInput(e.target.value));
+document.getElementById("search-input").addEventListener("keydown", e => {
+  if (e.key === "Enter") executeSearch();
+});
+document.getElementById("search-execute-btn").addEventListener("click", executeSearch);
+document.getElementById("browse-season").addEventListener("change", e => onBrowseSeasonChange(e.target.value));
+document.getElementById("browse-comp").addEventListener("change", e => onBrowseCompChange(e.target.value));
+document.getElementById("browse-level").addEventListener("change", e => onBrowseLevelChange(e.target.value));
+document.getElementById("browse-div").addEventListener("change", e => {
+  document.getElementById("browse-div").value = e.target.value;
 });
 
 // ─────────────────────────────────────────────────────────────────────────────

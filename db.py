@@ -5,6 +5,7 @@ Schema is created on first access via create_schema(). All write operations
 use INSERT OR REPLACE / INSERT OR IGNORE for idempotency.
 """
 
+import datetime
 import json
 import sqlite3
 from pathlib import Path
@@ -130,7 +131,7 @@ def add_processed_file(con: sqlite3.Connection, key: str, comp_name: str) -> Non
 def upsert_competition(con: sqlite3.Connection, comp: dict) -> None:
     con.execute(
         "INSERT OR IGNORE INTO competitions (id, name, season, sport) VALUES (?, ?, ?, ?)",
-        (comp["id"], comp["name"], comp.get("season", "2025"), comp.get("sport", "WAG")),
+        (comp["id"], comp["name"], comp.get("season", str(datetime.date.today().year)), comp.get("sport", "WAG")),
     )
 
 

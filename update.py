@@ -123,12 +123,20 @@ def normalise_clubs(competitions: list, aliases: dict, overrides: dict) -> None:
 
 def source_key(pdf: Path) -> str:
     rel = pdf.relative_to(PDF_ROOT)
-    return str(Path(*rel.parts[3:])) if len(rel.parts) > 4 else rel.parts[-1]
+    # Include year and competition name so same-named files in different years/comps are distinct
+    prefix = str(Path(*rel.parts[:3]))  # e.g. "2026/WAG/Senior Judges Invitational"
+    suffix = str(Path(*rel.parts[3:])) if len(rel.parts) > 4 else rel.parts[-1]
+    return f"{prefix}/{suffix}"
 
 
 def comp_name(pdf: Path) -> str:
     rel = pdf.relative_to(PDF_ROOT)
     return rel.parts[2] if len(rel.parts) >= 3 else pdf.parent.name
+
+
+def comp_year(pdf: Path) -> str:
+    rel = pdf.relative_to(PDF_ROOT)
+    return rel.parts[0] if rel.parts and re.match(r"^\d{4}$", rel.parts[0]) else str(__import__("datetime").date.today().year)
 
 
 # ---------------------------------------------------------------------------
@@ -174,9 +182,11 @@ def _load_gymvic_comps():
     session = requests.Session()
     session.headers.update(_sc.HEADERS)
     try:
+        import datetime
+        year = datetime.date.today().year
         html = _sc.fetch_results_page(session)
         nuxt = _sc.parse_nuxt_data(html)
-        wag_html = _sc.find_wag_2025_html(nuxt)
+        wag_html = _sc.find_wag_year_html(nuxt, year)
         comps = _sc.extract_competitions(wag_html)
         _gymvic_comps_cache = comps
         _gymvic_session_cache = session
@@ -523,6 +533,7 @@ def main():
             if events:
                 new_entries.append({
                     "competition": cname,
+                    "season": comp_year(pdf),
                     "source_file": key,
                     "events": events,
                 })
