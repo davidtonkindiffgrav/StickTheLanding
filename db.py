@@ -74,11 +74,12 @@ def create_schema(con: sqlite3.Connection) -> None:
             PRIMARY KEY (competition_name, file_path)
         );
 
-        CREATE INDEX IF NOT EXISTS idx_results_event   ON results(event_id);
-        CREATE INDEX IF NOT EXISTS idx_events_comp     ON events(competition_id);
-        CREATE INDEX IF NOT EXISTS idx_events_level    ON events(level, division, event_type);
-        CREATE INDEX IF NOT EXISTS idx_results_club    ON results(club);
-        CREATE INDEX IF NOT EXISTS idx_results_athlete ON results(athlete);
+        CREATE INDEX IF NOT EXISTS idx_results_event      ON results(event_id);
+        CREATE INDEX IF NOT EXISTS idx_events_comp       ON events(competition_id);
+        CREATE INDEX IF NOT EXISTS idx_events_level      ON events(level, division, event_type);
+        CREATE INDEX IF NOT EXISTS idx_results_club      ON results(club);
+        CREATE INDEX IF NOT EXISTS idx_results_athlete   ON results(athlete);
+        CREATE INDEX IF NOT EXISTS idx_comp_sport_season ON competitions(sport, season);
     """)
     con.commit()
 

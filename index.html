@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Stick The Landing - WAG 2025 Leaderboards</title>
+  <title>Stick The Landing</title>
   <script src="sql/sql-httpvfs.js"></script>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -32,17 +32,22 @@
       line-height: 1.5;
     }
 
-    header {
+    /* ── SHARED HEADER ─────────────────────────────────────────────────────── */
+    .site-header {
       background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
       border-bottom: 2px solid var(--accent);
-      padding: 24px 32px;
+      padding: 20px 32px;
+    }
+    .header-inner {
       display: flex;
       align-items: center;
+      justify-content: space-between;
       gap: 16px;
+      flex-wrap: wrap;
     }
-    header h1 { font-size: 1.75rem; font-weight: 800; letter-spacing: -0.5px; }
-    header h1 span { color: var(--accent); }
-    header p { color: var(--muted); font-size: 0.85rem; margin-top: 2px; }
+    .site-header h1 { font-size: 1.6rem; font-weight: 800; letter-spacing: -0.5px; }
+    .site-header h1 span { color: var(--accent); }
+    .site-header p { color: var(--muted); font-size: 0.85rem; margin-top: 2px; }
     .badge {
       background: var(--accent);
       color: #fff;
@@ -52,16 +57,55 @@
       border-radius: 999px;
       letter-spacing: 1px;
       text-transform: uppercase;
+      white-space: nowrap;
     }
 
+    /* ── SPORT BAR ─────────────────────────────────────────────────────────── */
+    #sport-bar {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    #back-btn {
+      background: none;
+      border: 1px solid var(--border);
+      color: var(--muted);
+      padding: 5px 13px;
+      border-radius: 999px;
+      cursor: pointer;
+      font-size: 0.82rem;
+      font-weight: 600;
+      transition: all 0.12s;
+      white-space: nowrap;
+    }
+    #back-btn:hover { border-color: var(--accent); color: var(--text); }
+    #season-selector { display: flex; gap: 6px; flex-wrap: wrap; }
+    .season-btn {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--muted);
+      padding: 5px 13px;
+      border-radius: 999px;
+      cursor: pointer;
+      font-size: 0.82rem;
+      font-weight: 600;
+      transition: all 0.12s;
+    }
+    .season-btn:hover { border-color: var(--accent); color: var(--text); }
+    .season-btn.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+
+    /* ── NAV ───────────────────────────────────────────────────────────────── */
     nav {
       background: var(--surface);
       border-bottom: 1px solid var(--border);
       display: flex;
-      gap: 0;
       padding: 0 32px;
       overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
     }
+    nav::-webkit-scrollbar { display: none; }
     nav button {
       background: none;
       border: none;
@@ -69,20 +113,22 @@
       cursor: pointer;
       font-size: 0.9rem;
       font-weight: 600;
-      padding: 14px 20px;
+      padding: 14px 18px;
       border-bottom: 3px solid transparent;
       transition: color 0.15s, border-color 0.15s;
       white-space: nowrap;
+      flex-shrink: 0;
     }
     nav button:hover { color: var(--text); }
     nav button.active { color: var(--accent); border-bottom-color: var(--accent); }
 
-    main { padding: 32px; max-width: 1200px; margin: 0 auto; }
+    /* ── MAIN CONTENT ──────────────────────────────────────────────────────── */
+    main { padding: 28px 32px; max-width: 1200px; margin: 0 auto; }
 
     .view { display: none; }
     .view.active { display: block; }
 
-    h2 { font-size: 1.25rem; font-weight: 700; margin-bottom: 20px; }
+    h2 { font-size: 1.2rem; font-weight: 700; margin-bottom: 20px; }
     h3 { font-size: 1rem; font-weight: 600; margin-bottom: 12px; color: var(--muted); }
 
     .card {
@@ -92,12 +138,10 @@
       padding: 20px 24px;
       margin-bottom: 16px;
     }
+    .table-card { overflow-x: auto; -webkit-overflow-scrolling: touch; padding: 0; }
 
-    /* Leaderboard table */
-    .leaderboard {
-      width: 100%;
-      border-collapse: collapse;
-    }
+    /* ── LEADERBOARD TABLE ─────────────────────────────────────────────────── */
+    .leaderboard { width: 100%; border-collapse: collapse; min-width: 480px; }
     .leaderboard th {
       text-align: left;
       color: var(--muted);
@@ -107,6 +151,7 @@
       text-transform: uppercase;
       padding: 8px 12px;
       border-bottom: 1px solid var(--border);
+      white-space: nowrap;
     }
     .leaderboard td {
       padding: 10px 12px;
@@ -123,17 +168,13 @@
       border-radius: 50%;
       font-weight: 800;
       font-size: 0.8rem;
+      flex-shrink: 0;
     }
     .rank-1 { background: var(--gold); color: #000; }
     .rank-2 { background: var(--silver); color: #000; }
     .rank-3 { background: var(--bronze); color: #fff; }
     .rank-n { background: var(--surface2); color: var(--muted); }
 
-    .stat-row {
-      display: flex;
-      gap: 8px;
-      align-items: center;
-    }
     .stat-chip {
       background: var(--surface2);
       border-radius: 6px;
@@ -141,40 +182,40 @@
       font-size: 0.78rem;
       font-weight: 600;
     }
-    .stat-chip.gold { background: rgba(245,197,24,0.15); color: var(--gold); }
+    .stat-chip.gold   { background: rgba(245,197,24,0.15);  color: var(--gold); }
     .stat-chip.silver { background: rgba(176,184,196,0.15); color: var(--silver); }
-    .stat-chip.bronze { background: rgba(205,127,50,0.15); color: var(--bronze); }
-    .stat-chip.green { background: rgba(74,222,128,0.12); color: var(--green); }
+    .stat-chip.bronze { background: rgba(205,127,50,0.15);  color: var(--bronze); }
+    .stat-chip.green  { background: rgba(74,222,128,0.12);  color: var(--green); }
 
     .score { font-variant-numeric: tabular-nums; font-weight: 600; }
     .score-hi { color: var(--green); }
 
-    /* Competition cards */
+    /* ── COMPETITION CARDS ─────────────────────────────────────────────────── */
     .comp-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-      gap: 16px;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 14px;
     }
     .comp-card {
       background: var(--surface);
       border: 1px solid var(--border);
       border-radius: var(--radius);
       padding: 18px 20px;
-      cursor: pointer;
       transition: border-color 0.15s, transform 0.1s;
     }
     .comp-card:hover { border-color: var(--accent); transform: translateY(-2px); }
-    .comp-card h3 { font-size: 1rem; font-weight: 700; color: var(--text); margin-bottom: 6px; }
+    .comp-card h3 { font-size: 0.97rem; font-weight: 700; color: var(--text); margin-bottom: 6px; }
     .comp-meta { color: var(--muted); font-size: 0.82rem; }
     .comp-actions { display: flex; gap: 8px; margin-top: 10px; }
-    .comp-btn { flex: 1; padding: 6px 10px; border: none; border-radius: 6px; cursor: pointer; font-size: 0.8rem; font-weight: 600; }
+    .comp-btn { flex: 1; padding: 7px 10px; border: none; border-radius: 6px; cursor: pointer; font-size: 0.8rem; font-weight: 600; min-height: 36px; }
     .btn-results { background: var(--accent); color: #fff; }
-    .btn-pdfs { background: var(--surface2, #2a2a3a); color: var(--text); border: 1px solid var(--border); }
+    .btn-pdfs { background: var(--surface2); color: var(--text); border: 1px solid var(--border); }
     .pdf-list { list-style: none; padding: 12px 0; margin: 0; }
-    .pdf-list li { padding: 8px 12px; border-bottom: 1px solid var(--border, #333); }
+    .pdf-list li { padding: 8px 12px; border-bottom: 1px solid var(--border); }
+    .pdf-list li:last-child { border-bottom: none; }
     .pdf-list li a { color: var(--accent); text-decoration: none; font-size: 0.9rem; }
     .pdf-list li a:hover { text-decoration: underline; }
-    .standings-subtitle { margin: 20px 0 8px; font-size: 1rem; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; }
+    .standings-subtitle { margin: 20px 0 8px; font-size: 0.9rem; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; }
     .club-code { font-size: 0.72rem; font-weight: 700; color: var(--muted); background: rgba(255,255,255,0.06); border: 1px solid var(--border); border-radius: 4px; padding: 1px 5px; margin-left: 4px; vertical-align: middle; letter-spacing: 0.04em; }
     .club-logo-sm { height: 28px; width: 28px; object-fit: contain; border-radius: 4px; vertical-align: middle; }
     .club-logo-md { height: 44px; width: 44px; object-fit: contain; border-radius: 5px; vertical-align: middle; }
@@ -182,7 +223,7 @@
     .logo-preview { display: none; position: fixed; width: 256px; height: 256px; object-fit: contain; background: rgba(255,255,255,0.3); border: 1px solid var(--border); border-radius: 8px; box-shadow: 0 8px 32px rgba(0,0,0,0.5); z-index: 1000; pointer-events: none; }
     td.logo-cell { width: 48px; text-align: center; padding: 6px 8px; }
     td.logo-cell-md { width: 60px; text-align: center; padding: 8px 10px; }
-    .sortable:hover { color: var(--accent); }
+    .sortable:hover { color: var(--accent); cursor: pointer; }
     .sort-icon { font-size: 0.7rem; opacity: 0.5; margin-left: 2px; }
     .sort-icon.asc::after { content: "↑"; }
     .sort-icon.desc::after { content: "↓"; }
@@ -210,30 +251,35 @@
       margin-top: 8px;
     }
 
-    /* Level filter */
+    /* ── FILTER BARS ───────────────────────────────────────────────────────── */
     .filter-bar {
       display: flex;
       gap: 8px;
       flex-wrap: wrap;
-      margin-bottom: 20px;
+      margin-bottom: 16px;
       align-items: center;
     }
-    .filter-bar label { color: var(--muted); font-size: 0.82rem; margin-right: 4px; }
+    .filter-bar label { color: var(--muted); font-size: 0.82rem; margin-right: 4px; flex-shrink: 0; }
     .filter-btn {
       background: var(--surface);
       border: 1px solid var(--border);
       color: var(--muted);
-      padding: 5px 14px;
+      padding: 5px 13px;
       border-radius: 999px;
       cursor: pointer;
       font-size: 0.82rem;
       font-weight: 600;
       transition: all 0.12s;
+      min-height: 32px;
     }
     .filter-btn:hover { border-color: var(--accent); color: var(--text); }
     .filter-btn.active { background: var(--accent); border-color: var(--accent); color: #fff; }
 
-    /* Drill-down modal */
+    .no-data { text-align: center; color: var(--muted); padding: 48px 20px; font-size: 0.95rem; }
+    .no-data strong { display: block; font-size: 1.1rem; color: var(--text); margin-bottom: 8px; }
+    .updated { color: var(--muted); font-size: 0.78rem; margin-bottom: 20px; }
+
+    /* ── DRILL-DOWN OVERLAY ────────────────────────────────────────────────── */
     #drill-overlay {
       display: none;
       position: fixed; inset: 0;
@@ -261,8 +307,9 @@
       cursor: pointer;
       line-height: 1;
       margin-top: -4px;
+      padding: 4px;
     }
-    .event-section { margin-top: 20px; }
+    .event-section { margin-top: 20px; overflow-x: auto; }
     .event-section h4 {
       font-size: 0.8rem;
       font-weight: 700;
@@ -272,129 +319,504 @@
       margin-bottom: 8px;
     }
 
-    .no-data {
+    /* ── LANDING PAGE ──────────────────────────────────────────────────────── */
+    #landing-view {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 48px 24px;
+      background: linear-gradient(160deg, #0f0f13 0%, #1a1a2e 50%, #0f3460 100%);
+    }
+    .landing-inner {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      width: 100%;
+      max-width: 900px;
+      gap: 0;
+    }
+    .landing-logo { text-align: center; margin-bottom: 48px; }
+    .landing-logo h1 { font-size: 2.6rem; font-weight: 800; letter-spacing: -1px; }
+    .landing-logo h1 span { color: var(--accent); }
+    .landing-logo p { color: var(--muted); margin-top: 8px; font-size: 1.05rem; }
+
+    .sport-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 18px;
+      width: 100%;
+      margin-bottom: 40px;
+    }
+    .sport-card {
+      position: relative;
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 16px;
+      cursor: pointer;
+      padding: 0;
+      min-height: 200px;
+      overflow: hidden;
+      transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
+      display: flex;
+      align-items: flex-end;
+      text-align: left;
+    }
+    .sport-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 20px 48px rgba(0,0,0,0.45);
+      border-color: rgba(255,255,255,0.18);
+    }
+    .sport-card.coming-soon { opacity: 0.65; cursor: pointer; }
+    .sport-wag  {
+      background: linear-gradient(145deg, rgba(42,21,80,0.75) 0%, rgba(74,32,128,0.65) 40%, rgba(124,109,250,0.55) 100%),
+                  url('assets/images/WAG_button.jpg') center/cover no-repeat;
+    }
+    .sport-mag  {
+      background: linear-gradient(145deg, rgba(10,32,64,0.75) 0%, rgba(10,64,112,0.65) 40%, rgba(33,150,243,0.55) 100%),
+                  url('assets/images/MAG_button.jpg') center/cover no-repeat;
+    }
+    .sport-acro {
+      background: linear-gradient(145deg, rgba(58,26,0,0.75) 0%, rgba(106,56,0,0.65) 40%, rgba(245,159,0,0.55) 100%),
+                  url('assets/images/ACRO_button.jpg') center/cover no-repeat;
+    }
+    .sport-card-inner {
+      padding: 20px 22px;
+      width: 100%;
+      background: linear-gradient(to top, rgba(0,0,0,0.55) 0%, transparent 100%);
+    }
+.sport-label { font-size: 1.8rem; font-weight: 800; color: #fff; letter-spacing: -0.5px; }
+    .sport-sublabel { font-size: 0.82rem; color: rgba(255,255,255,0.72); margin-top: 3px; }
+    .coming-soon-chip {
+      display: inline-block;
+      background: rgba(255,255,255,0.18);
+      color: rgba(255,255,255,0.85);
+      font-size: 0.68rem;
+      font-weight: 700;
+      padding: 3px 8px;
+      border-radius: 999px;
+      margin-top: 8px;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+    }
+    .landing-disclaimer {
+      max-width: 600px;
       text-align: center;
       color: var(--muted);
-      padding: 48px 20px;
-      font-size: 0.95rem;
+      font-size: 0.9rem;
+      line-height: 1.7;
+      margin-bottom: 28px;
     }
-    .no-data strong { display: block; font-size: 1.1rem; color: var(--text); margin-bottom: 8px; }
+    .link-btn {
+      background: none;
+      border: none;
+      color: var(--accent);
+      cursor: pointer;
+      font-size: inherit;
+      padding: 0;
+      text-decoration: underline;
+      text-underline-offset: 2px;
+    }
+    .link-btn:hover { color: #a99fff; }
+    .landing-footer { display: flex; gap: 16px; align-items: center; }
+    .landing-contact-btn {
+      background: none;
+      border: 1px solid var(--border);
+      color: var(--muted);
+      padding: 9px 22px;
+      border-radius: 999px;
+      cursor: pointer;
+      font-size: 0.88rem;
+      font-weight: 600;
+      transition: all 0.15s;
+      min-height: 40px;
+    }
+    .landing-contact-btn:hover { border-color: var(--accent); color: var(--text); }
+    .photo-credit {
+      margin-top: 24px;
+      font-size: 0.68rem;
+      color: rgba(136,136,170,0.45);
+      text-align: center;
+      line-height: 1.6;
+    }
+    .photo-credit a { color: rgba(136,136,170,0.5); text-decoration: none; }
+    .photo-credit a:hover { color: var(--muted); }
 
-    .updated { color: var(--muted); font-size: 0.78rem; margin-bottom: 24px; }
+    /* ── COMING SOON MODAL ─────────────────────────────────────────────────── */
+    #coming-soon-modal {
+      display: none;
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,0.72);
+      z-index: 300;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+    #coming-soon-modal.open { display: flex; }
+    #coming-soon-box {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 40px 36px;
+      max-width: 420px;
+      width: 100%;
+      text-align: center;
+      position: relative;
+    }
+    #coming-soon-box .cs-icon { font-size: 3rem; margin-bottom: 16px; }
+    #coming-soon-box h2 { font-size: 1.5rem; margin-bottom: 12px; }
+    #coming-soon-box p { color: var(--muted); line-height: 1.65; margin-bottom: 28px; font-size: 0.93rem; }
+    .modal-close {
+      position: absolute; top: 14px; right: 16px;
+      background: none; border: none; color: var(--muted);
+      font-size: 1.2rem; cursor: pointer; padding: 4px 6px; line-height: 1;
+    }
+    .modal-close:hover { color: var(--text); }
+    .modal-dismiss {
+      background: var(--accent); color: #fff; border: none;
+      padding: 11px 32px; border-radius: 999px;
+      cursor: pointer; font-size: 0.93rem; font-weight: 700;
+      transition: opacity 0.15s; min-height: 44px;
+    }
+    .modal-dismiss:hover { opacity: 0.85; }
+
+    /* ── LOADING OVERLAY ───────────────────────────────────────────────────── */
+    #loading-overlay {
+      display: none;
+      position: fixed; inset: 0;
+      background: rgba(15,15,19,0.88);
+      z-index: 200;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      gap: 18px;
+    }
+    #loading-overlay.open { display: flex; }
+    .loading-spinner {
+      width: 44px; height: 44px;
+      border: 3px solid var(--border);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin 0.75s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .loading-text { color: var(--muted); font-size: 0.9rem; }
+
+    /* ── CONTACT PAGE ──────────────────────────────────────────────────────── */
+    .contact-main {
+      padding: 36px 32px;
+      max-width: 640px;
+      margin: 0 auto;
+      width: 100%;
+    }
+    .back-btn-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: none;
+      border: 1px solid var(--border);
+      color: var(--muted);
+      padding: 6px 14px;
+      border-radius: 999px;
+      cursor: pointer;
+      font-size: 0.82rem;
+      font-weight: 600;
+      transition: all 0.12s;
+      margin-bottom: 32px;
+      min-height: 36px;
+    }
+    .back-btn-link:hover { border-color: var(--accent); color: var(--text); }
+    .contact-intro { color: var(--muted); font-size: 0.9rem; margin-bottom: 32px; line-height: 1.65; }
+    .contact-form { display: flex; flex-direction: column; gap: 22px; }
+    .form-group { display: flex; flex-direction: column; gap: 6px; }
+    .form-group label { font-size: 0.85rem; font-weight: 600; color: var(--muted); }
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text);
+      font-size: 0.95rem;
+      padding: 10px 14px;
+      width: 100%;
+      font-family: inherit;
+      transition: border-color 0.15s;
+      min-height: 44px;
+    }
+    .form-group input:focus,
+    .form-group select:focus,
+    .form-group textarea:focus { outline: none; border-color: var(--accent); }
+    .form-group textarea { min-height: 140px; resize: vertical; }
+    .form-group select {
+      -webkit-appearance: none;
+      -moz-appearance: none;
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%238888aa' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 14px center;
+      padding-right: 40px;
+    }
+    .form-group select option { background: #1a1a24; }
+    .form-submit {
+      background: var(--accent); color: #fff; border: none;
+      padding: 12px 32px; border-radius: 999px;
+      cursor: pointer; font-size: 0.95rem; font-weight: 700;
+      transition: opacity 0.15s; align-self: flex-start; min-height: 44px;
+    }
+    .form-submit:hover { opacity: 0.85; }
+    .form-note { font-size: 0.8rem; color: var(--muted); line-height: 1.5; }
+
+    /* ── MOBILE RESPONSIVE ─────────────────────────────────────────────────── */
+    @media (max-width: 720px) {
+      .site-header { padding: 16px 16px; }
+      .site-header h1 { font-size: 1.35rem; }
+      main { padding: 20px 16px; }
+      nav { padding: 0 8px; }
+      nav button { padding: 12px 14px; font-size: 0.85rem; }
+      .header-inner { gap: 10px; }
+      #sport-bar { gap: 6px; }
+      #back-btn, .season-btn { padding: 4px 10px; font-size: 0.78rem; }
+      .badge { font-size: 0.65rem; padding: 2px 6px; }
+    }
+
+    @media (max-width: 600px) {
+      #landing-view { padding: 36px 16px; }
+      .landing-logo h1 { font-size: 2rem; }
+      .sport-grid { grid-template-columns: 1fr; gap: 12px; }
+      .sport-card { min-height: 130px; }
+      .sport-label { font-size: 1.5rem; }
+      .sport-icon { font-size: 1.6rem; margin-bottom: 4px; }
+      .landing-logo { margin-bottom: 32px; }
+      .landing-disclaimer { font-size: 0.85rem; }
+      .contact-main { padding: 24px 16px; }
+      #drill-box { padding: 20px 16px; border-radius: 12px; }
+      #coming-soon-box { padding: 28px 20px; }
+      h2 { font-size: 1.1rem; }
+      .comp-grid { grid-template-columns: 1fr; }
+    }
+
+    @media (max-width: 400px) {
+      .sport-card { min-height: 110px; }
+      .sport-card-inner { padding: 14px 16px; }
+    }
   </style>
 </head>
 <body>
 
-<header>
-  <div>
-    <h1>Stick The <span>Landing</span></h1>
-    <p>Victorian WAG 2025 - Season Leaderboards</p>
+<!-- ═══════════════════════════════════════════════════════ LANDING ══════ -->
+<div id="landing-view">
+  <div class="landing-inner">
+    <div class="landing-logo">
+      <h1>Stick The <span>Landing</span></h1>
+      <p>Victorian Gymnastics Season Leaderboards</p>
+    </div>
+
+    <div class="sport-grid">
+      <button class="sport-card sport-wag" onclick="enterSport('WAG')">
+        <div class="sport-card-inner">
+          <div class="sport-label">WAG</div>
+          <div class="sport-sublabel">Women's Artistic</div>
+        </div>
+      </button>
+      <button class="sport-card sport-mag coming-soon" onclick="openComingSoon()">
+        <div class="sport-card-inner">
+          <div class="sport-label">MAG</div>
+          <div class="sport-sublabel">Men's Artistic</div>
+          <div class="coming-soon-chip">Coming Soon</div>
+        </div>
+      </button>
+      <button class="sport-card sport-acro coming-soon" onclick="openComingSoon()">
+        <div class="sport-card-inner">
+          <div class="sport-label">ACRO</div>
+          <div class="sport-sublabel">Acrobatic</div>
+          <div class="coming-soon-chip">Coming Soon</div>
+        </div>
+      </button>
+    </div>
+
+    <p class="landing-disclaimer">
+      Results are ingested from a variety of official PDF formats and processed automatically - errors can occur.
+      We're proud to support the Victorian gymnastics community. If you spot a discrepancy,
+      <button class="link-btn" onclick="showContact('landing')">contact us</button>
+      and we'll fix it together.
+    </p>
+
+    <div class="landing-footer">
+      <button class="landing-contact-btn" onclick="showContact('landing')">Contact Us</button>
+    </div>
+
+    <p class="photo-credit">
+      Photos from <a href="https://www.pexels.com" target="_blank" rel="noopener">Pexels</a> —
+      WAG: <a href="https://www.pexels.com/photo/a-girl-in-black-leotards-standing-on-balance-beam-14171760/" target="_blank" rel="noopener">Cleiton Silva</a> ·
+      MAG: <a href="https://www.pexels.com/photo/photo-of-male-gymnast-practicing-on-gymnastic-rings-3763121/" target="_blank" rel="noopener">Andrea Piacquadio</a> ·
+      ACRO: <a href="https://www.pexels.com/photo/man-holding-up-woman-in-ballet-14095663/" target="_blank" rel="noopener">César Pérez</a>
+    </p>
   </div>
-  <div class="badge">2025</div>
-</header>
+</div>
 
-<nav>
-  <button class="active" data-view="clubs">Team Standings</button>
-  <button data-view="athletes">Individual Rankings</button>
-  <button data-view="competitions">Competitions</button>
-  <button data-view="club-directory">Clubs</button>
-</nav>
-
-<main>
-  <p class="updated" id="updated-at"></p>
-
-  <!-- TEAM STANDINGS -->
-  <section class="view active" id="view-clubs">
-    <h2>Team Standings - 2025 Season</h2>
-    <div class="filter-bar" id="level-filter-bar">
-      <label>Level:</label>
+<!-- ════════════════════════════════════════════════════════ APP SHELL ═══ -->
+<div id="app-shell" style="display:none">
+  <header class="site-header">
+    <div class="header-inner">
+      <div>
+        <h1 style="cursor:pointer" onclick="exitToLanding()" title="Back to Sports">Stick The <span>Landing</span></h1>
+        <p id="header-subtitle">Victorian WAG · Season Leaderboards</p>
+      </div>
+      <div id="sport-bar">
+        <button id="back-btn" onclick="exitToLanding()">← Sports</button>
+        <span id="sport-label-pill" class="badge">WAG</span>
+        <div id="season-selector"></div>
+      </div>
     </div>
-    <div class="filter-bar" id="division-filter-bar">
-      <label>Division:</label>
-      <button class="filter-btn active" data-division="all">All</button>
-    </div>
-    <div class="filter-bar" id="region-filter-bar">
-      <label>Region:</label>
-      <button class="filter-btn active" data-region="all">All</button>
-    </div>
+  </header>
 
-    <p class="standings-note">Clubs may enter multiple squads in the same event. All squads from the same club are counted together — points and wins from every squad contribute to the club's total.</p>
+  <nav id="app-nav">
+    <button class="active" data-view="clubs">Team Standings</button>
+    <button data-view="athletes">Individual Rankings</button>
+    <button data-view="competitions">Competitions</button>
+    <button data-view="club-directory">Clubs</button>
+    <button onclick="showContact('app')" style="margin-left:auto">Contact</button>
+  </nav>
 
-    <h3 class="standings-subtitle">By High Score</h3>
-    <div class="card" style="padding:0; overflow:hidden; margin-bottom:24px">
-      <table class="leaderboard" id="team-highscore-table">
-        <thead>
-          <tr>
-            <th style="width:52px">#</th>
-            <th style="width:48px"></th>
-            <th>Club</th>
-            <th title="Best single team score across all competitions">High Score</th>
-            <th title="Average team score across all competitions">Avg Score</th>
-            <th>Comps</th>
-          </tr>
-        </thead>
-        <tbody id="team-highscore-tbody"></tbody>
-      </table>
+  <main>
+    <p class="updated" id="updated-at"></p>
+
+    <!-- TEAM STANDINGS -->
+    <section class="view active" id="view-clubs">
+      <h2 id="team-title">Team Standings</h2>
+      <div class="filter-bar" id="level-filter-bar"><label>Level:</label></div>
+      <div class="filter-bar" id="division-filter-bar">
+        <label>Division:</label>
+        <button class="filter-btn active" data-division="all">All</button>
+      </div>
+      <div class="filter-bar" id="region-filter-bar">
+        <label>Region:</label>
+        <button class="filter-btn active" data-region="all">All</button>
+      </div>
+      <p class="standings-note">Clubs may enter multiple squads in the same event. All squads from the same club are counted together - points and wins from every squad contribute to the club's total.</p>
+      <h3 class="standings-subtitle">By High Score</h3>
+      <div class="card table-card" style="margin-bottom:24px">
+        <table class="leaderboard" id="team-highscore-table">
+          <thead>
+            <tr>
+              <th style="width:52px">#</th>
+              <th style="width:48px"></th>
+              <th>Club</th>
+              <th title="Best single team score across all competitions">High Score</th>
+              <th title="Average team score across all competitions">Avg Score</th>
+              <th>Comps</th>
+            </tr>
+          </thead>
+          <tbody id="team-highscore-tbody"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- INDIVIDUAL RANKINGS -->
+    <section class="view" id="view-athletes">
+      <h2 id="athlete-title">Individual Rankings</h2>
+      <div class="filter-bar" id="athlete-level-filter-bar"><label>Level:</label></div>
+      <div class="filter-bar" id="athlete-division-filter-bar">
+        <label>Division:</label>
+        <button class="filter-btn active" data-division="all">All</button>
+      </div>
+      <div class="card table-card">
+        <table class="leaderboard" id="athlete-table">
+          <thead>
+            <tr>
+              <th style="width:52px">#</th>
+              <th>Athlete</th>
+              <th style="width:48px"></th>
+              <th>Club</th>
+              <th>Level</th>
+              <th>Comps</th>
+              <th>Best Score</th>
+              <th>Wins</th>
+            </tr>
+          </thead>
+          <tbody id="athlete-tbody"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- COMPETITIONS -->
+    <section class="view" id="view-competitions">
+      <h2 id="comp-title">Competitions</h2>
+      <div class="comp-grid" id="comp-grid"></div>
+    </section>
+
+    <!-- CLUB DIRECTORY -->
+    <section class="view" id="view-club-directory">
+      <h2>Club Directory</h2>
+      <p class="standings-note" style="margin-bottom:20px">All Victorian clubs in the current season. Click a column heading to sort.</p>
+      <div class="card table-card">
+        <table class="leaderboard" id="club-dir-table">
+          <thead>
+            <tr>
+              <th style="width:60px"></th>
+              <th class="sortable" data-col="name">Club Name <span class="sort-icon" id="sort-name">↕</span></th>
+              <th class="sortable" data-col="code" style="width:80px">Code <span class="sort-icon" id="sort-code">↕</span></th>
+              <th class="sortable" data-col="region" style="width:160px">Region <span class="sort-icon" id="sort-region">↕</span></th>
+            </tr>
+          </thead>
+          <tbody id="club-dir-tbody"></tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+</div>
+
+<!-- ═══════════════════════════════════════════════════ CONTACT SHELL ═══ -->
+<div id="contact-shell" style="display:none">
+  <header class="site-header">
+    <div class="header-inner">
+      <div>
+        <h1>Stick The <span>Landing</span></h1>
+        <p>Get in touch</p>
+      </div>
     </div>
+  </header>
 
-  </section>
+  <main class="contact-main">
+    <button class="back-btn-link" id="contact-back-btn" onclick="exitContact()">← Back</button>
+    <h2 style="margin-bottom:10px">Contact Us</h2>
+    <p class="contact-intro">
+      Found a results error? Know of a club name change? Just want to say hi?
+      We welcome all feedback from the Victorian gymnastics community.
+    </p>
 
-  <!-- INDIVIDUAL LEADERBOARD -->
-  <section class="view" id="view-athletes">
-    <h2>Individual Rankings - 2025 Season</h2>
-    <div class="filter-bar" id="athlete-level-filter-bar">
-      <label>Level:</label>
-    </div>
-    <div class="filter-bar" id="athlete-division-filter-bar">
-      <label>Division:</label>
-      <button class="filter-btn active" data-division="all">All</button>
-    </div>
-    <div class="card" style="padding:0; overflow:hidden;">
-      <table class="leaderboard" id="athlete-table">
-        <thead>
-          <tr>
-            <th style="width:52px">#</th>
-            <th>Athlete</th>
-            <th style="width:48px"></th>
-            <th>Club</th>
-            <th>Level</th>
-            <th>Comps</th>
-            <th>Best Score</th>
-            <th>Wins</th>
-          </tr>
-        </thead>
-        <tbody id="athlete-tbody"></tbody>
-      </table>
-    </div>
-  </section>
+    <form class="contact-form" action="https://formspree.io/f/mrerjrgn" method="POST">
+      <div class="form-group">
+        <label for="f-name">Your Name</label>
+        <input type="text" id="f-name" name="name" placeholder="Jane Smith" required />
+      </div>
+      <div class="form-group">
+        <label for="f-email">Email Address</label>
+        <input type="email" id="f-email" name="email" placeholder="jane@example.com" required />
+      </div>
+      <div class="form-group">
+        <label for="f-subject">Subject</label>
+        <select id="f-subject" name="subject" required>
+          <option value="" disabled selected>Choose a topic…</option>
+          <option value="General Enquiry">General Enquiry</option>
+          <option value="Results Error">Results Error</option>
+          <option value="Athlete Name Correction">Athlete Name Correction</option>
+          <option value="Club Info Update">Club Info Update</option>
+          <option value="Other">Other</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label for="f-message">Message</label>
+        <textarea id="f-message" name="message" placeholder="Tell us what you found…" required></textarea>
+      </div>
+      <button type="submit" class="form-submit">Send Message</button>
+      <p class="form-note">We'll get back to you as soon as we can. Thank you for helping make this resource better for the Victorian gymnastics community.</p>
+    </form>
+  </main>
+</div>
 
-  <!-- COMPETITIONS -->
-  <section class="view" id="view-competitions">
-    <h2>All Competitions - 2025</h2>
-    <div class="comp-grid" id="comp-grid"></div>
-  </section>
-
-  <!-- CLUB DIRECTORY -->
-  <section class="view" id="view-club-directory">
-    <h2>Club Directory</h2>
-    <p class="standings-note" style="margin-bottom:20px">All Victorian WAG clubs participating in the 2025 season. Click a column heading to sort.</p>
-    <div class="card" style="padding:0; overflow:hidden">
-      <table class="leaderboard" id="club-dir-table">
-        <thead>
-          <tr>
-            <th style="width:60px"></th>
-            <th class="sortable" data-col="name" style="cursor:pointer">Club Name <span class="sort-icon" id="sort-name">↕</span></th>
-            <th class="sortable" data-col="code" style="cursor:pointer; width:80px">Code <span class="sort-icon" id="sort-code">↕</span></th>
-            <th class="sortable" data-col="region" style="cursor:pointer; width:160px">Region <span class="sort-icon" id="sort-region">↕</span></th>
-          </tr>
-        </thead>
-        <tbody id="club-dir-tbody"></tbody>
-      </table>
-    </div>
-  </section>
-</main>
-
-<!-- Drill-down overlay -->
+<!-- ═══════════════════════════════════════════════════ DRILL OVERLAY ═══ -->
 <div id="drill-overlay">
   <div id="drill-box">
     <button class="close-btn" id="close-drill">&#x2715;</button>
@@ -404,74 +826,245 @@
   </div>
 </div>
 
+<!-- ══════════════════════════════════════════════ COMING SOON MODAL ═══ -->
+<div id="coming-soon-modal">
+  <div id="coming-soon-box">
+    <button class="modal-close" onclick="closeComingSoon()">&#x2715;</button>
+    <div class="cs-icon">🚧</div>
+    <h2>Coming Soon</h2>
+    <p>Results for this discipline are on their way. We're working hard to bring you MAG and ACRO season leaderboards - check back soon!</p>
+    <button class="modal-dismiss" onclick="closeComingSoon()">Got it</button>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════ LOADING OVERLAY ═══ -->
+<div id="loading-overlay">
+  <div class="loading-spinner"></div>
+  <p class="loading-text">Loading database…</p>
+</div>
+
 <script>
-// ---------------------------------------------------------------------------
+// ─────────────────────────────────────────────────────────────────────────────
 // State
-// ---------------------------------------------------------------------------
-let DB         = null;
-let CLUBS      = {};   // code → full name
+// ─────────────────────────────────────────────────────────────────────────────
+let DB             = null;
+let currentSport   = null;
+let currentSeason  = null;
+let availableSeasons = [];
+
+let CLUBS      = {};
 let CLUBS_LIST = [];
 let INTERSTATE = new Set();
-let LEVEL_DIVS = [];   // [{level, division}] sorted, loaded at init
+let LEVEL_DIVS = [];
+
 let activeLevel    = null;
 let activeDivision = null;
 let activeRegion   = null;
-let activeView = "clubs";
-let _compList  = [];   // [{id, name, event_count, athlete_count}] cached by renderCompetitions
+let activeView     = "clubs";
+let _compList      = [];
+let _contactFrom   = "landing";
 
-function _execRows(resultSet) {
-  if (!resultSet || !resultSet.length) return [];
-  return resultSet[0].values || [];
+// ─────────────────────────────────────────────────────────────────────────────
+// DB init (lazy - only called when a sport is entered)
+// ─────────────────────────────────────────────────────────────────────────────
+async function initDB() {
+  if (DB) return;
+  const workerUrl = new URL("sql/sqlite.worker.js", location.href).toString();
+  const wasmUrl   = new URL("sql/sql-wasm.wasm",   location.href).toString();
+  const dbUrl     = new URL("data/stick.db",        location.href).toString();
+  const cfgResp   = await fetch(new URL("data/dbconfig.json", location.href).toString());
+  const dbCfg     = await cfgResp.json();
+  dbCfg.url       = dbUrl;
+  const worker    = await createDbWorker(
+    [{ from: "inline", config: dbCfg }],
+    workerUrl, wasmUrl
+  );
+  DB = worker.db;
 }
 
-async function loadData() {
+// ─────────────────────────────────────────────────────────────────────────────
+// Sport entry / exit
+// ─────────────────────────────────────────────────────────────────────────────
+async function enterSport(sport) {
+  if (sport !== "WAG") { openComingSoon(); return; }
+
+  currentSport = sport;
+  showLoading(true);
+  document.getElementById("landing-view").style.display = "none";
+
   try {
-    const workerUrl = new URL("sql/sqlite.worker.js", location.href).toString();
-    const wasmUrl   = new URL("sql/sql-wasm.wasm",   location.href).toString();
-    const dbUrl     = new URL("data/stick.db",        location.href).toString();
-    const cfgResp   = await fetch(new URL("data/dbconfig.json", location.href).toString());
-    const dbCfg     = await cfgResp.json();
-    dbCfg.url       = dbUrl;
-    const worker    = await createDbWorker(
-      [{ from: "inline", config: dbCfg }],
-      workerUrl, wasmUrl
-    );
-    DB = worker.db;
+    await initDB();
 
-    // Clubs — small, needed everywhere for clubDisplay() and region filters
-    const clubRows = _execRows(await DB.exec("SELECT code, name, region, logo FROM clubs ORDER BY name"));
-    for (const [code, name, region, logo] of clubRows) {
-      CLUBS[code] = name;
-      CLUBS_LIST.push({ code, name, region, logo });
-    }
-    INTERSTATE = new Set(CLUBS_LIST.filter(c => c.region === "Interstate").map(c => c.code));
-
-    // Level/division list for filter buttons — tiny
-    const ldRows = _execRows(await DB.exec(
-      "SELECT DISTINCT level, division FROM events ORDER BY level, division"
+    // Seasons available for this sport
+    const seasRows = _execRows(await DB.exec(
+      "SELECT DISTINCT season FROM competitions WHERE sport = ? ORDER BY season DESC",
+      [sport]
     ));
-    LEVEL_DIVS = ldRows.map(([level, division]) => ({ level, division }));
+    availableSeasons = seasRows.map(([s]) => s);
+    currentSeason    = availableSeasons[0] || "2025";
 
+    // Clubs (only load once)
+    if (!CLUBS_LIST.length) {
+      const clubRows = _execRows(await DB.exec(
+        "SELECT code, name, region, logo FROM clubs ORDER BY name"
+      ));
+      for (const [code, name, region, logo] of clubRows) {
+        CLUBS[code] = name;
+        CLUBS_LIST.push({ code, name, region, logo });
+      }
+      INTERSTATE = new Set(CLUBS_LIST.filter(c => c.region === "Interstate").map(c => c.code));
+    }
+
+    await reloadLevelDivs();
   } catch (e) {
-    showNoData(`Could not load database: ${e.message || e}. Run update.py first.`);
+    showLoading(false);
+    document.getElementById("landing-view").style.display = "";
+    alert(`Could not load database: ${e.message || e}`);
     return;
   }
 
-  document.getElementById("updated-at").textContent = "";
+  showLoading(false);
+
+  // Show app
+  const shell = document.getElementById("app-shell");
+  shell.style.display = "block";
+
+  // Update header
+  document.getElementById("sport-label-pill").textContent = sport;
+  document.getElementById("header-subtitle").textContent  = `Victorian ${sport} · Season Leaderboards`;
+
+  renderSeasonButtons();
+  resetFilters();
   buildLevelFilters();
   buildRegionFilters();
+
   const firstLevelBtn = document.querySelector("#level-filter-bar .filter-btn");
   if (firstLevelBtn) firstLevelBtn.click();
   else render();
+}
+
+function exitToLanding() {
+  document.getElementById("app-shell").style.display  = "none";
+  document.getElementById("landing-view").style.display = "";
+  // Reset view state so next entry is fresh
+  activeLevel    = null;
+  activeDivision = null;
+  activeRegion   = null;
+  activeView     = "clubs";
+  document.querySelectorAll("#app-nav button[data-view]").forEach(b =>
+    b.classList.toggle("active", b.dataset.view === "clubs")
+  );
+  document.querySelectorAll(".view").forEach(v =>
+    v.classList.toggle("active", v.id === "view-clubs")
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Seasons
+// ─────────────────────────────────────────────────────────────────────────────
+function renderSeasonButtons() {
+  const sel = document.getElementById("season-selector");
+  sel.innerHTML = availableSeasons.map(s =>
+    `<button class="season-btn${s === currentSeason ? " active" : ""}" data-season="${esc(s)}">${esc(s)}</button>`
+  ).join("");
+  sel.querySelectorAll(".season-btn").forEach(btn => {
+    btn.addEventListener("click", async () => {
+      currentSeason = btn.dataset.season;
+      sel.querySelectorAll(".season-btn").forEach(b =>
+        b.classList.toggle("active", b.dataset.season === currentSeason)
+      );
+      await reloadLevelDivs();
+      resetFilters();
+      buildLevelFilters();
+      buildRegionFilters();
+      const firstBtn = document.querySelector("#level-filter-bar .filter-btn");
+      if (firstBtn) firstBtn.click();
+      else render();
+    });
+  });
+}
+
+async function reloadLevelDivs() {
+  const ldRows = _execRows(await DB.exec(
+    `SELECT DISTINCT e.level, e.division
+     FROM events e
+     JOIN competitions c ON e.competition_id = c.id
+     WHERE c.sport = ? AND c.season = ?
+     ORDER BY e.level, e.division`,
+    [currentSport, currentSeason]
+  ));
+  LEVEL_DIVS = ldRows.map(([level, division]) => ({ level, division }));
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Contact page
+// ─────────────────────────────────────────────────────────────────────────────
+function showContact(from) {
+  _contactFrom = from || "landing";
+  document.getElementById("landing-view").style.display  = "none";
+  document.getElementById("app-shell").style.display     = "none";
+  document.getElementById("contact-shell").style.display = "block";
+}
+
+function exitContact() {
+  document.getElementById("contact-shell").style.display = "none";
+  if (_contactFrom === "app") {
+    document.getElementById("app-shell").style.display = "block";
+  } else {
+    document.getElementById("landing-view").style.display = "";
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Modals / overlays
+// ─────────────────────────────────────────────────────────────────────────────
+function openComingSoon() {
+  document.getElementById("coming-soon-modal").classList.add("open");
+}
+function closeComingSoon() {
+  document.getElementById("coming-soon-modal").classList.remove("open");
+}
+function showLoading(on) {
+  document.getElementById("loading-overlay").classList.toggle("open", on);
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Helpers
+// ─────────────────────────────────────────────────────────────────────────────
+function _execRows(resultSet) {
+  if (!resultSet || !resultSet.length) return [];
+  return resultSet[0].values || [];
 }
 
 function levelDivDisplay(level, division) {
   return level != null ? `L${level} D${division}` : "-";
 }
 
-// ---------------------------------------------------------------------------
+function rankBadge(rank) {
+  if (rank <= 3) return `<span class="rank-badge rank-${rank}">${rank}</span>`;
+  return `<span class="rank-badge rank-n">${rank}</span>`;
+}
+
+function esc(str) {
+  return String(str ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+}
+
+function clubLogo(code, cls, preview = false) {
+  const src = `assets/logos/${esc(code)}.png`;
+  const img = `<img src="${src}" class="${cls}" loading="lazy" onerror="this.style.display='none'" alt="">`;
+  if (!preview) return img;
+  return `<span class="logo-hover-wrap">${img}<img src="${src}" class="logo-preview" alt=""></span>`;
+}
+
+function clubDisplay(code) {
+  const name = CLUBS[code];
+  if (!name) return `<span class="club-code">${esc(code)}</span>`;
+  return `${esc(name)} <span class="club-code">${esc(code)}</span>`;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 // Team standings
-// ---------------------------------------------------------------------------
+// ─────────────────────────────────────────────────────────────────────────────
 const POINTS_MAP = { 1: 6, 2: 5, 3: 4, 4: 3, 5: 2, 6: 1 };
 
 function buildTeamStandings(rows) {
@@ -481,16 +1074,15 @@ function buildTeamStandings(rows) {
     if (!clubs[club]) clubs[club] = {
       club, wins: 0, seconds: 0, thirds: 0, points: 0,
       totalScore: 0, highScore: 0, highScoreDetail: "", count: 0, comps: new Set(),
-      winDetails: [], secondDetails: [], thirdDetails: []
     };
     const c = clubs[club];
     const detail = `${r.competition} · L${r.level} D${r.division}`;
     c.count++;
     c.totalScore += r.total || 0;
     if ((r.total || 0) > c.highScore) { c.highScore = r.total || 0; c.highScoreDetail = detail; }
-    if (r.rank === 1) { c.wins++;    c.winDetails.push(detail); }
-    if (r.rank === 2) { c.seconds++; c.secondDetails.push(detail); }
-    if (r.rank === 3) { c.thirds++;  c.thirdDetails.push(detail); }
+    if (r.rank === 1) c.wins++;
+    if (r.rank === 2) c.seconds++;
+    if (r.rank === 3) c.thirds++;
     c.points += POINTS_MAP[r.rank] || 0;
     if (r.competition) c.comps.add(r.competition);
   }
@@ -502,13 +1094,14 @@ function buildTeamStandings(rows) {
 }
 
 async function renderClubs() {
+  document.getElementById("team-title").textContent = `Team Standings · ${currentSeason}`;
   let sql = `
     SELECT r.club, r.rank, r.total, c.name, e.level, e.division
     FROM results r
     JOIN events e ON r.event_id = e.id
     JOIN competitions c ON e.competition_id = c.id
-    WHERE e.event_type = 'Team'`;
-  const params = [];
+    WHERE e.event_type = 'Team' AND c.sport = ? AND c.season = ?`;
+  const params = [currentSport, currentSeason];
   if (activeLevel    !== null) { sql += ` AND e.level = ?`;    params.push(activeLevel); }
   if (activeDivision !== null) { sql += ` AND e.division = ?`; params.push(activeDivision); }
 
@@ -530,12 +1123,14 @@ async function renderClubs() {
   } else {
     hsTbody.innerHTML = byHighScore.map((s, i) => {
       const rank = i + 1;
-      const badge = rank <= 3 ? `<span class="rank-badge rank-${rank}">${rank}</span>` : `<span class="rank-badge rank-n">${rank}</span>`;
+      const badge = rank <= 3
+        ? `<span class="rank-badge rank-${rank}">${rank}</span>`
+        : `<span class="rank-badge rank-n">${rank}</span>`;
       return `<tr>
         <td>${badge}</td>
         <td class="logo-cell">${clubLogo(s.club, "club-logo-sm")}</td>
         <td><strong>${clubDisplay(s.club)}</strong></td>
-        <td class="score score-hi" title="${esc(s.highScoreDetail)}" style="cursor:${s.highScoreDetail?'help':'default'}">${s.highScore.toFixed(3)}</td>
+        <td class="score score-hi" title="${esc(s.highScoreDetail)}" style="cursor:${s.highScoreDetail ? "help" : "default"}">${s.highScore.toFixed(3)}</td>
         <td class="score">${s.avgScore.toFixed(3)}</td>
         <td class="score">${s.comps}</td>
       </tr>`;
@@ -543,21 +1138,21 @@ async function renderClubs() {
   }
 }
 
-// ---------------------------------------------------------------------------
+// ─────────────────────────────────────────────────────────────────────────────
 // Individual athlete rankings
-// ---------------------------------------------------------------------------
+// ─────────────────────────────────────────────────────────────────────────────
 function buildAthleteStandings(rows) {
   const athletes = {};
   for (const r of rows) {
     const key = `${r.athlete}||${r.club}||${r.level}||${r.division}`;
     if (!athletes[key]) athletes[key] = {
       athlete: r.athlete, club: r.club || "", level: r.level, division: r.division,
-      comps: new Set(), bestScore: 0, wins: 0, winDetails: []
+      comps: new Set(), bestScore: 0, wins: 0, winDetails: [],
     };
     const a = athletes[key];
     if (r.competition) a.comps.add(r.competition);
     if ((r.total || 0) > a.bestScore) a.bestScore = r.total || 0;
-    if (r.rank === 1) { a.wins++; a.winDetails.push(`${r.competition || "?"} (${(r.total||0).toFixed(3)})`); }
+    if (r.rank === 1) { a.wins++; a.winDetails.push(`${r.competition || "?"} (${(r.total || 0).toFixed(3)})`); }
   }
   return Object.values(athletes)
     .map(a => ({ ...a, comps: a.comps.size }))
@@ -565,11 +1160,12 @@ function buildAthleteStandings(rows) {
 }
 
 async function renderAthletes() {
+  document.getElementById("athlete-title").textContent = `Individual Rankings · ${currentSeason}`;
   const tbody = document.getElementById("athlete-tbody");
 
   if (activeLevel === null && activeDivision === null) {
-    tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;color:var(--muted);padding:36px 12px">
-      Select a Level and/or Division above — athletes only rank within their own competitive group.</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;color:var(--muted);padding:36px 12px">
+      Select a Level and/or Division above - athletes rank within their own competitive group.</td></tr>`;
     return;
   }
 
@@ -578,8 +1174,8 @@ async function renderAthletes() {
     FROM results r
     JOIN events e ON r.event_id = e.id
     JOIN competitions c ON e.competition_id = c.id
-    WHERE e.event_type != 'Team'`;
-  const params = [];
+    WHERE e.event_type != 'Team' AND c.sport = ? AND c.season = ?`;
+  const params = [currentSport, currentSeason];
   if (activeLevel    !== null) { sql += ` AND e.level = ?`;    params.push(activeLevel); }
   if (activeDivision !== null) { sql += ` AND e.division = ?`; params.push(activeDivision); }
 
@@ -588,31 +1184,34 @@ async function renderAthletes() {
     ({ athlete, club, rank, total, competition, level, division }));
   const standings = buildAthleteStandings(rows);
 
-  if (!standings.length) { tbody.innerHTML = `<tr><td colspan="7" class="no-data">No data for this filter.</td></tr>`; return; }
+  if (!standings.length) {
+    tbody.innerHTML = `<tr><td colspan="8" class="no-data">No data for this filter.</td></tr>`;
+    return;
+  }
 
   tbody.innerHTML = standings.map((a, i) => {
     const rank = i + 1;
     const badge = rank <= 3
       ? `<span class="rank-badge rank-${rank}">${rank}</span>`
       : `<span class="rank-badge rank-n">${rank}</span>`;
-    return `
-      <tr>
-        <td>${badge}</td>
-        <td><strong>${esc(a.athlete)}</strong></td>
-        <td class="logo-cell">${clubLogo(a.club, "club-logo-sm")}</td>
-        <td>${clubDisplay(a.club)}</td>
-        <td>${levelDivDisplay(a.level, a.division)}</td>
-        <td class="score">${a.comps}</td>
-        <td class="score score-hi">${a.bestScore.toFixed(3)}</td>
-        <td><span class="stat-chip gold"${a.winDetails.length ? ` title="${esc(a.winDetails.join('\n'))}"` : ""} style="cursor:${a.wins?'help':'default'}">${a.wins}</span></td>
-      </tr>`;
+    return `<tr>
+      <td>${badge}</td>
+      <td><strong>${esc(a.athlete)}</strong></td>
+      <td class="logo-cell">${clubLogo(a.club, "club-logo-sm")}</td>
+      <td>${clubDisplay(a.club)}</td>
+      <td>${levelDivDisplay(a.level, a.division)}</td>
+      <td class="score">${a.comps}</td>
+      <td class="score score-hi">${a.bestScore.toFixed(3)}</td>
+      <td><span class="stat-chip gold"${a.winDetails.length ? ` title="${esc(a.winDetails.join("\n"))}"` : ""} style="cursor:${a.wins ? "help" : "default"}">${a.wins}</span></td>
+    </tr>`;
   }).join("");
 }
 
-// ---------------------------------------------------------------------------
+// ─────────────────────────────────────────────────────────────────────────────
 // Competitions
-// ---------------------------------------------------------------------------
+// ─────────────────────────────────────────────────────────────────────────────
 async function renderCompetitions() {
+  document.getElementById("comp-title").textContent = `Competitions · ${currentSeason}`;
   const grid = document.getElementById("comp-grid");
 
   const raw = _execRows(await DB.exec(`
@@ -620,8 +1219,9 @@ async function renderCompetitions() {
     FROM competitions c
     JOIN events e ON e.competition_id = c.id
     LEFT JOIN results r ON r.event_id = e.id
+    WHERE c.sport = ? AND c.season = ?
     GROUP BY c.id ORDER BY c.name
-  `));
+  `, [currentSport, currentSeason]));
   _compList = raw.map(([id, name, event_count, athlete_count]) => ({ id, name, event_count, athlete_count }));
 
   if (!_compList.length) {
@@ -633,7 +1233,7 @@ async function renderCompetitions() {
     <div class="comp-card">
       <h3>${esc(c.name)}</h3>
       <p class="comp-meta">${c.event_count} event(s) &bull; ${c.athlete_count} athlete result(s)</p>
-      <span class="comp-pill">WAG 2025</span>
+      <span class="comp-pill">${esc(currentSport)} · ${esc(currentSeason)}</span>
       <div class="comp-actions">
         <button class="comp-btn btn-results" data-idx="${i}">Results</button>
         <button class="comp-btn btn-pdfs" data-idx="${i}">Raw PDFs</button>
@@ -648,11 +1248,11 @@ async function renderCompetitions() {
   );
 }
 
-// ---------------------------------------------------------------------------
+// ─────────────────────────────────────────────────────────────────────────────
 // Club directory
-// ---------------------------------------------------------------------------
+// ─────────────────────────────────────────────────────────────────────────────
 let dirSortCol = "region";
-let dirSortDir = 1; // 1 = asc, -1 = desc
+let dirSortDir = 1;
 
 const REGION_ORDER = {
   "Metro East": 1, "Metro North": 2, "Metro South": 3, "Metro West": 4,
@@ -676,9 +1276,11 @@ function renderClubDirectory() {
   if (!tbody) return;
 
   const sorted = [...CLUBS_LIST].filter(c => c.region !== "Interstate").sort((a, b) => {
-    let av, bv;
     if (dirSortCol === "region") {
-      return dirSortDir * ((REGION_ORDER[a.region] || 99) - (REGION_ORDER[b.region] || 99) || (a.name || "").localeCompare(b.name || ""));
+      return dirSortDir * (
+        (REGION_ORDER[a.region] || 99) - (REGION_ORDER[b.region] || 99) ||
+        (a.name || "").localeCompare(b.name || "")
+      );
     }
     return dirSortDir * (a[dirSortCol] || "").toLowerCase().localeCompare((b[dirSortCol] || "").toLowerCase());
   });
@@ -689,13 +1291,14 @@ function renderClubDirectory() {
       <td><strong>${esc(c.name)}</strong></td>
       <td><span class="club-code" style="margin-left:0">${esc(c.code)}</span></td>
       <td>
-        ${c.region ? `<span class="region-pill ${regionClass(c.region)}">${esc(c.region)}</span>` : `<span style="color:var(--muted);font-size:0.8rem">Unknown</span>`}
-        ${c._venues ? `<div class="venue-list">${c._venues.map(v => esc(v)).join(' · ')}</div>` : ''}
+        ${c.region
+          ? `<span class="region-pill ${regionClass(c.region)}">${esc(c.region)}</span>`
+          : `<span style="color:var(--muted);font-size:0.8rem">Unknown</span>`}
+        ${c._venues ? `<div class="venue-list">${c._venues.map(v => esc(v)).join(" · ")}</div>` : ""}
       </td>
     </tr>`).join("");
 
-  // Update sort icons
-  ["name","code","region"].forEach(col => {
+  ["name", "code", "region"].forEach(col => {
     const el = document.getElementById(`sort-${col}`);
     if (!el) return;
     el.className = "sort-icon" + (dirSortCol === col ? (dirSortDir === 1 ? " asc" : " desc") : "");
@@ -716,7 +1319,7 @@ function initClubDirectory() {
   const table = document.getElementById("club-dir-table");
   if (!table) return;
   table.addEventListener("mousemove", e => {
-    const wrap = e.target.closest(".logo-hover-wrap");
+    const wrap    = e.target.closest(".logo-hover-wrap");
     const preview = wrap?.querySelector(".logo-preview");
     document.querySelectorAll(".logo-preview").forEach(p => { if (p !== preview) p.style.display = "none"; });
     if (!preview) return;
@@ -731,13 +1334,13 @@ function initClubDirectory() {
   });
 }
 
-// ---------------------------------------------------------------------------
+// ─────────────────────────────────────────────────────────────────────────────
 // Drill-down overlay
-// ---------------------------------------------------------------------------
+// ─────────────────────────────────────────────────────────────────────────────
 async function openDrill(comp) {
   document.getElementById("drill-title").textContent = comp.name;
-  document.getElementById("drill-meta").textContent = "";
-  document.getElementById("drill-events").innerHTML = `<p style="color:var(--muted);padding:12px">Loading…</p>`;
+  document.getElementById("drill-meta").textContent  = "";
+  document.getElementById("drill-events").innerHTML  = `<p style="color:var(--muted);padding:12px">Loading…</p>`;
   document.getElementById("drill-overlay").classList.add("open");
 
   const raw = _execRows(await DB.exec(`
@@ -748,7 +1351,6 @@ async function openDrill(comp) {
     ORDER BY e.id, r.rank
   `, [comp.id]));
 
-  // Group rows by event id
   const evMap = new Map();
   for (const [eid, level, division, event_type, rank, athlete, club, total] of raw) {
     if (!evMap.has(eid)) evMap.set(eid, { level, division, event_type, results: [] });
@@ -756,14 +1358,14 @@ async function openDrill(comp) {
   }
   const events = [...evMap.values()];
 
-  document.getElementById("drill-meta").textContent = `${events.length} event(s) · WAG · 2025`;
+  document.getElementById("drill-meta").textContent = `${events.length} event(s) · ${currentSport} · ${currentSeason}`;
   document.getElementById("drill-events").innerHTML = events.map(ev => {
     const title = [ev.level ? `Level ${ev.level}` : "", ev.division ? `Div ${ev.division}` : "", ev.event_type || ""]
       .filter(Boolean).join(" · ");
-    let trows, header;
+    let header, trows;
     if (ev.event_type === "Team") {
       header = `<tr><th>#</th><th>Club</th><th>Total</th></tr>`;
-      trows = ev.results.map(r => `
+      trows  = ev.results.map(r => `
         <tr>
           <td>${rankBadge(r.rank)}</td>
           <td><strong>${clubDisplay(r.club || "")}</strong></td>
@@ -771,7 +1373,7 @@ async function openDrill(comp) {
         </tr>`).join("");
     } else {
       header = `<tr><th>#</th><th>Athlete</th><th>Club</th><th>Total</th></tr>`;
-      trows = ev.results.map(r => `
+      trows  = ev.results.map(r => `
         <tr>
           <td>${rankBadge(r.rank)}</td>
           <td><strong>${esc(r.athlete || "")}</strong></td>
@@ -779,30 +1381,28 @@ async function openDrill(comp) {
           <td class="score">${r.total != null ? r.total.toFixed(3) : "-"}</td>
         </tr>`).join("");
     }
-    return `
-      <div class="event-section">
-        <h4>${esc(title)}</h4>
-        <table class="leaderboard">
-          <thead>${header}</thead>
-          <tbody>${trows || `<tr><td colspan="4" style="color:var(--muted);padding:12px">No results parsed</td></tr>`}</tbody>
-        </table>
-      </div>`;
+    return `<div class="event-section">
+      <h4>${esc(title)}</h4>
+      <table class="leaderboard">
+        <thead>${header}</thead>
+        <tbody>${trows || `<tr><td colspan="4" style="color:var(--muted);padding:12px">No results parsed</td></tr>`}</tbody>
+      </table>
+    </div>`;
   }).join("");
 }
 
 async function openPDFList(compName) {
-  document.getElementById("drill-title").textContent = compName + " — PDF Files";
-  document.getElementById("drill-meta").textContent = "";
-  document.getElementById("drill-events").innerHTML = `<p style="color:var(--muted);padding:12px">Loading…</p>`;
+  document.getElementById("drill-title").textContent = compName + " - PDF Files";
+  document.getElementById("drill-meta").textContent  = "";
+  document.getElementById("drill-events").innerHTML  = `<p style="color:var(--muted);padding:12px">Loading…</p>`;
   document.getElementById("drill-overlay").classList.add("open");
 
   const rows = _execRows(await DB.exec(
     "SELECT file_path, source_url FROM pdf_manifest WHERE competition_name = ? ORDER BY file_path",
     [compName]
   ));
-
   const links = rows.map(([file_path, source_url]) => {
-    const fp = (file_path || "").replace(/\\/g, "/");
+    const fp    = (file_path || "").replace(/\\/g, "/");
     const label = fp.replace(/\//g, " / ");
     return source_url
       ? `<li><a href="${source_url}" target="_blank">${esc(label)}</a></li>`
@@ -822,22 +1422,39 @@ document.getElementById("drill-overlay").addEventListener("click", e => {
     document.getElementById("drill-overlay").classList.remove("open");
 });
 
-// ---------------------------------------------------------------------------
-// Level+Division filters
-// ---------------------------------------------------------------------------
+// Close coming soon modal on backdrop click
+document.getElementById("coming-soon-modal").addEventListener("click", e => {
+  if (e.target === document.getElementById("coming-soon-modal")) closeComingSoon();
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Filter builders
+// ─────────────────────────────────────────────────────────────────────────────
+function resetFilters() {
+  activeLevel    = null;
+  activeDivision = null;
+  activeRegion   = null;
+  document.getElementById("level-filter-bar").innerHTML          = "<label>Level:</label>";
+  document.getElementById("athlete-level-filter-bar").innerHTML  = "<label>Level:</label>";
+  document.getElementById("division-filter-bar").innerHTML       = `<label>Division:</label><button class="filter-btn active" data-division="all">All</button>`;
+  document.getElementById("athlete-division-filter-bar").innerHTML = `<label>Division:</label><button class="filter-btn active" data-division="all">All</button>`;
+  const regionBar = document.getElementById("region-filter-bar");
+  if (regionBar) regionBar.innerHTML = `<label>Region:</label><button class="filter-btn active" data-region="all">All</button>`;
+}
+
 function buildRegionFilters() {
   const bar = document.getElementById("region-filter-bar");
   if (!bar) return;
   const regions = [...new Set(
-    CLUBS_LIST.filter(c => c.region && c.region !== "Multi-Region")
+    CLUBS_LIST.filter(c => c.region && c.region !== "Multi-Region" && c.region !== "Interstate")
               .map(c => c.region)
   )].sort((a, b) => (REGION_ORDER[a] || 99) - (REGION_ORDER[b] || 99));
 
   regions.forEach(region => {
     const btn = document.createElement("button");
-    btn.className = "filter-btn";
+    btn.className    = "filter-btn";
     btn.dataset.region = region;
-    btn.textContent = region;
+    btn.textContent  = region;
     bar.appendChild(btn);
   });
 
@@ -854,16 +1471,17 @@ function buildRegionFilters() {
 }
 
 function buildLevelFilters() {
-  const levels = [...new Set(LEVEL_DIVS.map(ld => ld.level))].sort((a, b) => a - b);
+  const levels       = [...new Set(LEVEL_DIVS.map(ld => ld.level))].sort((a, b) => a - b);
   const athleteLevels = levels.filter(l => l > 4);
-  const levelBars = document.querySelectorAll("#level-filter-bar, #athlete-level-filter-bar");
+  const levelBars    = document.querySelectorAll("#level-filter-bar, #athlete-level-filter-bar");
+
   levelBars.forEach(bar => {
     const barLevels = bar.id === "athlete-level-filter-bar" ? athleteLevels : levels;
     barLevels.forEach(lvl => {
       const btn = document.createElement("button");
-      btn.className = "filter-btn";
+      btn.className    = "filter-btn";
       btn.dataset.level = lvl;
-      btn.textContent = `L${lvl}`;
+      btn.textContent  = `L${lvl}`;
       bar.appendChild(btn);
     });
     bar.querySelectorAll(".filter-btn").forEach(btn => {
@@ -876,14 +1494,14 @@ function buildLevelFilters() {
     });
   });
 
-  const divs = [...new Set(LEVEL_DIVS.map(ld => ld.division))].sort((a, b) => a - b);
+  const divs    = [...new Set(LEVEL_DIVS.map(ld => ld.division))].sort((a, b) => a - b);
   const divBars = document.querySelectorAll("#division-filter-bar, #athlete-division-filter-bar");
   divBars.forEach(bar => {
     divs.forEach(div => {
       const btn = document.createElement("button");
-      btn.className = "filter-btn";
+      btn.className      = "filter-btn";
       btn.dataset.division = div;
-      btn.textContent = `D${div}`;
+      btn.textContent    = `D${div}`;
       bar.appendChild(btn);
     });
     bar.querySelectorAll(".filter-btn").forEach(btn => {
@@ -897,21 +1515,19 @@ function buildLevelFilters() {
   });
 }
 
-// ---------------------------------------------------------------------------
-// Navigation
-// ---------------------------------------------------------------------------
-initClubDirectory();
-
-document.querySelectorAll("nav button").forEach(btn => {
+// ─────────────────────────────────────────────────────────────────────────────
+// Navigation (results app tabs)
+// ─────────────────────────────────────────────────────────────────────────────
+document.querySelectorAll("#app-nav button[data-view]").forEach(btn => {
   btn.addEventListener("click", () => {
     activeView = btn.dataset.view;
-    document.querySelectorAll("nav button").forEach(b => b.classList.remove("active"));
+    document.querySelectorAll("#app-nav button[data-view]").forEach(b => b.classList.remove("active"));
     document.querySelectorAll(".view").forEach(v => v.classList.remove("active"));
     btn.classList.add("active");
     document.getElementById(`view-${activeView}`).classList.add("active");
-    // Neither view has an "All Levels" option — auto-select first level if none set
+
     if (activeLevel === null) {
-      const barId = activeView === "athletes" ? "#athlete-level-filter-bar" : "#level-filter-bar";
+      const barId   = activeView === "athletes" ? "#athlete-level-filter-bar" : "#level-filter-bar";
       const firstBtn = document.querySelector(`${barId} .filter-btn`);
       if (firstBtn) { firstBtn.click(); return; }
     }
@@ -919,50 +1535,21 @@ document.querySelectorAll("nav button").forEach(btn => {
   });
 });
 
-// ---------------------------------------------------------------------------
-// Helpers
-// ---------------------------------------------------------------------------
+// ─────────────────────────────────────────────────────────────────────────────
+// Render dispatcher
+// ─────────────────────────────────────────────────────────────────────────────
 function render() {
-  if (activeView === "clubs") renderClubs();
-  else if (activeView === "athletes") renderAthletes();
+  if (!DB) return;
+  if (activeView === "clubs")          renderClubs();
+  else if (activeView === "athletes")  renderAthletes();
   else if (activeView === "competitions") renderCompetitions();
   else if (activeView === "club-directory") renderClubDirectory();
-  // async — callers intentionally don't await; last-write-wins is fine at this scale
 }
 
-function rankBadge(rank) {
-  if (rank <= 3) return `<span class="rank-badge rank-${rank}">${rank}</span>`;
-  return `<span class="rank-badge rank-n">${rank}</span>`;
-}
-
-function esc(str) {
-  return String(str || "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-}
-
-function clubLogo(code, cls, preview = false) {
-  const src = `assets/logos/${esc(code)}.png`;
-  const img = `<img src="${src}" class="${cls}" loading="lazy" onerror="this.style.display='none'" alt="">`;
-  if (!preview) return img;
-  return `<span class="logo-hover-wrap">${img}<img src="${src}" class="logo-preview" alt=""></span>`;
-}
-
-function clubDisplay(code) {
-  const name = CLUBS[code];
-  if (!name) return `<span class="club-code">${esc(code)}</span>`;
-  return `${esc(name)} <span class="club-code">${esc(code)}</span>`;
-}
-
-function showNoData(msg) {
-  document.querySelectorAll(".view").forEach(v => {
-    v.innerHTML = `<div class="no-data"><strong>No data loaded</strong>${msg}</div>`;
-    v.style.display = "block";
-  });
-}
-
-// ---------------------------------------------------------------------------
-// Boot
-// ---------------------------------------------------------------------------
-loadData();
+// ─────────────────────────────────────────────────────────────────────────────
+// Init (no DB load - that happens on sport entry)
+// ─────────────────────────────────────────────────────────────────────────────
+initClubDirectory();
 </script>
 </body>
 </html>
