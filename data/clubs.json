@@ -71,6 +71,7 @@
     { "code": "SYD",  "name": "Sydney (No Club data)",                  "region": "Interstate",     "aliases": ["SYDNEY"],                                                   "logo": null },
     { "code": "STV",  "name": "Strive Gymnastics",                      "region": "Regional West",  "aliases": ["STRIVE", "STRV", "STR", "STRSTR"],                          "logo": null },
     { "code": "TWI",  "name": "Twisters Gymnastics Club",               "region": "Regional SE",    "aliases": ["TWISTERS", "TW1", "TW2", "TW3", "TW4"],                    "logo": null },
+    { "code": "TRI",  "name": "TRI (Unknown Club Data)",                "region": "Unknown",        "aliases": [],                                                           "logo": null },
     { "code": "VIT",  "name": "Vital Gymnastics",                        "region": "Interstate",     "aliases": ["VITAL"],                                                    "logo": null },
     { "code": "WER",  "name": "Werribee Gymnastic Club",                "region": "Metro West",     "aliases": ["WERR", "WERRIBEE"],                                         "logo": null },
     { "code": "WVG",  "name": "Waverley Gymnastics Centre",             "region": "Metro South",    "aliases": ["WVGWVR", "WVGWVB", "WAV", "WAVERLEYGC", "WAVERLEY"],      "logo": null },

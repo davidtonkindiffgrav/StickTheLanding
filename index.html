@@ -1136,8 +1136,8 @@ async function initDB() {
   if (DB) return;
   const workerUrl = new URL("sql/sqlite.worker.js", location.href).toString();
   const wasmUrl   = new URL("sql/sql-wasm.wasm",   location.href).toString();
-  const dbUrl     = new URL(`data/stick_${currentSport}.db?v=12`, location.href).toString();
-  const cfgResp   = await fetch(new URL(`data/dbconfig_${currentSport}.json?v=12`, location.href).toString());
+  const dbUrl     = new URL(`data/stick_${currentSport}.db?v=13`, location.href).toString();
+  const cfgResp   = await fetch(new URL(`data/dbconfig_${currentSport}.json?v=13`, location.href).toString());
   const dbCfg     = await cfgResp.json();
   dbCfg.url       = dbUrl;
   const worker    = await createDbWorker(
@@ -1306,8 +1306,11 @@ function _execRows(resultSet) {
   return resultSet[0].values || [];
 }
 
+const INT_LEVEL_LABELS = {101:"Dev Int", 102:"Fut Int", 103:"Jun Int", 104:"Sen Int"};
+
 function levelDivDisplay(level, division, age_group) {
   if (level == null) return "-";
+  if (INT_LEVEL_LABELS[level]) return INT_LEVEL_LABELS[level];
   if (age_group) return `L${level} ${age_group}`;
   if (division != null) return `L${level} D${division}`;
   return `L${level}`;
@@ -1559,13 +1562,14 @@ async function renderAthletes() {
     : (a.division ? "D" + a.division : "-");
 
   // Update table header for apparatus vs AA view
+  const showDiv = activeLevel === null || activeLevel < 101;
   if (isAA) {
     thead.innerHTML = `
       <th style="width:52px">#</th>
       <th data-sort="str">Athlete <span class="sort-icon">↕</span></th>
       <th style="width:48px"></th>
       <th data-sort="str">Club <span class="sort-icon">↕</span></th>
-      <th data-sort="str">Div <span class="sort-icon">↕</span></th>
+      ${showDiv ? `<th data-sort="str">Div <span class="sort-icon">↕</span></th>` : ""}
       <th data-sort="num">Comps <span class="sort-icon">↕</span></th>
       <th data-sort="num">Avg Score <span class="sort-icon">↕</span></th>
       <th data-sort="num">Best Score <span class="sort-icon">↕</span></th>
@@ -1576,7 +1580,7 @@ async function renderAthletes() {
       <th data-sort="str">Athlete <span class="sort-icon">↕</span></th>
       <th style="width:48px"></th>
       <th data-sort="str">Club <span class="sort-icon">↕</span></th>
-      <th data-sort="str">Div <span class="sort-icon">↕</span></th>
+      ${showDiv ? `<th data-sort="str">Div <span class="sort-icon">↕</span></th>` : ""}
       <th data-sort="num">Comps <span class="sort-icon">↕</span></th>
       <th data-sort="num">D <span class="sort-icon">↕</span></th>
       <th data-sort="num">E <span class="sort-icon">↕</span></th>
@@ -1584,8 +1588,10 @@ async function renderAthletes() {
       <th data-sort="num">Best Score <span class="sort-icon">↕</span></th>`;
   }
 
+  const aaCols = showDiv ? 9 : 8;
+  const appCols = showDiv ? 10 : 9;
   if (!standings.length) {
-    tbody.innerHTML = `<tr><td colspan="${isAA ? 9 : 10}" class="no-data">No data for this filter.</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="${isAA ? aaCols : appCols}" class="no-data">No data for this filter.</td></tr>`;
     return;
   }
 
@@ -1600,7 +1606,7 @@ async function renderAthletes() {
         <td><strong>${esc(a.athlete)}</strong></td>
         <td class="logo-cell">${clubLogo(a.club, "club-logo-sm")}</td>
         <td>${clubDisplay(a.club)}</td>
-        <td data-val="${a.division || a.age_group || ''}">${divCell(a)}</td>
+        ${showDiv ? `<td data-val="${a.division || a.age_group || ''}">${divCell(a)}</td>` : ""}
         <td class="score">${a.comps}</td>
         <td class="score">${a.avgScore > 0 ? a.avgScore.toFixed(3) : "-"}</td>
         <td class="score score-hi"${a.bestScoreDetail ? ` title="${esc(a.bestScoreDetail)}" style="cursor:help"` : ""}>${a.bestScore.toFixed(3)}</td>
@@ -1614,7 +1620,7 @@ async function renderAthletes() {
       <td><strong>${esc(a.athlete)}</strong></td>
       <td class="logo-cell">${clubLogo(a.club, "club-logo-sm")}</td>
       <td>${clubDisplay(a.club)}</td>
-      <td data-val="${a.division || a.age_group || ''}">${divCell(a)}</td>
+      ${showDiv ? `<td data-val="${a.division || a.age_group || ''}">${divCell(a)}</td>` : ""}
       <td class="score">${a.comps}</td>
       <td class="score">${dVal}</td>
       <td class="score">${eVal}</td>
@@ -2367,7 +2373,7 @@ function buildLevelFilters() {
       const btn = document.createElement("button");
       btn.className    = "filter-btn";
       btn.dataset.level = lvl;
-      btn.textContent  = `L${lvl}`;
+      btn.textContent  = INT_LEVEL_LABELS[lvl] || `L${lvl}`;
       bar.appendChild(btn);
     });
     bar.querySelectorAll(".filter-btn").forEach(btn => {
@@ -2375,6 +2381,14 @@ function buildLevelFilters() {
         activeLevel = btn.dataset.level === "all" ? null : Number(btn.dataset.level);
         document.querySelectorAll("#level-filter-bar .filter-btn, #athlete-level-filter-bar .filter-btn")
           .forEach(b => b.classList.toggle("active", b.dataset.level === btn.dataset.level));
+        const isIntLevel = activeLevel !== null && activeLevel >= 101;
+        if (isIntLevel) {
+          activeDivision = null;
+          document.querySelectorAll("#division-filter-bar .filter-btn, #athlete-division-filter-bar .filter-btn")
+            .forEach(b => b.classList.remove("active"));
+        }
+        document.querySelectorAll("#division-filter-bar, #athlete-division-filter-bar")
+          .forEach(b => b.style.display = isIntLevel ? "none" : "");
         render();
       });
     });
@@ -2413,7 +2427,7 @@ function buildLevelFilters() {
       });
     });
   } else {
-    const divs = [...new Set(LEVEL_DIVS.map(ld => ld.division))].sort((a, b) => a - b);
+    const divs = [...new Set(LEVEL_DIVS.map(ld => ld.division).filter(d => d != null))].sort((a, b) => a - b);
     divBars.forEach(bar => {
       divs.forEach(div => {
         const btn = document.createElement("button");
@@ -2431,6 +2445,10 @@ function buildLevelFilters() {
         });
       });
     });
+  }
+  // Hide division bars if an international level is already active (auto-click ran before this)
+  if (activeLevel !== null && activeLevel >= 101) {
+    divBars.forEach(b => b.style.display = "none");
   }
 }
 

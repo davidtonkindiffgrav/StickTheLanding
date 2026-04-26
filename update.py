@@ -537,8 +537,7 @@ def main():
         cname = comp_name(pdf)
         rel   = pdf.relative_to(PDF_ROOT)
         if any("_ignore" in p.lower() for p in rel.parts) or \
-           "special olympics" in pdf.name.lower() or \
-           "developing international" in pdf.name.lower():
+           "special olympics" in pdf.name.lower():
             print(f"  [IGNORE] {key}")
             db.add_processed_file(con, key, cname)
             con.commit()

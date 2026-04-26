@@ -97,6 +97,16 @@ _HEADER_SKIP = re.compile(
 )
 
 
+# International level codes (101-104) — no division, no numeric level in filename
+_INT_LEVEL_KEYWORDS = [
+    ("developing international", 101),
+    ("future international",     102),
+    ("junior international",     103),
+    ("senior international",     104),
+]
+INT_LEVEL_LABELS = {101: "Dev Int", 102: "Fut Int", 103: "Jun Int", 104: "Sen Int"}
+
+
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
@@ -484,6 +494,14 @@ def parse_filename_meta(path, sport=None):
         sport = "MAG" if "MAG" in parts else "WAG"
     name = path.stem
 
+    # Detect international category before any numeric level parsing
+    path_text = " ".join(str(p) for p in Path(path).parts).lower()
+    int_level = None
+    for keyword, lvl in _INT_LEVEL_KEYWORDS:
+        if keyword in path_text:
+            int_level = lvl
+            break
+
     level_m = re.search(r"(?:level|lvl|alp|L)[_\s-]*(\d+)", name, re.IGNORECASE)
     div_m   = re.search(r"(?:div(?:ision)?|D)[_\s-]*(\d+)", name, re.IGNORECASE)
     level   = int(level_m.group(1)) if level_m else None
@@ -531,6 +549,13 @@ def parse_filename_meta(path, sport=None):
         elif re.search(r"Optional|(?<=\d)P\b", name, re.IGNORECASE):
             age_group = "Optional"
 
+    if int_level is not None:
+        return {
+            "level":      int_level,
+            "division":   None,
+            "age_group":  None,
+            "event_type": event_type,
+        }
     return {
         "level":      level,
         "division":   int(div_m.group(1)) if div_m else None,
