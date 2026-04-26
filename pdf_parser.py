@@ -51,8 +51,18 @@ ATHLETE_LINE_APP = re.compile(
     rf"^(\d+[T]?)\s+(\d+)\s+(.+?)\s+({_S})\s*$"
 )
 
-CLUB_LINE = re.compile(r"^([A-Z]{2,6})\s+[\d]+[T]?(?:\s+[\d]+[T]?){1,5}\s*$")
-APP_CODE = re.compile(r"\b(VT|UB|BB|FX)\b", re.IGNORECASE)
+CLUB_LINE = re.compile(r"^([A-Za-z]{2,6})\s+[\d]+[T]?(?:\s+[\d]+[T]?){1,5}\s*$")
+APP_CODE = re.compile(r"\b(VT|UB|BB|FX|PH|SR|PB|HB)\b", re.IGNORECASE)
+
+# MAG apparatus code → results dict key
+MAG_APPARATUS_MAP = {
+    "FX": "floor",  "VT": "vault",
+    "PH": "pommel", "SR": "rings",
+    "PB": "pbars",  "HB": "hbar",
+}
+
+# Age bracket inferred from level when only "U"/"Under" is present in filename
+_MAG_LEVEL_AGE = {7: "U13", 8: "U14"}
 
 # "Meet Results Women / 5A / All Ages" — captures numeric level and optional letter division
 # Handles spaced characters: "M e e t R e s u lts W omen / 5B / ..."
@@ -68,8 +78,13 @@ ATHLETE_LINE_AA_SPARE = re.compile(
     rf"^(\d+[T]?)\s+(\d+)\s+(.+?)\s+({_S})\s+({_S})\s+({_S})\s+({_S})\s+({_S})\s+({_S})\s*$"
 )
 
-# Club + ranks line after an athlete: "WVG 5 1 2 3 1" or "CAS CS 1 2 5 1 0T 1"
-_CLUB_RANKS_LINE = re.compile(r"^([A-Z]{2,8}(?:\s+[A-Z]{2,4})*)\s+[\dT]")
+# MAG AA: rank bib name + 6 apparatus scores + total (7 numeric tokens after name)
+ATHLETE_LINE_MAG_AA = re.compile(
+    rf"^(\d+[T]?)\s+(\d+)\s+(.+?)\s+({_S})\s+({_S})\s+({_S})\s+({_S})\s+({_S})\s+({_S})\s+({_S})\s*$"
+)
+
+# Club + ranks line after an athlete: "WVG 5 1 2 3 1" / "CAS CS 1 2 5 1 0T 1" / "GUN (HPP) 2 1..." / "HPP/PIT 1 2..."
+_CLUB_RANKS_LINE = re.compile(r"^(?:[A-Za-z]{2,6}/)?([A-Za-z]{2,8}(?:\s+[A-Za-z]{2,4})*)(?:\s+\([A-Za-z/]+\))?\s+[\dT]")
 
 # Lines to filter when building the cleaned line list for new-format parsing
 _HEADER_SKIP = re.compile(
@@ -95,7 +110,7 @@ def _parse_rank(s):
 
 def _clean_name(name):
     """Strip ProScore annotation characters and rejoin words broken by PDF spacing."""
-    name = re.sub(r"^[\*\s]+|[\s]+$", "", name)
+    name = re.sub(r"^[\*\s]+|[\*\s]+$", "", name)
     # PDF text extraction sometimes inserts spaces mid-word. A token starting with
     # a lowercase letter is always a broken fragment — join it to the previous token.
     tokens = name.split(" ")
@@ -125,12 +140,29 @@ def _div_from_letter(letter):
 
 
 def _parse_final_line(line):
-    """'Final: 13.4 11.8 11.4 11.8 48.4' → ([13.4, 11.8, 11.4, 11.8], 48.4)"""
+    """'Final: 13.4 11.8 11.4 11.8 48.4' → ([13.4, 11.8, 11.4, 11.8], 48.4)
+    Variable number of apparatus scores; last token is always the total."""
     tokens = line.split()  # first token is "Final:"
     nums = [_parse_score(t) for t in tokens[1:]]
     if len(nums) >= 5:
-        return nums[:4], nums[4]
+        return nums[:-1], nums[-1]
     return [], None
+
+
+# Apparatus column order for score-positional mapping
+_WAG_COL_ORDER = ["vault", "bars", "beam", "floor"]
+_MAG_COL_ORDER = ["floor", "pommel", "rings", "vault", "pbars", "hbar"]
+
+
+def _build_app_scores(totals, d_scores, e_scores, sport):
+    """Return flat dict of apparatus score columns for a result row."""
+    cols = _MAG_COL_ORDER if sport == "MAG" else _WAG_COL_ORDER
+    row = {}
+    for i, col in enumerate(cols):
+        row[col]           = totals[i]   if i < len(totals)   else None
+        row[f"{col}_d"]    = d_scores[i] if i < len(d_scores) else None
+        row[f"{col}_e"]    = e_scores[i] if i < len(e_scores) else None
+    return row
 
 
 # ---------------------------------------------------------------------------
@@ -202,7 +234,7 @@ def parse_proscore_text(text_pages):
                 continue
 
             if prev_athlete and CLUB_LINE.match(line):
-                prev_athlete["club"] = line.split()[0]
+                prev_athlete["club"] = line.split()[0].upper()
                 prev_athlete = None
 
         if results:
@@ -215,13 +247,13 @@ def parse_proscore_text(text_pages):
 # New ProScore parser (BTYC / Knox multi-line records, anchored on "Final:")
 # ---------------------------------------------------------------------------
 
-def parse_new_proscore(text_pages, pdf_path):
+def parse_new_proscore(text_pages, pdf_path, sport="WAG"):
     """
     Parse BTYC and Knox style ProScore PDFs.
 
     Both formats have athlete records that end with:
-        Final: f1 f2 f3 f4 total
-        Place:  p1 p2 p3 p4 overall
+        Final: f1 f2 ... fN total
+        Place:  p1 p2 ... pN overall
 
     BTYC layout (3 lines before Final):
         {rank} {bib} {name} Diff: ...
@@ -271,39 +303,43 @@ def parse_new_proscore(text_pages, pdf_path):
                 break
             l = clean_lines[j]
 
-            # D scores from "Diff: d1 d2 d3 d4" (BTYC rank line suffix)
+            n_app = 6 if sport == "MAG" else 4
+
+            # D scores from "Diff: d1 d2 ... dN" (BTYC rank line suffix)
             if not d_scores:
                 diff_m = re.search(r"\bDiff:\s+([\d.]+(?:\s+[\d.]+)*)", l)
                 if diff_m:
-                    d_scores = [_parse_score(x) for x in diff_m.group(1).split()][:4]
+                    d_scores = [_parse_score(x) for x in diff_m.group(1).split()][:n_app]
 
             # D/E from slash-separated pairs: "D/E: 2.5 / 9.000 ..." or "DN/DE:: ..." variant
             if not d_scores:
                 de_m = re.search(r"\b(?:D/E:|DN/DE::?)\s+(.+)", l)
                 if de_m:
                     rest = de_m.group(1)
-                    # Match each slot positionally: digit pair OR underscore placeholder
                     slots = re.findall(r'(?:(\d+\.?\d*)|_+\.[\d_]*)\s*/\s*(?:(\d+\.?\d*)|_+\.[\d_]*)', rest)
                     if slots:
-                        d_scores = [_parse_score(s[0]) if s[0] else None for s in slots[:4]]
-                        e_scores = [_parse_score(s[1]) if s[1] else None for s in slots[:4]]
+                        d_scores = [_parse_score(s[0]) if s[0] else None for s in slots[:n_app]]
+                        e_scores = [_parse_score(s[1]) if s[1] else None for s in slots[:n_app]]
                     else:
                         nums = [n for n in [_parse_score(x) for x in re.findall(r'\d+\.?\d*', rest)] if n is not None]
-                        if len(nums) >= 8:
-                            d_scores = nums[0::2][:4]
-                            e_scores = nums[1::2][:4]
-                        elif len(nums) >= 4:
-                            d_scores = nums[:4]
+                        if len(nums) >= n_app * 2:
+                            d_scores = nums[0::2][:n_app]
+                            e_scores = nums[1::2][:n_app]
+                        elif len(nums) >= n_app:
+                            d_scores = nums[:n_app]
 
-            # E scores from "CLUB Exec: e1 e2 e3 e4" (BTYC club line)
+            # E scores from "CLUB Exec: e1 e2 ..." (BTYC club line)
             if not e_scores:
                 exec_m = re.search(r"\bExec:\s+([\d.]+(?:\s+[\d.]+)*)", l)
                 if exec_m:
-                    e_scores = [_parse_score(x) for x in exec_m.group(1).split()][:4]
+                    e_scores = [_parse_score(x) for x in exec_m.group(1).split()][:n_app]
 
-            # Club: standalone club code OR "CLUB Exec: ..." (BTYC)
+            # Club: club code optionally followed by HPP/team annotations then Exec line
+            # Handles: "PIT Exec:" / "MYC (HPP)01 Exec:" / "HPP/PIT Exec:" / "EKGA ExNeDc::" / "BTY"
             if club is None:
-                m_club = re.match(r"^([A-Z]{2,12})(?:\s+Exec:|\s*$)", l)
+                m_club = re.match(
+                    r"^(?:[A-Z]{2,6}/)?([A-Z]{2,12})(?:\s+\([A-Z/]+\))?(?:\d+)?(?:\s+(?:Exec:|ExNe[A-Za-z]*::?)|\s*$)", l
+                )
                 if m_club and not l.startswith(("ND:", "Final:", "Place:", "D/E:", "Diff:", "DN/DE:")):
                     club = m_club.group(1)
 
@@ -317,32 +353,26 @@ def parse_new_proscore(text_pages, pdf_path):
                     name = _clean_name(m_rank.group(3))
 
         if rank is not None and name and club and total is not None:
-            d = (d_scores + [None] * 4)[:4] if d_scores else [None] * 4
-            e = (e_scores + [None] * 4)[:4] if e_scores else [None] * 4
-            app_totals = [
-                scores[0] if len(scores) > 0 else None,
-                scores[1] if len(scores) > 1 else None,
-                scores[2] if len(scores) > 2 else None,
-                scores[3] if len(scores) > 3 else None,
-            ]
+            n_app = 6 if sport == "MAG" else 4
+            d = (d_scores + [None] * n_app)[:n_app] if d_scores else [None] * n_app
+            e = (e_scores + [None] * n_app)[:n_app] if e_scores else [None] * n_app
+            app_totals = [(scores[i] if i < len(scores) else None) for i in range(n_app)]
             # Extrapolate missing D or E component from apparatus total
-            for idx in range(4):
+            for idx in range(n_app):
                 if app_totals[idx] is not None:
                     if d[idx] is not None and e[idx] is None:
                         e[idx] = round(app_totals[idx] - d[idx], 3)
                     elif e[idx] is not None and d[idx] is None:
                         d[idx] = round(app_totals[idx] - e[idx], 3)
-            results.append({
+            row = {
                 "rank":    rank,
                 "bib":     bib,
                 "athlete": name,
                 "club":    club,
-                "vault":   app_totals[0], "vault_d": d[0], "vault_e": e[0],
-                "bars":    app_totals[1], "bars_d":  d[1], "bars_e":  e[1],
-                "beam":    app_totals[2], "beam_d":  d[2], "beam_e":  e[2],
-                "floor":   app_totals[3], "floor_d": d[3], "floor_e": e[3],
                 "total":   total,
-            })
+            }
+            row.update(_build_app_scores(app_totals, d, e, sport))
+            results.append(row)
 
     if not results:
         return []
@@ -447,15 +477,20 @@ def _parse_table_row(row, headers):
 # Filename metadata extraction
 # ---------------------------------------------------------------------------
 
-def parse_filename_meta(path):
+def parse_filename_meta(path, sport=None):
+    # Auto-detect sport from path if not supplied
+    if sport is None:
+        parts = [p.upper() for p in Path(path).parts]
+        sport = "MAG" if "MAG" in parts else "WAG"
     name = path.stem
 
     level_m = re.search(r"(?:level|lvl|alp|L)[_\s-]*(\d+)", name, re.IGNORECASE)
-    div_m = re.search(r"(?:div(?:ision)?|D)[_\s-]*(\d+)", name, re.IGNORECASE)
+    div_m   = re.search(r"(?:div(?:ision)?|D)[_\s-]*(\d+)", name, re.IGNORECASE)
+    level   = int(level_m.group(1)) if level_m else None
 
     # Event type: Team → skip later; apparatus codes; AA by default
     type_m = re.search(
-        r"\b(AA|all.?around|VT|UB|BB|FX|vault|bars|beam|floor|team)\b",
+        r"\b(AA|all.?around|VT|UB|BB|FX|PH|SR|PB|HB|vault|bars|beam|floor|team)\b",
         name, re.IGNORECASE,
     )
     event_type = "AA"
@@ -467,19 +502,39 @@ def parse_filename_meta(path):
             "UB": "UB", "BARS": "UB",
             "BB": "BB", "BEAM": "BB",
             "FX": "FX", "FLOOR": "FX",
+            "PH": "PH", "SR": "SR", "PB": "PB", "HB": "HB",
             "TEAM": "Team",
         }.get(raw, raw)
 
-    # "Meet Results" in filename → AA competition
     if re.search(r"meet.results", name, re.IGNORECASE):
         event_type = "AA"
-    # "Team Results" in filename → team
-    if re.search(r"team.results", name, re.IGNORECASE):
-        event_type = "Team"
+    if re.search(r"team.results|team", name, re.IGNORECASE) and "Team" not in event_type:
+        if re.search(r"\bteam\b", name, re.IGNORECASE):
+            event_type = "Team"
+
+    # MAG age group parsing (order matters: specific patterns before generic)
+    # Handles both word-separated ("Level 7 Open") and digit-attached ("Level 7O", "Level 9U15")
+    age_group = None
+    if sport == "MAG":
+        if re.search(r"U15|Under\s*15", name, re.IGNORECASE):
+            age_group = "U15"
+        elif re.search(r"U18|Under\s*18", name, re.IGNORECASE):
+            age_group = "U18"
+        elif re.search(r"U13|Under\s*13", name, re.IGNORECASE):
+            age_group = "U13"
+        elif re.search(r"U14|Under\s*14", name, re.IGNORECASE):
+            age_group = "U14"
+        elif re.search(r"Open|(?<=\d)O\b", name, re.IGNORECASE):
+            age_group = "Open"
+        elif re.search(r"Under|(?<=\d)U\b", name, re.IGNORECASE):
+            age_group = _MAG_LEVEL_AGE.get(level, "Under")
+        elif re.search(r"Optional|(?<=\d)P\b", name, re.IGNORECASE):
+            age_group = "Optional"
 
     return {
-        "level": int(level_m.group(1)) if level_m else None,
-        "division": int(div_m.group(1)) if div_m else None,
+        "level":      level,
+        "division":   int(div_m.group(1)) if div_m else None,
+        "age_group":  age_group,
         "event_type": event_type,
     }
 
@@ -501,8 +556,14 @@ def infer_competition_name(pdf_path):
 _TEAM_RANK_RE = re.compile(
     r"^(\d+)\s+(.+?)\s+([\d]+\.[\d]{3})\s+([\d]+\.[\d]{3})\s+([\d]+\.[\d]{3})\s+([\d]+\.[\d]{3})\s+([\d]+\.[\d]{3})(?:\s+[\d]+\.[\d]{3})?\s*$"
 )
+# MAG variant: total + 6 apparatus (VT FX PH SR PB HB)
+_TEAM_RANK_RE_MAG = re.compile(
+    r"^(\d+)\s+(.+?)\s+([\d]+\.[\d]{3})"
+    r"\s+([\d]+\.[\d]{3})\s+([\d]+\.[\d]{3})\s+([\d]+\.[\d]{3})"
+    r"\s+([\d]+\.[\d]{3})\s+([\d]+\.[\d]{3})\s+([\d]+\.[\d]{3})\s*$"
+)
 # Sub-rank line like "1 1 1 2" — all numbers, ignore
-_SUBRANK_RE = re.compile(r"^[\d\s]+$")
+_SUBRANK_RE = re.compile(r"^[\dT\s]+$")
 
 
 def _gym_code_from_team_name(raw):
@@ -539,6 +600,42 @@ def _normalise_club(raw):
     return m.group(1).upper() if m else collapsed[:5].upper()
 
 
+def _mag_team_club(raw):
+    """Extract gym code from a MAG team name field.
+
+    Handles:
+      'BTY BTU'      → 'BTY'   Knox: gym_code team_designator
+      'BTY 4'        → 'BTY'   SGC: gym_code n_athletes
+      'EKGA EKG'     → 'EKGA'  Knox: long gym code + short team name
+      'B5O B5O'      → 'B5O'   BTYC: level+age team code repeated
+      'BA L BA L'    → 'BAL'   BTYC: spaced club code repeated
+      'A TH A TH'    → 'ATH'   BTYC: spaced club code
+      'Team 3 3'     → None    SGC numbered teams — no real gym code
+    """
+    raw = re.sub(r"(?i)^team\s+", "", raw.strip())
+    tokens = raw.split()
+    if not tokens:
+        return None
+    # Try repeated-pattern: collapse spaces and check if first half == second half
+    # Handles "BA L BA L" → "BALBAL" → "BAL", "B5O B5O" → "B5OB5O" → "B5O"
+    collapsed = re.sub(r"\s+", "", raw).upper()
+    for n in range(2, len(collapsed) // 2 + 1):
+        if collapsed[:n] == collapsed[n : 2 * n]:
+            return collapsed[:n]
+    first = tokens[0]
+    # If first token is purely alphabetic (2–6 chars) → gym code (Knox / SGC formats)
+    if re.match(r"^[A-Za-z]{2,6}$", first):
+        return first.upper()
+    # First token is a plain digit → numbered team, no gym code
+    if first.isdigit():
+        return None
+    # Spaced / alphanumeric code (BTYC "B5O B5O", "A TH A TH"):
+    # collapse all tokens, strip trailing 3-char designator
+    result = collapsed[:-3] if len(collapsed) > 3 else collapsed
+    # Reject if result is pure digits
+    return result if not result.isdigit() else None
+
+
 # Matches "Team Results Women / 31 / All Ages" style header and captures the code
 _COMBINED_HDR_RE = re.compile(
     r"T\s*e\s*a\s*m\s+R\s*e\s*s\s*u\s*l\s*t\s*s"  # "Team Results"
@@ -560,14 +657,15 @@ def _split_combined_level_div(code):
     return None, None
 
 
-def parse_team_results(text_pages, pdf_path):
+def parse_team_results(text_pages, pdf_path, sport="WAG"):
     """
     Parse Team Results ProScore PDFs.
 
     Supports single-event files (level/division from filename) and multi-event
     files where each page has its own header code like '/ 31 /' (L3 D1).
 
-    Returns one event dict per level+division found.
+    For MAG: uses 6-apparatus regex and captures age_group from filename.
+    Returns one event dict per level+division+age_group found.
     """
     file_meta = parse_filename_meta(pdf_path)
     events_by_ld = {}
@@ -576,19 +674,22 @@ def parse_team_results(text_pages, pdf_path):
         if not text:
             continue
 
-        # Try to read level/division from combined header code (e.g. "Team Results Women / 31 /")
         page_level = file_meta.get("level")
-        page_div = file_meta.get("division")
-        code_m = _COMBINED_HDR_RE.search(text)
-        if code_m:
-            pl, pd = _split_combined_level_div(code_m.group(1))
-            if pl is not None:
-                page_level, page_div = pl, pd
+        page_div   = file_meta.get("division")
+        page_age   = file_meta.get("age_group")
+
+        if sport != "MAG":
+            # WAG: try to read level/division from combined header code
+            code_m = _COMBINED_HDR_RE.search(text)
+            if code_m:
+                pl, pd = _split_combined_level_div(code_m.group(1))
+                if pl is not None:
+                    page_level, page_div = pl, pd
 
         if page_level is None:
             continue
 
-        key = (page_level, page_div)
+        key = (page_level, page_div, page_age)
         if key not in events_by_ld:
             events_by_ld[key] = []
 
@@ -596,28 +697,49 @@ def parse_team_results(text_pages, pdf_path):
             l = raw.strip()
             if not l or _HEADER_SKIP.search(l) or _SUBRANK_RE.match(l):
                 continue
-            m = _TEAM_RANK_RE.match(l)
-            if not m:
-                continue
-            rank_str, raw_name, total, s1, s2, s3, s4 = m.groups()
-            events_by_ld[key].append({
-                "rank":  _parse_rank(rank_str),
-                "club":  _gym_code_from_team_name(raw_name),
-                "vault": _parse_score(s1),
-                "bars":  _parse_score(s2),
-                "beam":  _parse_score(s3),
-                "floor": _parse_score(s4),
-                "total": _parse_score(total),
-            })
+
+            if sport == "MAG":
+                m = _TEAM_RANK_RE_MAG.match(l)
+                if not m:
+                    continue
+                rank_str, raw_name, total, s1, s2, s3, s4, s5, s6 = m.groups()
+                club = _mag_team_club(raw_name)
+                if not club:
+                    continue
+                events_by_ld[key].append({
+                    "rank":   _parse_rank(rank_str),
+                    "club":   club,
+                    "vault":  _parse_score(s1),
+                    "floor":  _parse_score(s2),
+                    "pommel": _parse_score(s3),
+                    "rings":  _parse_score(s4),
+                    "pbars":  _parse_score(s5),
+                    "hbar":   _parse_score(s6),
+                    "total":  _parse_score(total),
+                })
+            else:
+                m = _TEAM_RANK_RE.match(l)
+                if not m:
+                    continue
+                rank_str, raw_name, total, s1, s2, s3, s4 = m.groups()
+                events_by_ld[key].append({
+                    "rank":  _parse_rank(rank_str),
+                    "club":  _gym_code_from_team_name(raw_name),
+                    "vault": _parse_score(s1),
+                    "bars":  _parse_score(s2),
+                    "beam":  _parse_score(s3),
+                    "floor": _parse_score(s4),
+                    "total": _parse_score(total),
+                })
 
     return [
-        {"level": lvl, "division": div, "event_type": "Team", "results": results}
-        for (lvl, div), results in events_by_ld.items()
+        {"level": lvl, "division": div, "age_group": ag, "event_type": "Team", "results": results}
+        for (lvl, div, ag), results in events_by_ld.items()
         if results
     ]
 
 
-def parse_proscore_simple(text_pages, pdf_path):
+def parse_proscore_simple(text_pages, pdf_path, sport="WAG"):
     """
     Parse 'Meet Results Women / 5A' style ProScore PDFs.
 
@@ -660,45 +782,65 @@ def parse_proscore_simple(text_pages, pdf_path):
         prev_athlete = None
 
         for line in lines:
-            # Try 6-score (spare column) first, then standard 5-score
-            m = ATHLETE_LINE_AA_SPARE.match(line)
-            if m:
-                rank_str, bib, name, v, ub, bb, fx, _spare, total = m.groups()
-                prev_athlete = {
-                    "rank": _parse_rank(rank_str),
-                    "bib": bib.strip(),
-                    "athlete": _clean_name(name),
-                    "club": None,
-                    "vault": _parse_score(v),
-                    "bars": _parse_score(ub),
-                    "beam": _parse_score(bb),
-                    "floor": _parse_score(fx),
-                    "total": _parse_score(total),
-                }
-                events_by_ld[key].append(prev_athlete)
-                continue
+            matched = False
 
-            m = ATHLETE_LINE_AA.match(line)
-            if m:
-                rank_str, bib, name, v, ub, bb, fx, total = m.groups()
-                prev_athlete = {
-                    "rank": _parse_rank(rank_str),
-                    "bib": bib.strip(),
-                    "athlete": _clean_name(name),
-                    "club": None,
-                    "vault": _parse_score(v),
-                    "bars": _parse_score(ub),
-                    "beam": _parse_score(bb),
-                    "floor": _parse_score(fx),
-                    "total": _parse_score(total),
-                }
-                events_by_ld[key].append(prev_athlete)
-                continue
+            if sport == "MAG":
+                # MAG: rank bib name + 6 apparatus scores + total
+                m = ATHLETE_LINE_MAG_AA.match(line)
+                if m:
+                    rank_str, bib, name, s1, s2, s3, s4, s5, s6, total = m.groups()
+                    app = [_parse_score(x) for x in (s1, s2, s3, s4, s5, s6)]
+                    row = {
+                        "rank":    _parse_rank(rank_str),
+                        "bib":     bib.strip(),
+                        "athlete": _clean_name(name),
+                        "club":    None,
+                        "total":   _parse_score(total),
+                    }
+                    row.update(_build_app_scores(app, [], [], sport))
+                    events_by_ld[key].append(row)
+                    prev_athlete = row
+                    matched = True
+            else:
+                # WAG: try 5-score (spare) first, then standard 4-score
+                m = ATHLETE_LINE_AA_SPARE.match(line)
+                if m:
+                    rank_str, bib, name, v, ub, bb, fx, _spare, total = m.groups()
+                    prev_athlete = {
+                        "rank": _parse_rank(rank_str),
+                        "bib": bib.strip(),
+                        "athlete": _clean_name(name),
+                        "club": None,
+                        "vault": _parse_score(v),
+                        "bars": _parse_score(ub),
+                        "beam": _parse_score(bb),
+                        "floor": _parse_score(fx),
+                        "total": _parse_score(total),
+                    }
+                    events_by_ld[key].append(prev_athlete)
+                    matched = True
+                else:
+                    m = ATHLETE_LINE_AA.match(line)
+                    if m:
+                        rank_str, bib, name, v, ub, bb, fx, total = m.groups()
+                        prev_athlete = {
+                            "rank": _parse_rank(rank_str),
+                            "bib": bib.strip(),
+                            "athlete": _clean_name(name),
+                            "club": None,
+                            "vault": _parse_score(v),
+                            "bars": _parse_score(ub),
+                            "beam": _parse_score(bb),
+                            "floor": _parse_score(fx),
+                            "total": _parse_score(total),
+                        }
+                        events_by_ld[key].append(prev_athlete)
+                        matched = True
 
-            if prev_athlete is not None and prev_athlete["club"] is None:
+            if not matched and prev_athlete is not None and prev_athlete["club"] is None:
                 cm = _CLUB_RANKS_LINE.match(line)
                 if cm:
-                    prev_athlete["club"] = cm.group(1).strip()
+                    prev_athlete["club"] = cm.group(1).strip().upper()
                     prev_athlete = None
 
     return [
@@ -894,64 +1036,75 @@ def parse_gymp(text_pages, pdf_path):
     return [{"level": level, "division": division, "event_type": event_type, "results": results}]
 
 
-def parse_pdf(pdf_path):
+def _inject_age_group(events, age_group):
+    """Stamp age_group from filename onto every event that doesn't already have one."""
+    if age_group is None:
+        return events
+    for ev in events:
+        if not ev.get("age_group"):
+            ev["age_group"] = age_group
+    return events
+
+
+def parse_pdf(pdf_path, sport="WAG"):
     """Returns (events_list, method_string)."""
     with pdfplumber.open(pdf_path) as pdf:
         text_pages = [page.extract_text() for page in pdf.pages]
 
     full_text = "\n".join(t for t in text_pages if t)
 
-    meta = parse_filename_meta(pdf_path)
+    meta = parse_filename_meta(pdf_path, sport=sport)
+    age_group = meta.get("age_group")
 
     # WG scoring program (Natimuk style)
     if WG_HDR_RE.search(full_text):
         events = parse_wg(text_pages, pdf_path)
-        return (events, "wg") if events else ([], "wg-empty")
+        return (_inject_age_group(events, age_group), "wg") if events else ([], "wg-empty")
 
     # GymPro format (Eclipse-style)
     if "GymPro" in full_text:
         events = parse_gymp(text_pages, pdf_path)
-        return (events, "gymp") if events else ([], "gymp-empty")
+        return (_inject_age_group(events, age_group), "gymp") if events else ([], "gymp-empty")
 
     # Route Team Results to dedicated parser (level may come from page headers, not filename)
     if TEAM_RESULTS_RE.search(full_text) or meta.get("event_type") == "Team":
-        events = parse_team_results(text_pages, pdf_path)
-        return (events, "team") if events else ([], "team-empty")
+        events = parse_team_results(text_pages, pdf_path, sport=sport)
+        return (_inject_age_group(events, age_group), "team") if events else ([], "team-empty")
 
     if meta.get("level") is None:
         return [], "no-level-skip"
 
     # New ProScore format: has "Final:" anchor lines + Diff: / D/E: / DN/DE:
     if "Final:" in full_text and re.search(r"(?:Diff:|D/E:|DN/DE:)", full_text):
-        events = parse_new_proscore(text_pages, pdf_path)
+        events = parse_new_proscore(text_pages, pdf_path, sport=sport)
         if events:
-            return events, "proscore-v2"
+            return _inject_age_group(events, age_group), "proscore-v2"
 
     # Old ProScore format (Meet Results - Level X Division Y)
     if any(t and PROSCORE_MEET_HDR.search(t) for t in text_pages):
         events = parse_proscore_text(text_pages)
         if events:
-            return events, "proscore"
+            return _inject_age_group(events, age_group), "proscore"
 
     # Simple ProScore format (Meet Results Women / 5A / All Ages)
     if any(t and PROSCORE_SIMPLE_HDR.search(t) for t in text_pages):
-        events = parse_proscore_simple(text_pages, pdf_path)
+        events = parse_proscore_simple(text_pages, pdf_path, sport=sport)
         if events:
-            return events, "proscore-simple"
+            return _inject_age_group(events, age_group), "proscore-simple"
 
     # Fallback: table
     results = parse_generic_tables(pdf_path)
     events_fallback = []
     if results:
         events_fallback.append({**meta, "results": results})
-    return events_fallback, "table"
+    return _inject_age_group(events_fallback, age_group), "table"
 
 
 # ---------------------------------------------------------------------------
 # Grouping into competition objects
 # ---------------------------------------------------------------------------
 
-def group_into_competitions(all_entries):
+def group_into_competitions(all_entries, sport="WAG"):
     comp_map = {}
     for entry in all_entries:
         comp_name = entry["competition"]
@@ -962,16 +1115,17 @@ def group_into_competitions(all_entries):
                 "id": re.sub(r"[^a-z0-9]+", "-", comp_name.lower()).strip("-") + f"-{season}",
                 "name": comp_name,
                 "season": season,
-                "sport": "WAG",
+                "sport": sport,
                 "events": [],
             }
         for ev in entry["events"]:
             ev_entry = {
-                "level": ev.get("level"),
-                "division": ev.get("division") if ev.get("division") is not None else 1,
+                "level":      ev.get("level"),
+                "division":   ev.get("division") if (ev.get("division") is not None and sport == "WAG") else None,
+                "age_group":  ev.get("age_group"),
                 "event_type": ev.get("event_type", "AA"),
                 "source_file": entry["source_file"],
-                "results": ev.get("results", []),
+                "results":    ev.get("results", []),
             }
             for r in ev_entry["results"]:
                 r.pop("bib", None)

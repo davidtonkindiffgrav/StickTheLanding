@@ -1,12 +1,13 @@
 """
-update.py — Ingest manually downloaded WAG result PDFs into stick.db.
+update.py — Ingest result PDFs into sport-specific databases.
 
-Drop PDFs into pdfs/ (any subfolder structure).
+Drop PDFs into pdfs/<year>/<SPORT>/<competition>/.
 Competition name is inferred from the immediate parent folder.
 
 Usage:
-    python update.py                # ingest new PDFs
-    python update.py --resolve-urls # populate GymVic URLs for all manifest entries
+    python update.py                     # ingest new WAG PDFs
+    python update.py --sport MAG         # ingest new MAG PDFs
+    python update.py --resolve-urls      # populate GymVic URLs for WAG manifest entries
 """
 
 import argparse
@@ -480,9 +481,15 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--resolve-urls", action="store_true",
                         help="Populate GymVic URLs for all pdf_manifest entries missing a URL")
+    parser.add_argument("--sport", default="WAG", choices=["WAG", "MAG", "ACRO"],
+                        help="Which sport to ingest (default: WAG)")
     args = parser.parse_args()
 
-    con = db.get_conn()
+    sport = args.sport
+    db.DB_PATH = Path(f"data/stick_{sport}.db")
+    dbconfig_file = Path(f"data/dbconfig_{sport}.json")
+
+    con = db.get_conn(db.DB_PATH)
     db.create_schema(con)
 
     if args.resolve_urls:
@@ -491,12 +498,23 @@ def main():
 
     already_ingested = db.get_processed_files(con)
 
-    all_pdfs = sorted(PDF_ROOT.rglob("*.pdf"))
-    print(f"Found {len(all_pdfs)} PDF(s) under {PDF_ROOT}/")
+    # Only walk the sport-specific subtree: pdfs/<year>/<SPORT>/
+    all_pdfs = sorted(
+        p for p in PDF_ROOT.rglob("*.pdf")
+        if len(p.relative_to(PDF_ROOT).parts) >= 2
+        and p.relative_to(PDF_ROOT).parts[1].upper() == sport
+    )
+    print(f"Found {len(all_pdfs)} PDF(s) under {PDF_ROOT}/**/{sport}/")
 
     to_parse = []
     for pdf in all_pdfs:
         key = source_key(pdf)
+        if "countinggymnasts" in pdf.name.lower():
+            # Skip only if a non-countinggymnasts version exists (duplicate)
+            base = re.sub(r"\.countinggymnasts", "", pdf.name, flags=re.IGNORECASE)
+            base_s = re.sub(r"\.pdf$", "s.pdf", base, flags=re.IGNORECASE)  # handle "Team"→"Teams"
+            if (pdf.parent / base).exists() or (pdf.parent / base_s).exists():
+                continue
         if key in already_ingested or pdf.name in already_ingested:
             print(f"  [SKIP] {key}")
         else:
@@ -505,7 +523,7 @@ def main():
 
     if not to_parse:
         print("\nNothing new to ingest.")
-        _finalize(con)
+        _finalize(con, dbconfig_file, sport)
         return
 
     print(f"\nParsing {len(to_parse)} new PDF(s)...")
@@ -526,7 +544,7 @@ def main():
             con.commit()
             continue
         try:
-            events, method = parse_pdf(pdf)
+            events, method = parse_pdf(pdf, sport=sport)
             total = sum(len(e.get("results", [])) for e in events)
             print(f"  {key}: {len(events)} event(s), {total} athletes [{method}]")
             newly_processed.append((key, cname))
@@ -540,10 +558,10 @@ def main():
         except Exception as exc:
             print(f"  [ERR]  {pdf.name}: {exc}")
 
-    print("\nUpdating data/stick.db...")
+    print(f"\nUpdating data/stick_{sport}.db...")
     aliases   = load_club_aliases()
     overrides = load_overrides()
-    new_comps = group_into_competitions(new_entries)
+    new_comps = group_into_competitions(new_entries, sport=sport)
     normalise_clubs(new_comps, aliases, overrides)
     merge_to_db(con, new_comps)
 
@@ -562,7 +580,7 @@ def main():
     for cname, files in by_comp.items():
         db.upsert_pdf_manifest(con, cname, files)
 
-    _finalize(con)
+    _finalize(con, dbconfig_file, sport)
 
     total_athletes = con.execute("SELECT COUNT(*) FROM results").fetchone()[0]
     total_comps    = con.execute("SELECT COUNT(*) FROM competitions").fetchone()[0]
@@ -600,21 +618,17 @@ def _cmd_resolve_urls(con) -> None:
     print(f"\nDone — {updated} URL(s) updated.")
 
 
-DBCONFIG_FILE = Path("data/dbconfig.json")
-
-
-def _finalize(con) -> None:
+def _finalize(con, dbconfig_file: Path, sport: str = "WAG") -> None:
     db.sync_clubs(con, CLUBS_FILE)
     db.vacuum(con)
-    # Write dbconfig.json with current file size so the browser never needs Content-Length
     file_size = db.DB_PATH.stat().st_size
-    with open(DBCONFIG_FILE, "w", encoding="utf-8") as f:
+    with open(dbconfig_file, "w", encoding="utf-8") as f:
         json.dump({
             "serverMode": "full",
             "requestChunkSize": 1024,
             "fileLength": file_size,
         }, f)
-    print(f"  dbconfig.json updated (fileSize: {file_size:,} bytes)")
+    print(f"  dbconfig_{sport}.json updated (fileSize: {file_size:,} bytes)")
 
 
 if __name__ == "__main__":

@@ -10,7 +10,7 @@ import json
 import sqlite3
 from pathlib import Path
 
-DB_PATH = Path("data/stick.db")
+DB_PATH = Path("data/stick_WAG.db")
 
 
 def get_conn(db_path: Path = DB_PATH) -> sqlite3.Connection:
@@ -45,6 +45,7 @@ def create_schema(con: sqlite3.Connection) -> None:
             competition_id  TEXT NOT NULL REFERENCES competitions(id),
             level           INTEGER,
             division        INTEGER,
+            age_group       TEXT,
             event_type      TEXT,
             source_file     TEXT
         );
@@ -91,10 +92,17 @@ def create_schema(con: sqlite3.Connection) -> None:
         CREATE INDEX IF NOT EXISTS idx_comp_sport_season ON competitions(sport, season);
     """)
     con.commit()
-    # Idempotent migration: add D/E columns to existing databases
-    for col in ("vault_d", "vault_e", "bars_d", "bars_e", "beam_d", "beam_e", "floor_d", "floor_e"):
+    # Idempotent migrations
+    for col in ("vault_d", "vault_e", "bars_d", "bars_e", "beam_d", "beam_e", "floor_d", "floor_e",
+                "pommel", "pommel_d", "pommel_e", "rings", "rings_d", "rings_e",
+                "pbars", "pbars_d", "pbars_e", "hbar", "hbar_d", "hbar_e"):
         try:
             con.execute(f"ALTER TABLE results ADD COLUMN {col} REAL")
+        except Exception:
+            pass
+    for col in ("age_group TEXT",):
+        try:
+            con.execute(f"ALTER TABLE events ADD COLUMN {col}")
         except Exception:
             pass
     con.commit()
@@ -137,12 +145,13 @@ def upsert_competition(con: sqlite3.Connection, comp: dict) -> None:
 
 def insert_event(con: sqlite3.Connection, competition_id: str, ev: dict) -> int:
     cur = con.execute(
-        "INSERT INTO events (competition_id, level, division, event_type, source_file) "
-        "VALUES (?, ?, ?, ?, ?)",
+        "INSERT INTO events (competition_id, level, division, age_group, event_type, source_file) "
+        "VALUES (?, ?, ?, ?, ?, ?)",
         (
             competition_id,
             ev.get("level"),
             ev.get("division"),
+            ev.get("age_group"),
             ev.get("event_type"),
             ev.get("source_file"),
         ),
@@ -154,8 +163,10 @@ def insert_result(con: sqlite3.Connection, event_id: int, r: dict) -> None:
     con.execute(
         "INSERT INTO results "
         "(event_id, rank, athlete, club, vault, vault_d, vault_e, bars, bars_d, bars_e, "
-        "beam, beam_d, beam_e, floor, floor_d, floor_e, total) "
-        "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+        "beam, beam_d, beam_e, floor, floor_d, floor_e, total, "
+        "pommel, pommel_d, pommel_e, rings, rings_d, rings_e, "
+        "pbars, pbars_d, pbars_e, hbar, hbar_d, hbar_e) "
+        "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
         (
             event_id,
             r.get("rank"),
@@ -166,6 +177,10 @@ def insert_result(con: sqlite3.Connection, event_id: int, r: dict) -> None:
             r.get("beam"),   r.get("beam_d"),   r.get("beam_e"),
             r.get("floor"),  r.get("floor_d"),  r.get("floor_e"),
             r.get("total"),
+            r.get("pommel"), r.get("pommel_d"), r.get("pommel_e"),
+            r.get("rings"),  r.get("rings_d"),  r.get("rings_e"),
+            r.get("pbars"),  r.get("pbars_d"),  r.get("pbars_e"),
+            r.get("hbar"),   r.get("hbar_d"),   r.get("hbar_e"),
         ),
     )
 

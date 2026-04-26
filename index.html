@@ -809,11 +809,10 @@
           <div class="sport-sublabel">Women's Artistic</div>
         </div>
       </button>
-      <button class="sport-card sport-mag coming-soon" onclick="openComingSoon()">
+      <button class="sport-card sport-mag" onclick="enterSport('MAG')">
         <div class="sport-card-inner">
           <div class="sport-label">MAG</div>
           <div class="sport-sublabel">Men's Artistic</div>
-          <div class="coming-soon-chip">Coming Soon</div>
         </div>
       </button>
       <button class="sport-card sport-acro coming-soon" onclick="openComingSoon()">
@@ -903,10 +902,10 @@
             <tr>
               <th style="width:52px">#</th>
               <th style="width:48px"></th>
-              <th>Club</th>
-              <th title="Best single team score across all competitions">High Score</th>
-              <th title="Average team score across all competitions">Avg Score</th>
-              <th>Comps</th>
+              <th data-sort="str">Club <span class="sort-icon">↕</span></th>
+              <th data-sort="num" title="Best single team score across all competitions">High Score <span class="sort-icon">↕</span></th>
+              <th data-sort="num" title="Average team score across all competitions">Avg Score <span class="sort-icon">↕</span></th>
+              <th data-sort="num">Comps <span class="sort-icon">↕</span></th>
             </tr>
           </thead>
           <tbody id="team-highscore-tbody"></tbody>
@@ -930,8 +929,9 @@
               <th>Athlete</th>
               <th style="width:48px"></th>
               <th>Club</th>
-              <th>Level</th>
+              <th>Div</th>
               <th>Comps</th>
+              <th>Avg Score</th>
               <th>Best Score</th>
               <th>Wins</th>
             </tr>
@@ -1114,6 +1114,14 @@ const APPARATUS_COL   = { AA: "total", VT: "vault", UB: "bars",   BB: "beam",   
 const APPARATUS_D_COL = {              VT: "vault_d", UB: "bars_d", BB: "beam_d", FX: "floor_d" };
 const APPARATUS_E_COL = {              VT: "vault_e", UB: "bars_e", BB: "beam_e", FX: "floor_e" };
 const APPARATUS_NAME  = { AA: "All Around", VT: "Vault", UB: "Uneven Bars", BB: "Balance Beam", FX: "Floor" };
+const MAG_APPARATUS_COL   = { AA:"total", VT:"vault", FX:"floor", PH:"pommel", SR:"rings", PB:"pbars", HB:"hbar" };
+const MAG_APPARATUS_COL_D = {           VT:"vault_d", FX:"floor_d", PH:"pommel_d", SR:"rings_d", PB:"pbars_d", HB:"hbar_d" };
+const MAG_APPARATUS_COL_E = {           VT:"vault_e", FX:"floor_e", PH:"pommel_e", SR:"rings_e", PB:"pbars_e", HB:"hbar_e" };
+const MAG_APPARATUS_NAME  = { AA:"All Around", VT:"Vault", FX:"Floor", PH:"Pommel Horse", SR:"Still Rings", PB:"Parallel Bars", HB:"Horizontal Bar" };
+function appCol()  { return currentSport === "MAG" ? MAG_APPARATUS_COL   : APPARATUS_COL; }
+function appDCol() { return currentSport === "MAG" ? MAG_APPARATUS_COL_D : APPARATUS_D_COL; }
+function appECol() { return currentSport === "MAG" ? MAG_APPARATUS_COL_E : APPARATUS_E_COL; }
+function appName() { return currentSport === "MAG" ? MAG_APPARATUS_NAME  : APPARATUS_NAME; }
 let _compList      = [];
 let _contactFrom   = "landing";
 
@@ -1128,8 +1136,8 @@ async function initDB() {
   if (DB) return;
   const workerUrl = new URL("sql/sqlite.worker.js", location.href).toString();
   const wasmUrl   = new URL("sql/sql-wasm.wasm",   location.href).toString();
-  const dbUrl     = new URL("data/stick.db?v=4",     location.href).toString();
-  const cfgResp   = await fetch(new URL("data/dbconfig.json", location.href).toString());
+  const dbUrl     = new URL(`data/stick_${currentSport}.db?v=12`, location.href).toString();
+  const cfgResp   = await fetch(new URL(`data/dbconfig_${currentSport}.json?v=12`, location.href).toString());
   const dbCfg     = await cfgResp.json();
   dbCfg.url       = dbUrl;
   const worker    = await createDbWorker(
@@ -1143,8 +1151,6 @@ async function initDB() {
 // Sport entry / exit
 // ─────────────────────────────────────────────────────────────────────────────
 async function enterSport(sport) {
-  if (sport !== "WAG") { openComingSoon(); return; }
-
   currentSport = sport;
   showLoading(true);
   document.getElementById("landing-view").style.display = "none";
@@ -1194,6 +1200,8 @@ async function enterSport(sport) {
 
   renderSeasonButtons();
   resetFilters();
+  rebuildApparatusNav(sport);
+  document.getElementById("apparatus-year").textContent = currentSeason;
   buildLevelFilters();
   buildRegionFilters();
 
@@ -1242,23 +1250,20 @@ function renderSeasonButtons() {
       resetFilters();
       buildLevelFilters();
       buildRegionFilters();
-      const firstBtn = document.querySelector("#level-filter-bar .filter-btn");
-      if (firstBtn) firstBtn.click();
-      else render();
     });
   });
 }
 
 async function reloadLevelDivs() {
   const ldRows = _execRows(await DB.exec(
-    `SELECT DISTINCT e.level, e.division
+    `SELECT DISTINCT e.level, e.division, e.age_group
      FROM events e
      JOIN competitions c ON e.competition_id = c.id
      WHERE c.sport = ? AND c.season = ?
      ORDER BY e.level, e.division`,
     [currentSport, currentSeason]
   ));
-  LEVEL_DIVS = ldRows.map(([level, division]) => ({ level, division }));
+  LEVEL_DIVS = ldRows.map(([level, division, age_group]) => ({ level, division, age_group }));
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -1301,13 +1306,59 @@ function _execRows(resultSet) {
   return resultSet[0].values || [];
 }
 
-function levelDivDisplay(level, division) {
-  return level != null ? `L${level} D${division}` : "-";
+function levelDivDisplay(level, division, age_group) {
+  if (level == null) return "-";
+  if (age_group) return `L${level} ${age_group}`;
+  if (division != null) return `L${level} D${division}`;
+  return `L${level}`;
 }
 
 function rankBadge(rank) {
   if (rank <= 3) return `<span class="rank-badge rank-${rank}">${rank}</span>`;
   return `<span class="rank-badge rank-n">${rank}</span>`;
+}
+
+function isMixed(code) {
+  return code.includes("/") || /^MX\d/i.test(code);
+}
+
+function attachSort(tableEl) {
+  const thead = tableEl.querySelector("thead");
+  const tbody = tableEl.querySelector("tbody");
+  if (!thead || !tbody) return;
+  const allThs = [...thead.querySelectorAll("th")];
+  const sortableThs = allThs.filter(th => th.dataset.sort);
+  if (!sortableThs.length) return;
+  let sortCol = -1, sortDir = 1;
+  sortableThs.forEach(th => {
+    const colIdx = allThs.indexOf(th);
+    const type = th.dataset.sort;
+    th.classList.add("sortable");
+    th.addEventListener("click", () => {
+      if (sortCol === colIdx) sortDir *= -1;
+      else { sortCol = colIdx; sortDir = 1; }
+      sortableThs.forEach(h => {
+        const si = h.querySelector(".sort-icon");
+        if (si) { si.className = "sort-icon"; si.textContent = "↕"; }
+      });
+      const si = th.querySelector(".sort-icon");
+      if (si) { si.className = "sort-icon " + (sortDir === 1 ? "asc" : "desc"); si.textContent = ""; }
+      const rows = [...tbody.querySelectorAll("tr")];
+      rows.sort((a, b) => {
+        const ac = a.cells[colIdx], bc = b.cells[colIdx];
+        const av = ac?.dataset.val ?? ac?.textContent.trim() ?? "";
+        const bv = bc?.dataset.val ?? bc?.textContent.trim() ?? "";
+        if (type === "num") {
+          const an = parseFloat(av), bn = parseFloat(bv);
+          const af = isNaN(an) ? sortDir * Infinity : an;
+          const bf = isNaN(bn) ? sortDir * Infinity : bn;
+          return sortDir * (af - bf);
+        }
+        return sortDir * String(av).localeCompare(String(bv), undefined, { numeric: true });
+      });
+      rows.forEach(r => tbody.appendChild(r));
+    });
+  });
 }
 
 function esc(str) {
@@ -1333,7 +1384,7 @@ function clubDisplay(code) {
 const POINTS_MAP = { 1: 6, 2: 5, 3: 4, 4: 3, 5: 2, 6: 1 };
 
 function buildTeamStandings(rows, apparatus = "AA") {
-  const scoreField = APPARATUS_COL[apparatus] || "total";
+  const scoreField = appCol()[apparatus] || "total";
   const clubs = {};
   for (const r of rows) {
     const score = r[scoreField];
@@ -1344,7 +1395,7 @@ function buildTeamStandings(rows, apparatus = "AA") {
       totalScore: 0, highScore: 0, highScoreDetail: "", count: 0, comps: new Set(),
     };
     const c = clubs[club];
-    const detail = `${r.competition} · L${r.level} D${r.division}`;
+    const detail = `${r.competition} · ${levelDivDisplay(r.level, r.division, r.age_group)}`;
     c.count++;
     c.totalScore += score;
     if (score > c.highScore) { c.highScore = score; c.highScoreDetail = detail; }
@@ -1362,7 +1413,7 @@ function buildTeamStandings(rows, apparatus = "AA") {
 }
 
 async function renderClubs() {
-  document.getElementById("team-title").textContent = `Team Standings · ${currentSeason} · ${APPARATUS_NAME[activeApparatus] || activeApparatus}`;
+  document.getElementById("team-title").textContent = `Team Standings · ${currentSeason} · ${appName()[activeApparatus] || activeApparatus}`;
   if (activeLevel === null) {
     document.getElementById("team-highscore-tbody").innerHTML =
       `<tr><td colspan="6" style="text-align:center;color:var(--muted);padding:36px 12px">
@@ -1370,20 +1421,29 @@ async function renderClubs() {
     return;
   }
   let sql = `
-    SELECT r.club, r.rank, r.total, r.vault, r.bars, r.beam, r.floor, c.name, e.level, e.division
+    SELECT r.club, r.rank, r.total, r.vault, r.bars, r.beam, r.floor,
+           r.pommel, r.rings, r.pbars, r.hbar,
+           c.name, e.level, e.division, e.age_group
     FROM results r
     JOIN events e ON r.event_id = e.id
     JOIN competitions c ON e.competition_id = c.id
     WHERE e.event_type = 'Team' AND c.sport = ? AND c.season = ?`;
   const params = [currentSport, currentSeason];
   if (activeLevel    !== null) { sql += ` AND e.level = ?`;    params.push(activeLevel); }
-  if (activeDivision !== null) { sql += ` AND e.division = ?`; params.push(activeDivision); }
+  if (activeDivision !== null) {
+    if (currentSport === "MAG") { sql += ` AND e.age_group = ?`; } else { sql += ` AND e.division = ?`; }
+    params.push(activeDivision);
+  }
 
   const raw = _execRows(await DB.exec(sql, params));
-  const rows = raw.map(([club, rank, total, vault, bars, beam, floor, competition, level, division]) =>
-    ({ club, rank, total, vault, bars, beam, floor, competition, level, division }));
+  const rows = raw.map(([club, rank, total, vault, bars, beam, floor,
+                         pommel, rings, pbars, hbar,
+                         competition, level, division, age_group]) =>
+    ({ club, rank, total, vault, bars, beam, floor,
+       pommel, rings, pbars, hbar,
+       competition, level, division, age_group }));
 
-  let standings = buildTeamStandings(rows, activeApparatus);
+  let standings = buildTeamStandings(rows.filter(r => !isMixed(r.club || "")), activeApparatus);
   if (activeRegion) {
     const clubRegion = {};
     for (const c of CLUBS_LIST) clubRegion[c.code] = c.region;
@@ -1410,27 +1470,30 @@ async function renderClubs() {
       </tr>`;
     }).join("");
   }
+  attachSort(document.getElementById("team-highscore-table"));
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Individual athlete rankings
 // ─────────────────────────────────────────────────────────────────────────────
 function buildAthleteStandings(rows, apparatus = "AA") {
-  const scoreField = APPARATUS_COL[apparatus] || "total";
-  const dField = APPARATUS_D_COL[apparatus] || null;
-  const eField = APPARATUS_E_COL[apparatus] || null;
+  const scoreField = appCol()[apparatus] || "total";
+  const dField = appDCol()[apparatus] || null;
+  const eField = appECol()[apparatus] || null;
   const athletes = {};
   for (const r of rows) {
     const score = r[scoreField];
     if (score == null && apparatus !== "AA") continue;
-    const key = `${r.athlete}||${r.club}||${r.level}||${r.division}`;
+    const key = `${r.athlete}||${r.club}||${r.level}||${r.division || r.age_group || ""}`;
     if (!athletes[key]) athletes[key] = {
-      athlete: r.athlete, club: r.club || "", level: r.level, division: r.division,
-      comps: new Set(), bestScore: 0, bestScoreDetail: "", bestD: null, bestE: null, wins: 0, winDetails: [],
+      athlete: r.athlete, club: r.club || "", level: r.level, division: r.division, age_group: r.age_group,
+      comps: new Set(), bestScore: 0, bestScoreDetail: "", bestD: null, bestE: null,
+      wins: 0, winDetails: [], totalScore: 0, scoreCount: 0,
     };
     const a = athletes[key];
     if (r.competition) a.comps.add(r.competition);
     const s = score || 0;
+    if (s > 0) { a.totalScore += s; a.scoreCount++; }
     if (s > a.bestScore) {
       a.bestScore = s;
       a.bestScoreDetail = r.competition || "";
@@ -1440,12 +1503,12 @@ function buildAthleteStandings(rows, apparatus = "AA") {
     if (r.rank === 1) { a.wins++; a.winDetails.push(`${r.competition || "?"} (${s.toFixed(3)})`); }
   }
   return Object.values(athletes)
-    .map(a => ({ ...a, comps: a.comps.size }))
+    .map(a => ({ ...a, comps: a.comps.size, avgScore: a.scoreCount ? a.totalScore / a.scoreCount : 0 }))
     .sort((a, b) => b.bestScore - a.bestScore || b.wins - a.wins);
 }
 
 async function renderAthletes() {
-  document.getElementById("athlete-title").textContent = `Individual Rankings · ${currentSeason} · ${APPARATUS_NAME[activeApparatus] || activeApparatus}`;
+  document.getElementById("athlete-title").textContent = `Individual Rankings · ${currentSeason} · ${appName()[activeApparatus] || activeApparatus}`;
   const tbody = document.getElementById("athlete-tbody");
   const thead = document.querySelector("#athlete-table thead tr");
 
@@ -1456,58 +1519,73 @@ async function renderAthletes() {
   }
 
   const isAA = activeApparatus === "AA";
-  const appCol = APPARATUS_COL[activeApparatus] || "total";
-  const dCol   = APPARATUS_D_COL[activeApparatus] || null;
-  const eCol   = APPARATUS_E_COL[activeApparatus] || null;
+  const actAppCol = appCol()[activeApparatus] || "total";
+  const dCol      = appDCol()[activeApparatus] || null;
+  const eCol      = appECol()[activeApparatus] || null;
 
   let sql = `
     SELECT r.athlete, r.club, r.rank, r.total, r.vault, r.bars, r.beam, r.floor,
            r.vault_d, r.vault_e, r.bars_d, r.bars_e, r.beam_d, r.beam_e, r.floor_d, r.floor_e,
-           c.name, e.level, e.division
+           r.pommel, r.pommel_d, r.pommel_e, r.rings, r.rings_d, r.rings_e,
+           r.pbars, r.pbars_d, r.pbars_e, r.hbar, r.hbar_d, r.hbar_e,
+           c.name, e.level, e.division, e.age_group
     FROM results r
     JOIN events e ON r.event_id = e.id
     JOIN competitions c ON e.competition_id = c.id
-    WHERE e.event_type != 'Team' AND c.sport = ? AND c.season = ?`;
+    WHERE e.event_type != 'Team' AND c.sport = ? AND c.season = ? AND e.level > 4`;
   const params = [currentSport, currentSeason];
   if (activeLevel    !== null) { sql += ` AND e.level = ?`;    params.push(activeLevel); }
-  if (activeDivision !== null) { sql += ` AND e.division = ?`; params.push(activeDivision); }
-  if (!isAA) { sql += ` AND r.${appCol} IS NOT NULL`; }
+  if (activeDivision !== null) {
+    if (currentSport === "MAG") { sql += ` AND e.age_group = ?`; } else { sql += ` AND e.division = ?`; }
+    params.push(activeDivision);
+  }
+  if (!isAA) { sql += ` AND r.${actAppCol} IS NOT NULL`; }
 
   const raw = _execRows(await DB.exec(sql, params));
   const rows = raw.map(([athlete, club, rank, total, vault, bars, beam, floor,
                          vault_d, vault_e, bars_d, bars_e, beam_d, beam_e, floor_d, floor_e,
-                         competition, level, division]) =>
+                         pommel, pommel_d, pommel_e, rings, rings_d, rings_e,
+                         pbars, pbars_d, pbars_e, hbar, hbar_d, hbar_e,
+                         competition, level, division, age_group]) =>
     ({ athlete, club, rank, total, vault, bars, beam, floor,
        vault_d, vault_e, bars_d, bars_e, beam_d, beam_e, floor_d, floor_e,
-       competition, level, division }));
+       pommel, pommel_d, pommel_e, rings, rings_d, rings_e,
+       pbars, pbars_d, pbars_e, hbar, hbar_d, hbar_e,
+       competition, level, division, age_group }));
   const standings = buildAthleteStandings(rows, activeApparatus);
+
+  const divCell = a => currentSport === "MAG"
+    ? (a.age_group || "-")
+    : (a.division ? "D" + a.division : "-");
 
   // Update table header for apparatus vs AA view
   if (isAA) {
     thead.innerHTML = `
       <th style="width:52px">#</th>
-      <th>Athlete</th>
+      <th data-sort="str">Athlete <span class="sort-icon">↕</span></th>
       <th style="width:48px"></th>
-      <th>Club</th>
-      <th>Level</th>
-      <th>Comps</th>
-      <th>Best Score</th>
-      <th>Wins</th>`;
+      <th data-sort="str">Club <span class="sort-icon">↕</span></th>
+      <th data-sort="str">Div <span class="sort-icon">↕</span></th>
+      <th data-sort="num">Comps <span class="sort-icon">↕</span></th>
+      <th data-sort="num">Avg Score <span class="sort-icon">↕</span></th>
+      <th data-sort="num">Best Score <span class="sort-icon">↕</span></th>
+      <th data-sort="num">Wins <span class="sort-icon">↕</span></th>`;
   } else {
     thead.innerHTML = `
       <th style="width:52px">#</th>
-      <th>Athlete</th>
+      <th data-sort="str">Athlete <span class="sort-icon">↕</span></th>
       <th style="width:48px"></th>
-      <th>Club</th>
-      <th>Level</th>
-      <th>Comps</th>
-      <th>D</th>
-      <th>E</th>
-      <th>Best Score</th>`;
+      <th data-sort="str">Club <span class="sort-icon">↕</span></th>
+      <th data-sort="str">Div <span class="sort-icon">↕</span></th>
+      <th data-sort="num">Comps <span class="sort-icon">↕</span></th>
+      <th data-sort="num">D <span class="sort-icon">↕</span></th>
+      <th data-sort="num">E <span class="sort-icon">↕</span></th>
+      <th data-sort="num">Avg Score <span class="sort-icon">↕</span></th>
+      <th data-sort="num">Best Score <span class="sort-icon">↕</span></th>`;
   }
 
   if (!standings.length) {
-    tbody.innerHTML = `<tr><td colspan="${isAA ? 8 : 9}" class="no-data">No data for this filter.</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="${isAA ? 9 : 10}" class="no-data">No data for this filter.</td></tr>`;
     return;
   }
 
@@ -1522,8 +1600,9 @@ async function renderAthletes() {
         <td><strong>${esc(a.athlete)}</strong></td>
         <td class="logo-cell">${clubLogo(a.club, "club-logo-sm")}</td>
         <td>${clubDisplay(a.club)}</td>
-        <td>${levelDivDisplay(a.level, a.division)}</td>
+        <td data-val="${a.division || a.age_group || ''}">${divCell(a)}</td>
         <td class="score">${a.comps}</td>
+        <td class="score">${a.avgScore > 0 ? a.avgScore.toFixed(3) : "-"}</td>
         <td class="score score-hi"${a.bestScoreDetail ? ` title="${esc(a.bestScoreDetail)}" style="cursor:help"` : ""}>${a.bestScore.toFixed(3)}</td>
         <td><span class="stat-chip gold"${a.winDetails.length ? ` title="${esc(a.winDetails.join("\n"))}"` : ""} style="cursor:${a.wins ? "help" : "default"}">${a.wins}</span></td>
       </tr>`;
@@ -1535,13 +1614,15 @@ async function renderAthletes() {
       <td><strong>${esc(a.athlete)}</strong></td>
       <td class="logo-cell">${clubLogo(a.club, "club-logo-sm")}</td>
       <td>${clubDisplay(a.club)}</td>
-      <td>${levelDivDisplay(a.level, a.division)}</td>
+      <td data-val="${a.division || a.age_group || ''}">${divCell(a)}</td>
       <td class="score">${a.comps}</td>
       <td class="score">${dVal}</td>
       <td class="score">${eVal}</td>
+      <td class="score">${a.avgScore > 0 ? a.avgScore.toFixed(3) : "-"}</td>
       <td class="score score-hi"${a.bestScoreDetail ? ` title="${esc(a.bestScoreDetail)}" style="cursor:help"` : ""}>${a.bestScore.toFixed(3)}</td>
     </tr>`;
   }).join("");
+  attachSort(document.getElementById("athlete-table"));
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -1612,7 +1693,7 @@ function renderClubDirectory() {
   const tbody = document.getElementById("club-dir-tbody");
   if (!tbody) return;
 
-  const sorted = [...CLUBS_LIST].filter(c => c.region !== "Interstate").sort((a, b) => {
+  const sorted = [...CLUBS_LIST].filter(c => c.region !== "Interstate" && !isMixed(c.code)).sort((a, b) => {
     if (dirSortCol === "region") {
       return dirSortDir * (
         (REGION_ORDER[a.region] || 99) - (REGION_ORDER[b.region] || 99) ||
@@ -1681,9 +1762,11 @@ async function openDrill(comp) {
   document.getElementById("drill-overlay").classList.add("open");
 
   const raw = _execRows(await DB.exec(`
-    SELECT e.id, e.level, e.division, e.event_type,
-           r.rank, r.athlete, r.club, r.total, r.vault, r.bars, r.beam, r.floor,
-           r.vault_d, r.vault_e, r.bars_d, r.bars_e, r.beam_d, r.beam_e, r.floor_d, r.floor_e
+    SELECT e.id, e.level, e.division, e.age_group, e.event_type,
+           r.rank, r.athlete, r.club, r.total,
+           r.vault, r.bars, r.beam, r.floor, r.pommel, r.rings, r.pbars, r.hbar,
+           r.vault_d, r.vault_e, r.bars_d, r.bars_e, r.beam_d, r.beam_e, r.floor_d, r.floor_e,
+           r.pommel_d, r.pommel_e, r.rings_d, r.rings_e, r.pbars_d, r.pbars_e, r.hbar_d, r.hbar_e
     FROM events e
     LEFT JOIN results r ON r.event_id = e.id
     WHERE e.competition_id = ?
@@ -1691,91 +1774,97 @@ async function openDrill(comp) {
   `, [comp.id]));
 
   const evMap = new Map();
-  for (const [eid, level, division, event_type, rank, athlete, club, total,
-              vault, bars, beam, floor, vault_d, vault_e, bars_d, bars_e,
-              beam_d, beam_e, floor_d, floor_e] of raw) {
-    if (!evMap.has(eid)) evMap.set(eid, { level, division, event_type, results: [] });
+  for (const [eid, level, division, age_group, event_type,
+              rank, athlete, club, total,
+              vault, bars, beam, floor, pommel, rings, pbars, hbar,
+              vault_d, vault_e, bars_d, bars_e, beam_d, beam_e, floor_d, floor_e,
+              pommel_d, pommel_e, rings_d, rings_e, pbars_d, pbars_e, hbar_d, hbar_e] of raw) {
+    if (!evMap.has(eid)) evMap.set(eid, { level, division, age_group, event_type, results: [] });
     if (rank !== null) evMap.get(eid).results.push({
-      rank, athlete, club, total, vault, bars, beam, floor,
+      rank, athlete, club, total,
+      vault, bars, beam, floor, pommel, rings, pbars, hbar,
       vault_d, vault_e, bars_d, bars_e, beam_d, beam_e, floor_d, floor_e,
+      pommel_d, pommel_e, rings_d, rings_e, pbars_d, pbars_e, hbar_d, hbar_e,
     });
   }
   const events = [...evMap.values()];
 
   const fmt = v => v != null && v !== 0 ? v.toFixed(3) : "-";
 
+  const drillApps = currentSport === "MAG"
+    ? [{col:"floor",d:"floor_d",e:"floor_e",h:"Floor"},{col:"pommel",d:"pommel_d",e:"pommel_e",h:"Pommel"},
+       {col:"rings",d:"rings_d",e:"rings_e",h:"Rings"},{col:"vault",d:"vault_d",e:"vault_e",h:"Vault"},
+       {col:"pbars",d:"pbars_d",e:"pbars_e",h:"P-Bars"},{col:"hbar",d:"hbar_d",e:"hbar_e",h:"H-Bar"}]
+    : [{col:"vault",d:"vault_d",e:"vault_e",h:"Vault"},{col:"bars",d:"bars_d",e:"bars_e",h:"Bars"},
+       {col:"beam",d:"beam_d",e:"beam_e",h:"Beam"},{col:"floor",d:"floor_d",e:"floor_e",h:"Floor"}];
+
   document.getElementById("drill-meta").textContent = `${events.length} event(s) · ${currentSport} · ${currentSeason}`;
   document.getElementById("drill-events").innerHTML = events.map(ev => {
-    const title = [ev.level ? `Level ${ev.level}` : "", ev.division ? `Div ${ev.division}` : "", ev.event_type || ""]
-      .filter(Boolean).join(" · ");
-    let header, trows;
+    const title = [
+      ev.level ? `Level ${ev.level}` : "",
+      ev.age_group ? ev.age_group : (ev.division ? `Div ${ev.division}` : ""),
+      ev.event_type || "",
+    ].filter(Boolean).join(" · ");
+    let header, trows, colspan;
+    const appHdrs = drillApps.map(a => `<th data-sort="num">${a.h} <span class="sort-icon">↕</span></th>`).join("");
     if (ev.event_type === "Team") {
-      const hasApparatus = ev.results.some(r => r.vault != null || r.bars != null);
+      const hasApparatus = ev.results.some(r => drillApps.some(a => r[a.col] != null));
       if (hasApparatus) {
-        header = `<tr><th>#</th><th>Club</th><th>Vault</th><th>Bars</th><th>Beam</th><th>Floor</th><th>Total</th></tr>`;
-        trows  = ev.results.map(r => `
-          <tr>
+        header = `<tr><th>#</th><th data-sort="str">Club <span class="sort-icon">↕</span></th>${appHdrs}<th data-sort="num">Total <span class="sort-icon">↕</span></th></tr>`;
+        trows  = ev.results.map(r => {
+          const cells = drillApps.map(a => `<td class="score">${fmt(r[a.col])}</td>`).join("");
+          return `<tr>
             <td>${rankBadge(r.rank)}</td>
             <td><strong>${clubDisplay(r.club || "")}</strong></td>
-            <td class="score">${fmt(r.vault)}</td>
-            <td class="score">${fmt(r.bars)}</td>
-            <td class="score">${fmt(r.beam)}</td>
-            <td class="score">${fmt(r.floor)}</td>
+            ${cells}
             <td class="score">${fmt(r.total)}</td>
-          </tr>`).join("");
+          </tr>`;
+        }).join("");
+        colspan = drillApps.length + 2;
       } else {
-        header = `<tr><th>#</th><th>Club</th><th>Total</th></tr>`;
+        header = `<tr><th>#</th><th data-sort="str">Club <span class="sort-icon">↕</span></th><th data-sort="num">Total <span class="sort-icon">↕</span></th></tr>`;
         trows  = ev.results.map(r => `
           <tr>
             <td>${rankBadge(r.rank)}</td>
             <td><strong>${clubDisplay(r.club || "")}</strong></td>
             <td class="score">${fmt(r.total)}</td>
           </tr>`).join("");
+        colspan = 3;
       }
     } else {
-      const hasDE = ev.results.some(r => r.vault_d != null || r.bars_d != null || r.beam_d != null || r.floor_d != null);
+      const hasDE = ev.results.some(r => drillApps.some(a => r[a.d] != null));
       if (hasDE) {
-        header = `<tr><th>#</th><th>Athlete</th><th>Club</th><th>Vault</th><th>Bars</th><th>Beam</th><th>Floor</th><th>Total</th></tr>`;
+        header = `<tr><th>#</th><th data-sort="str">Athlete <span class="sort-icon">↕</span></th><th data-sort="str">Club <span class="sort-icon">↕</span></th>${appHdrs}<th data-sort="num">Total <span class="sort-icon">↕</span></th></tr>`;
         trows  = ev.results.map(r => {
-          const vaultStr = r.vault_d != null
-            ? `${fmt(r.vault_d)}/${r.vault_e != null ? r.vault_e.toFixed(3) : "-"}=${fmt(r.vault)}`
-            : fmt(r.vault);
-          const barsStr  = r.bars_d != null
-            ? `${fmt(r.bars_d)}/${r.bars_e != null ? r.bars_e.toFixed(3) : "-"}=${fmt(r.bars)}`
-            : fmt(r.bars);
-          const beamStr  = r.beam_d != null
-            ? `${fmt(r.beam_d)}/${r.beam_e != null ? r.beam_e.toFixed(3) : "-"}=${fmt(r.beam)}`
-            : fmt(r.beam);
-          const floorStr = r.floor_d != null
-            ? `${fmt(r.floor_d)}/${r.floor_e != null ? r.floor_e.toFixed(3) : "-"}=${fmt(r.floor)}`
-            : fmt(r.floor);
+          const cells = drillApps.map(a => {
+            const s = r[a.d] != null
+              ? `${fmt(r[a.d])}/${r[a.e] != null ? r[a.e].toFixed(3) : "-"}=${fmt(r[a.col])}`
+              : fmt(r[a.col]);
+            return `<td class="score" data-val="${r[a.col] ?? ''}">${s}</td>`;
+          }).join("");
           return `<tr>
             <td>${rankBadge(r.rank)}</td>
             <td><strong>${esc(r.athlete || "")}</strong></td>
             <td>${clubDisplay(r.club || "")}</td>
-            <td class="score">${vaultStr}</td>
-            <td class="score">${barsStr}</td>
-            <td class="score">${beamStr}</td>
-            <td class="score">${floorStr}</td>
+            ${cells}
             <td class="score">${fmt(r.total)}</td>
           </tr>`;
         }).join("");
       } else {
-        header = `<tr><th>#</th><th>Athlete</th><th>Club</th><th>Vault</th><th>Bars</th><th>Beam</th><th>Floor</th><th>Total</th></tr>`;
-        trows  = ev.results.map(r => `
-          <tr>
+        header = `<tr><th>#</th><th data-sort="str">Athlete <span class="sort-icon">↕</span></th><th data-sort="str">Club <span class="sort-icon">↕</span></th>${appHdrs}<th data-sort="num">Total <span class="sort-icon">↕</span></th></tr>`;
+        trows  = ev.results.map(r => {
+          const cells = drillApps.map(a => `<td class="score">${fmt(r[a.col])}</td>`).join("");
+          return `<tr>
             <td>${rankBadge(r.rank)}</td>
             <td><strong>${esc(r.athlete || "")}</strong></td>
             <td>${clubDisplay(r.club || "")}</td>
-            <td class="score">${fmt(r.vault)}</td>
-            <td class="score">${fmt(r.bars)}</td>
-            <td class="score">${fmt(r.beam)}</td>
-            <td class="score">${fmt(r.floor)}</td>
+            ${cells}
             <td class="score">${fmt(r.total)}</td>
-          </tr>`).join("");
+          </tr>`;
+        }).join("");
       }
+      colspan = drillApps.length + 4;
     }
-    const colspan = ev.event_type === "Team" ? (ev.results.some(r => r.vault != null) ? 7 : 3) : 8;
     return `<div class="event-section">
       <h4>${esc(title)}</h4>
       <table class="leaderboard">
@@ -1784,6 +1873,7 @@ async function openDrill(comp) {
       </table>
     </div>`;
   }).join("");
+  document.getElementById("drill-events").querySelectorAll("table.leaderboard").forEach(t => attachSort(t));
 }
 
 async function openPDFList(compName) {
@@ -1830,14 +1920,14 @@ let _pendingAthlete    = null;  // athlete name confirmed via suggestion or inpu
 
 async function loadAthleteList() {
   const rows = _execRows(await DB.exec(`
-    SELECT DISTINCT r.athlete, r.club, e.level, e.division
+    SELECT DISTINCT r.athlete, r.club, e.level, e.division, e.age_group
     FROM results r
     JOIN events e ON r.event_id = e.id
     JOIN competitions c ON e.competition_id = c.id
     WHERE c.sport = ? AND e.event_type != 'Team'
     ORDER BY r.athlete
   `, [currentSport]));
-  ATHLETE_LIST = rows.map(([athlete, club, level, division]) => ({ athlete, club, level, division }));
+  ATHLETE_LIST = rows.map(([athlete, club, level, division, age_group]) => ({ athlete, club, level, division, age_group }));
 }
 
 function openSearchPanel() {
@@ -1882,7 +1972,7 @@ function onAthleteSearchInput(val) {
         <div class="search-suggestion-item" data-athlete="${esc(a.athlete)}">
           <span class="sug-name">${esc(a.athlete)}</span>
           ${clubLogo(a.club, "club-logo-lg", false)}
-          <span class="sug-meta">${esc(a.club)} · L${a.level} D${a.division}</span>
+          <span class="sug-meta">${esc(a.club)} · ${levelDivDisplay(a.level, a.division, a.age_group)}</span>
         </div>`).join("");
       sugBox.querySelectorAll(".search-suggestion-item[data-athlete]").forEach(el => {
         el.addEventListener("click", () => {
@@ -1914,8 +2004,9 @@ async function executeSearch() {
     if (!compId || !level || !div) return;
     closeSearchPanel();
     switchToView("search");
+    const divLabel2 = currentSport === "MAG" ? div : `Div ${div}`;
     document.getElementById("search-view-title").textContent =
-      `${compName} · Level ${level} Div ${div}`;
+      `${compName} · Level ${level} ${divLabel2}`;
     document.getElementById("search-view-content").innerHTML =
       `<p style="color:var(--muted);padding:12px 0">Loading…</p>`;
     await renderCompResults(compId, level, div);
@@ -1942,8 +2033,9 @@ function clearSearchView() {
 
 async function renderAthleteResults(athleteName) {
   const rows = _execRows(await DB.exec(`
-    SELECT c.name, c.season, r.rank, r.vault, r.bars, r.beam, r.floor, r.total,
-           e.level, e.division, r.club
+    SELECT c.name, c.season, r.rank, r.vault, r.bars, r.beam, r.floor,
+           r.pommel, r.rings, r.pbars, r.hbar, r.total,
+           e.level, e.division, e.age_group, r.club
     FROM results r
     JOIN events e ON r.event_id = e.id
     JOIN competitions c ON e.competition_id = c.id
@@ -1958,19 +2050,25 @@ async function renderAthleteResults(athleteName) {
   }
 
   const fmt  = v => v != null && v !== 0 ? v.toFixed(3) : "-";
-  const club = rows[0][10];
+  const club = rows[0][15];
+  const isMAG = currentSport === "MAG";
+  const apApps  = isMAG
+    ? [{col:6,h:"FX"},{col:8,h:"PH"},{col:9,h:"SR"},{col:7,h:"VT"},{col:10,h:"PB"},{col:11,h:"HB"}]
+    : [{col:3,h:"VT"},{col:4,h:"UB"},{col:5,h:"BB"},{col:6,h:"FX"}];
 
-  const trows = rows.map(([compName, season, rank, vault, bars, beam, floor, total, level, division]) => `
-    <tr>
+  const trows = rows.map(row => {
+    const [compName, season, rank, vault, bars, beam, floor,
+           pommel, rings, pbars, hbar, total, level, division, age_group] = row;
+    const vals = { 3:vault, 4:bars, 5:beam, 6:floor, 7:vault, 8:pommel, 9:rings, 10:pbars, 11:hbar };
+    const cells = apApps.map(a => `<td class="score">${fmt(vals[a.col])}</td>`).join("");
+    return `<tr>
       <td class="ap-comp-name">${esc(compName)}<small>${esc(season)}</small></td>
       <td>${rankBadge(rank)}</td>
-      <td>${esc(levelDivDisplay(level, division))}</td>
-      <td class="score">${fmt(vault)}</td>
-      <td class="score">${fmt(bars)}</td>
-      <td class="score">${fmt(beam)}</td>
-      <td class="score">${fmt(floor)}</td>
+      <td>${esc(levelDivDisplay(level, division, age_group))}</td>
+      ${cells}
       <td class="score"><strong>${fmt(total)}</strong></td>
-    </tr>`).join("");
+    </tr>`;
+  }).join("");
 
   el.innerHTML = `
     <div class="athlete-profile-header">
@@ -1984,25 +2082,31 @@ async function renderAthleteResults(athleteName) {
       <table class="athlete-profile-table">
         <thead>
           <tr>
-            <th style="text-align:left">Competition</th>
-            <th style="text-align:left">#</th>
-            <th style="text-align:left">Level</th>
-            <th>VT</th><th>UB</th><th>BB</th><th>FX</th><th>Total</th>
+            <th data-sort="str" style="text-align:left">Competition <span class="sort-icon">↕</span></th>
+            <th data-sort="num" style="text-align:left"># <span class="sort-icon">↕</span></th>
+            <th data-sort="str" style="text-align:left">Level <span class="sort-icon">↕</span></th>
+            ${apApps.map(a => `<th data-sort="num">${a.h} <span class="sort-icon">↕</span></th>`).join("")}
+            <th data-sort="num">Total <span class="sort-icon">↕</span></th>
           </tr>
         </thead>
         <tbody>${trows}</tbody>
       </table>
     </div>`;
+  attachSort(el.querySelector("table.athlete-profile-table"));
 }
 
 async function renderCompResults(compId, level, div) {
+  const isMAG     = currentSport === "MAG";
+  const whereDiv  = isMAG ? "AND e.age_group = ?" : "AND e.division = ?";
   const rows = _execRows(await DB.exec(`
     SELECT r.rank, r.athlete, r.club, r.vault, r.bars, r.beam, r.floor, r.total,
            r.vault_d, r.vault_e, r.bars_d, r.bars_e, r.beam_d, r.beam_e, r.floor_d, r.floor_e,
-           e.event_type
+           e.event_type,
+           r.pommel, r.pommel_d, r.pommel_e, r.rings, r.rings_d, r.rings_e,
+           r.pbars, r.pbars_d, r.pbars_e, r.hbar, r.hbar_d, r.hbar_e
     FROM results r
     JOIN events e ON r.event_id = e.id
-    WHERE e.competition_id = ? AND e.level = ? AND e.division = ?
+    WHERE e.competition_id = ? AND e.level = ? ${whereDiv}
     ORDER BY r.rank
   `, [compId, level, div]));
 
@@ -2012,47 +2116,65 @@ async function renderCompResults(compId, level, div) {
     return;
   }
 
-  const fmt      = v => v != null && v !== 0 ? v.toFixed(3) : "-";
-  const isTeam   = rows[0][16] === "Team";
-  const hasDE    = !isTeam && rows.some(r => r[8] != null || r[10] != null || r[12] != null || r[14] != null);
-  const hasAppar = rows.some(r => r[3] != null || r[4] != null || r[5] != null || r[6] != null);
+  const fmt   = v => v != null && v !== 0 ? v.toFixed(3) : "-";
+  const isTeam = rows[0][16] === "Team";
+  const drillApps = isMAG
+    ? [{col:"floor",d:"floor_d",e:"floor_e",h:"Floor"},{col:"pommel",d:"pommel_d",e:"pommel_e",h:"Pommel"},
+       {col:"rings",d:"rings_d",e:"rings_e",h:"Rings"},{col:"vault",d:"vault_d",e:"vault_e",h:"Vault"},
+       {col:"pbars",d:"pbars_d",e:"pbars_e",h:"P-Bars"},{col:"hbar",d:"hbar_d",e:"hbar_e",h:"H-Bar"}]
+    : [{col:"vault",d:"vault_d",e:"vault_e",h:"Vault"},{col:"bars",d:"bars_d",e:"bars_e",h:"Bars"},
+       {col:"beam",d:"beam_d",e:"beam_e",h:"Beam"},{col:"floor",d:"floor_d",e:"floor_e",h:"Floor"}];
 
+  const objRows = rows.map(([rank, athlete, club, vault, bars, beam, floor, total,
+      vault_d, vault_e, bars_d, bars_e, beam_d, beam_e, floor_d, floor_e, event_type,
+      pommel, pommel_d, pommel_e, rings, rings_d, rings_e, pbars, pbars_d, pbars_e,
+      hbar, hbar_d, hbar_e]) =>
+    ({ rank, athlete, club, vault, bars, beam, floor, total,
+       vault_d, vault_e, bars_d, bars_e, beam_d, beam_e, floor_d, floor_e, event_type,
+       pommel, pommel_d, pommel_e, rings, rings_d, rings_e, pbars, pbars_d, pbars_e,
+       hbar, hbar_d, hbar_e }));
+
+  const hasDE    = !isTeam && objRows.some(r => drillApps.some(a => r[a.d] != null));
+  const hasAppar = objRows.some(r => drillApps.some(a => r[a.col] != null));
+
+  const appHdrs = drillApps.map(a => `<th data-sort="num">${a.h} <span class="sort-icon">↕</span></th>`).join("");
   let header, trows;
   if (isTeam) {
     if (hasAppar) {
-      header = `<tr><th>#</th><th>Club</th><th>Vault</th><th>Bars</th><th>Beam</th><th>Floor</th><th>Total</th></tr>`;
-      trows  = rows.map(([rank,,club,vault,bars,beam,floor,total]) => `
-        <tr>
-          <td>${rankBadge(rank)}</td>
-          <td><strong>${clubDisplay(club || "")}</strong></td>
-          <td class="score">${fmt(vault)}</td><td class="score">${fmt(bars)}</td>
-          <td class="score">${fmt(beam)}</td><td class="score">${fmt(floor)}</td>
-          <td class="score"><strong>${fmt(total)}</strong></td>
-        </tr>`).join("");
+      header = `<tr><th>#</th><th data-sort="str">Club <span class="sort-icon">↕</span></th>${appHdrs}<th data-sort="num">Total <span class="sort-icon">↕</span></th></tr>`;
+      trows  = objRows.map(r => {
+        const cells = drillApps.map(a => `<td class="score">${fmt(r[a.col])}</td>`).join("");
+        return `<tr>
+          <td>${rankBadge(r.rank)}</td>
+          <td><strong>${clubDisplay(r.club || "")}</strong></td>
+          ${cells}
+          <td class="score"><strong>${fmt(r.total)}</strong></td>
+        </tr>`;
+      }).join("");
     } else {
-      header = `<tr><th>#</th><th>Club</th><th>Total</th></tr>`;
-      trows  = rows.map(([rank,,club,,,,,total]) => `
+      header = `<tr><th>#</th><th data-sort="str">Club <span class="sort-icon">↕</span></th><th data-sort="num">Total <span class="sort-icon">↕</span></th></tr>`;
+      trows  = objRows.map(r => `
         <tr>
-          <td>${rankBadge(rank)}</td>
-          <td><strong>${clubDisplay(club || "")}</strong></td>
-          <td class="score"><strong>${fmt(total)}</strong></td>
+          <td>${rankBadge(r.rank)}</td>
+          <td><strong>${clubDisplay(r.club || "")}</strong></td>
+          <td class="score"><strong>${fmt(r.total)}</strong></td>
         </tr>`).join("");
     }
   } else {
-    header = `<tr><th>#</th><th>Athlete</th><th>Club</th><th>Vault</th><th>Bars</th><th>Beam</th><th>Floor</th><th>Total</th></tr>`;
-    trows  = rows.map(([rank, athlete, club, vault, bars, beam, floor, total,
-                        vault_d, vault_e, bars_d, bars_e, beam_d, beam_e, floor_d, floor_e]) => {
-      const vStr  = hasDE && vault_d != null ? `${fmt(vault_d)}/${vault_e != null ? vault_e.toFixed(3) : "-"}=${fmt(vault)}` : fmt(vault);
-      const bStr  = hasDE && bars_d  != null ? `${fmt(bars_d)}/${bars_e   != null ? bars_e.toFixed(3)  : "-"}=${fmt(bars)}`  : fmt(bars);
-      const beStr = hasDE && beam_d  != null ? `${fmt(beam_d)}/${beam_e   != null ? beam_e.toFixed(3)  : "-"}=${fmt(beam)}`  : fmt(beam);
-      const fStr  = hasDE && floor_d != null ? `${fmt(floor_d)}/${floor_e != null ? floor_e.toFixed(3) : "-"}=${fmt(floor)}` : fmt(floor);
+    header = `<tr><th>#</th><th data-sort="str">Athlete <span class="sort-icon">↕</span></th><th data-sort="str">Club <span class="sort-icon">↕</span></th>${appHdrs}<th data-sort="num">Total <span class="sort-icon">↕</span></th></tr>`;
+    trows  = objRows.map(r => {
+      const cells = drillApps.map(a => {
+        const s = hasDE && r[a.d] != null
+          ? `${fmt(r[a.d])}/${r[a.e] != null ? r[a.e].toFixed(3) : "-"}=${fmt(r[a.col])}`
+          : fmt(r[a.col]);
+        return `<td class="score" data-val="${r[a.col] ?? ''}">${s}</td>`;
+      }).join("");
       return `<tr>
-        <td>${rankBadge(rank)}</td>
-        <td><strong>${esc(athlete || "")}</strong></td>
-        <td>${clubDisplay(club || "")}</td>
-        <td class="score">${vStr}</td><td class="score">${bStr}</td>
-        <td class="score">${beStr}</td><td class="score">${fStr}</td>
-        <td class="score"><strong>${fmt(total)}</strong></td>
+        <td>${rankBadge(r.rank)}</td>
+        <td><strong>${esc(r.athlete || "")}</strong></td>
+        <td>${clubDisplay(r.club || "")}</td>
+        ${cells}
+        <td class="score"><strong>${fmt(r.total)}</strong></td>
       </tr>`;
     }).join("");
   }
@@ -2064,6 +2186,7 @@ async function renderCompResults(compId, level, div) {
         <tbody>${trows}</tbody>
       </table>
     </div>`;
+  attachSort(el.querySelector("table.leaderboard"));
 }
 
 function initBrowseSeasons() {
@@ -2078,9 +2201,10 @@ async function onBrowseSeasonChange(season) {
   const compSel  = document.getElementById("browse-comp");
   const levelSel = document.getElementById("browse-level");
   const divSel   = document.getElementById("browse-div");
+  const divPlaceholder = currentSport === "MAG" ? "— Group —" : "— Division —";
   compSel.innerHTML  = `<option value="">— Competition —</option>`;
   levelSel.innerHTML = `<option value="">— Level —</option>`;
-  divSel.innerHTML   = `<option value="">— Division —</option>`;
+  divSel.innerHTML   = `<option value="">${divPlaceholder}</option>`;
   levelSel.disabled  = true;
   divSel.disabled    = true;
   _browseCompId = null;
@@ -2097,8 +2221,9 @@ async function onBrowseSeasonChange(season) {
 async function onBrowseCompChange(compId) {
   const levelSel = document.getElementById("browse-level");
   const divSel   = document.getElementById("browse-div");
+  const divPlaceholder2 = currentSport === "MAG" ? "— Group —" : "— Division —";
   levelSel.innerHTML = `<option value="">— Level —</option>`;
-  divSel.innerHTML   = `<option value="">— Division —</option>`;
+  divSel.innerHTML   = `<option value="">${divPlaceholder2}</option>`;
   divSel.disabled    = true;
   _browseCompId = compId || null;
   if (!compId) { levelSel.disabled = true; return; }
@@ -2115,17 +2240,30 @@ async function onBrowseCompChange(compId) {
 
 async function onBrowseLevelChange(level) {
   const divSel = document.getElementById("browse-div");
-  divSel.innerHTML = `<option value="">— Division —</option>`;
+  const isMAG  = currentSport === "MAG";
+  const placeholder = isMAG ? "— Group —" : "— Division —";
+  divSel.innerHTML = `<option value="">${placeholder}</option>`;
   if (!level || !_browseCompId) { divSel.disabled = true; return; }
 
-  const rows = _execRows(await DB.exec(`
-    SELECT DISTINCT e.division FROM events e
-    WHERE e.competition_id = ? AND e.level = ?
-    ORDER BY e.division
-  `, [_browseCompId, level]));
-  divSel.innerHTML = `<option value="">— Division —</option>` +
-    rows.map(([d]) => `<option value="${d}">Division ${d}</option>`).join("");
-  divSel.disabled = rows.length === 0;
+  if (isMAG) {
+    const rows = _execRows(await DB.exec(`
+      SELECT DISTINCT e.age_group FROM events e
+      WHERE e.competition_id = ? AND e.level = ? AND e.age_group IS NOT NULL
+      ORDER BY e.age_group
+    `, [_browseCompId, level]));
+    divSel.innerHTML = `<option value="">${placeholder}</option>` +
+      rows.map(([ag]) => `<option value="${ag}">${ag}</option>`).join("");
+    divSel.disabled = rows.length === 0;
+  } else {
+    const rows = _execRows(await DB.exec(`
+      SELECT DISTINCT e.division FROM events e
+      WHERE e.competition_id = ? AND e.level = ?
+      ORDER BY e.division
+    `, [_browseCompId, level]));
+    divSel.innerHTML = `<option value="">${placeholder}</option>` +
+      rows.map(([d]) => `<option value="${d}">Division ${d}</option>`).join("");
+    divSel.disabled = rows.length === 0;
+  }
 }
 
 document.getElementById("close-search").addEventListener("click", closeSearchPanel);
@@ -2156,10 +2294,11 @@ function resetFilters() {
   activeLevel    = null;
   activeDivision = null;
   activeRegion   = null;
+  const divLabel = currentSport === "MAG" ? "Group:" : "Division:";
   document.getElementById("level-filter-bar").innerHTML          = "<label>Level:</label>";
   document.getElementById("athlete-level-filter-bar").innerHTML  = "<label>Level:</label>";
-  document.getElementById("division-filter-bar").innerHTML       = `<label>Division:</label><button class="filter-btn active" data-division="all">All</button>`;
-  document.getElementById("athlete-division-filter-bar").innerHTML = `<label>Division:</label><button class="filter-btn active" data-division="all">All</button>`;
+  document.getElementById("division-filter-bar").innerHTML       = `<label>${divLabel}</label><button class="filter-btn active" data-division="all">All</button>`;
+  document.getElementById("athlete-division-filter-bar").innerHTML = `<label>${divLabel}</label><button class="filter-btn active" data-division="all">All</button>`;
   const regionBar = document.getElementById("region-filter-bar");
   if (regionBar) regionBar.innerHTML = `<label>Region:</label><button class="filter-btn active" data-region="all">All</button>`;
 }
@@ -2192,10 +2331,35 @@ function buildRegionFilters() {
   });
 }
 
+function rebuildApparatusNav(sport) {
+  activeApparatus = "AA";
+  const nav = document.getElementById("apparatus-nav");
+  const buttons = sport === "MAG"
+    ? [["AA","AA"],["FX","Floor"],["PH","Pommel"],["SR","Rings"],["VT","Vault"],["PB","P-Bars"],["HB","H-Bar"]]
+    : [["AA","AA"],["VT","Vault"],["UB","Bars"],["BB","Beam"],["FX","Floor"]];
+  nav.innerHTML = buttons.map(([key, label]) =>
+    `<button${key === "AA" ? ' class="active"' : ""} data-apparatus="${key}">${label}</button>`
+  ).join("") + `<span id="apparatus-year" style="margin-left:auto;padding:0 20px;font-size:1.1rem;font-weight:700;color:var(--text);align-self:center;letter-spacing:1px"></span>`;
+  nav.querySelectorAll("button[data-apparatus]").forEach(btn => {
+    btn.addEventListener("click", () => {
+      activeApparatus = btn.dataset.apparatus;
+      nav.querySelectorAll("button[data-apparatus]").forEach(b => b.classList.remove("active"));
+      btn.classList.add("active");
+      render();
+    });
+  });
+}
+
 function buildLevelFilters() {
   const levels       = [...new Set(LEVEL_DIVS.map(ld => ld.level))].sort((a, b) => a - b);
   const athleteLevels = levels.filter(l => l > 4);
   const levelBars    = document.querySelectorAll("#level-filter-bar, #athlete-level-filter-bar");
+
+  // Clear existing buttons before rebuilding (handles season changes)
+  levelBars.forEach(bar => {
+    bar.querySelectorAll(".filter-btn[data-level]").forEach(b => b.remove());
+  });
+  activeLevel = null;
 
   levelBars.forEach(bar => {
     const barLevels = bar.id === "athlete-level-filter-bar" ? athleteLevels : levels;
@@ -2216,25 +2380,58 @@ function buildLevelFilters() {
     });
   });
 
-  const divs    = [...new Set(LEVEL_DIVS.map(ld => ld.division))].sort((a, b) => a - b);
+  // Auto-select the first athlete-eligible level (L5+) after rebuilding
+  const firstBtn = document.querySelector("#athlete-level-filter-bar .filter-btn[data-level]")
+                || document.querySelector("#level-filter-bar .filter-btn[data-level]");
+  if (firstBtn) firstBtn.click();
+
   const divBars = document.querySelectorAll("#division-filter-bar, #athlete-division-filter-bar");
-  divBars.forEach(bar => {
-    divs.forEach(div => {
-      const btn = document.createElement("button");
-      btn.className      = "filter-btn";
-      btn.dataset.division = div;
-      btn.textContent    = `D${div}`;
-      bar.appendChild(btn);
+  if (currentSport === "MAG") {
+    const ageGroups = [...new Set(
+      LEVEL_DIVS.map(ld => ld.age_group).filter(Boolean)
+    )].sort();
+    const ORDER = ["Open","U13","U14","U15","U18","Optional"];
+    ageGroups.sort((a, b) => {
+      const ai = ORDER.indexOf(a), bi = ORDER.indexOf(b);
+      return (ai === -1 ? 99 : ai) - (bi === -1 ? 99 : bi);
     });
-    bar.querySelectorAll(".filter-btn").forEach(btn => {
-      btn.addEventListener("click", () => {
-        activeDivision = btn.dataset.division === "all" ? null : Number(btn.dataset.division);
-        document.querySelectorAll("#division-filter-bar .filter-btn, #athlete-division-filter-bar .filter-btn")
-          .forEach(b => b.classList.toggle("active", b.dataset.division === btn.dataset.division));
-        render();
+    divBars.forEach(bar => {
+      ageGroups.forEach(ag => {
+        const btn = document.createElement("button");
+        btn.className = "filter-btn";
+        btn.dataset.division = ag;
+        btn.textContent = ag;
+        bar.appendChild(btn);
+      });
+      bar.querySelectorAll(".filter-btn").forEach(btn => {
+        btn.addEventListener("click", () => {
+          activeDivision = btn.dataset.division === "all" ? null : btn.dataset.division;
+          document.querySelectorAll("#division-filter-bar .filter-btn, #athlete-division-filter-bar .filter-btn")
+            .forEach(b => b.classList.toggle("active", b.dataset.division === btn.dataset.division));
+          render();
+        });
       });
     });
-  });
+  } else {
+    const divs = [...new Set(LEVEL_DIVS.map(ld => ld.division))].sort((a, b) => a - b);
+    divBars.forEach(bar => {
+      divs.forEach(div => {
+        const btn = document.createElement("button");
+        btn.className      = "filter-btn";
+        btn.dataset.division = div;
+        btn.textContent    = `D${div}`;
+        bar.appendChild(btn);
+      });
+      bar.querySelectorAll(".filter-btn").forEach(btn => {
+        btn.addEventListener("click", () => {
+          activeDivision = btn.dataset.division === "all" ? null : Number(btn.dataset.division);
+          document.querySelectorAll("#division-filter-bar .filter-btn, #athlete-division-filter-bar .filter-btn")
+            .forEach(b => b.classList.toggle("active", b.dataset.division === btn.dataset.division));
+          render();
+        });
+      });
+    });
+  }
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
