@@ -36,7 +36,7 @@
     { "code": "GLZ",  "name": "Glitz Gymnastics Academy",               "region": "Metro East",     "aliases": ["GLITZ", "GGA"],                                             "logo": null },
     { "code": "GRI",  "name": "GRI (Unknown Club Data)",                "region": "Unknown",        "aliases": [],                                                           "logo": null },
     { "code": "GUN",  "name": "Gymnastics Unlimited Aust Ltd",          "region": "Metro West",     "aliases": [],                                                           "logo": null },
-    { "code": "GYG",  "name": "Geelong YMCA Gym Club",                  "region": "Metro West",     "aliases": ["GEEL", "GEELONG", "GEELONG YMCA", "GYGRUB", "GYGBLA", "GYGSIL", "GYGWHI", "GYGRED", "GYGNA V"], "logo": null },
+    { "code": "GYG",  "name": "Geelong YMCA Gym Club",                  "region": "Metro West",     "aliases": ["GEE, "GEEL", "GEELONG", "GEELONG YMCA", "GYGRUB", "GYGBLA", "GYGSIL", "GYGWHI", "GYGRED", "GYGNA V"], "logo": null },
     { "code": "HAM",  "name": "Hamilton and District Gymnastics Club",  "region": "Regional West",  "aliases": ["HAMILTON"],                                                 "logo": null },
 
     { "code": "JET",  "name": "Jets Gymnastics",                        "region": "Multi-Region",
