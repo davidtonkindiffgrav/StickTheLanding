@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>News &amp; Articles — Stick The Landing</title>
+  <meta name="description" content="Articles, season previews, and updates from the Victorian gymnastics community." />
+  <meta property="og:type"      content="website" />
+  <meta property="og:site_name" content="Stick The Landing" />
+  <meta property="og:title"     content="News &amp; Articles — Stick The Landing" />
+  <meta property="og:description" content="Articles, season previews, and updates from the Victorian gymnastics community." />
+  <meta property="og:url"       content="https://stickthelanding.com.au/news/" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
+  <link rel="stylesheet" href="/assets/style.css" />
+  <link rel="stylesheet" href="assets/blog.css" />
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-8302214774959598" crossorigin="anonymous"></script>
+</head>
+<body class="news-listing">
+
+  <header class="blog-header">
+    <a class="blog-header-title" href="/">Stick The <span>Landing</span></a>
+    <a class="blog-back-btn" href="/"><i class="fas fa-arrow-left"></i> Back to App</a>
+  </header>
+
+  <!-- Ad: below header -->
+  <div style="max-width:1100px;margin:24px auto 0;padding:0 32px">
+    <ins class="adsbygoogle" style="display:block"
+         data-ad-client="ca-pub-8302214774959598"
+         data-ad-slot="9070201653"
+         data-ad-format="auto"
+         data-full-width-responsive="true"></ins>
+    <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+  </div>
+
+  <main class="blog-listing-main">
+    <h1>News &amp; Articles</h1>
+    <p class="blog-tagline">Season previews, results round-ups, and community updates.</p>
+    <div class="post-grid" id="post-grid"></div>
+  </main>
+
+  <!-- Ad: bottom of page -->
+  <div style="max-width:1100px;margin:0 auto 48px;padding:0 32px">
+    <ins class="adsbygoogle" style="display:block"
+         data-ad-client="ca-pub-8302214774959598"
+         data-ad-slot="9070201653"
+         data-ad-format="auto"
+         data-full-width-responsive="true"></ins>
+    <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+  </div>
+
+  <script>
+    function formatDate(iso) {
+      const d = new Date(iso + 'T00:00:00');
+      return d.toLocaleDateString('en-AU', { day: 'numeric', month: 'long', year: 'numeric' });
+    }
+
+    fetch('posts/index.json')
+      .then(r => r.json())
+      .then(posts => {
+        const grid = document.getElementById('post-grid');
+        if (!posts.length) {
+          grid.outerHTML = `<div class="blog-empty"><strong>No articles yet</strong>Check back soon — content is on the way.</div>`;
+          return;
+        }
+        grid.innerHTML = posts.map(p => {
+          const thumb = p.thumbnail
+            ? `<img class="post-card-thumb" src="${p.thumbnail}" alt="${p.title}" loading="lazy" />`
+            : `<div class="post-card-thumb-placeholder"><i class="fas fa-trophy"></i></div>`;
+          const tags = (p.tags || []).map(t => `<span class="post-tag">${t}</span>`).join('');
+          return `
+            <a class="post-card" href="posts/${p.slug}/">
+              ${thumb}
+              <div class="post-card-body">
+                <div class="post-card-tags">${tags}</div>
+                <div class="post-card-title">${p.title}</div>
+                <div class="post-card-subtitle">${p.subtitle || ''}</div>
+                <div class="post-card-date">${formatDate(p.date)}</div>
+                <div class="post-card-tldr">${p.tldr || ''}</div>
+                <span class="post-card-read-more">Read more &rarr;</span>
+              </div>
+            </a>`;
+        }).join('');
+      })
+      .catch(() => {
+        document.getElementById('post-grid').outerHTML =
+          `<div class="blog-empty"><strong>Could not load articles</strong>Please try again later.</div>`;
+      });
+  </script>
+</body>
+</html>
