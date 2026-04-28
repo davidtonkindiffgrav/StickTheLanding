@@ -612,6 +612,14 @@
       letter-spacing: 0.5px;
       text-transform: uppercase;
     }
+    .landing-description {
+      max-width: 600px;
+      text-align: center;
+      color: var(--text);
+      font-size: 1rem;
+      line-height: 1.7;
+      margin-bottom: 16px;
+    }
     .landing-disclaimer {
       max-width: 600px;
       text-align: center;
