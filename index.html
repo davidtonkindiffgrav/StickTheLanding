@@ -746,7 +746,7 @@ async function renderClubs() {
         <td>${badge}</td>
         <td class="logo-cell">${clubLogo(s.club, "club-logo-sm")}</td>
         <td><strong>${clubDisplay(s.club)}</strong></td>
-        <td class="score score-hi" title="${esc(s.highScoreDetail)}" style="cursor:${s.highScoreDetail ? "help" : "default"}">${s.highScore.toFixed(3)}</td>
+        <td class="score score-hi"${s.highScoreDetail ? ` title="${esc(s.highScoreDetail)}" data-tip="${esc(s.highScoreDetail)}" style="cursor:help"` : ""}>${s.highScore.toFixed(3)}</td>
         <td class="score">${s.avgScore.toFixed(3)}</td>
         <td class="score">${s.comps}</td>
       </tr>`;
@@ -891,8 +891,8 @@ async function renderAthletes() {
         ${showDiv ? `<td data-val="${a.division || a.age_group || ''}">${divCell(a)}</td>` : ""}
         <td class="score">${a.comps}</td>
         <td class="score">${a.avgScore > 0 ? a.avgScore.toFixed(3) : "-"}</td>
-        <td class="score score-hi"${a.bestScoreDetail ? ` title="${esc(a.bestScoreDetail)}" style="cursor:help"` : ""}>${a.bestScore.toFixed(3)}</td>
-        <td><span class="stat-chip gold"${a.winDetails.length ? ` title="${esc(a.winDetails.join("\n"))}"` : ""} style="cursor:${a.wins ? "help" : "default"}">${a.wins}</span></td>
+        <td class="score score-hi"${a.bestScoreDetail ? ` title="${esc(a.bestScoreDetail)}" data-tip="${esc(a.bestScoreDetail)}" style="cursor:help"` : ""}>${a.bestScore.toFixed(3)}</td>
+        <td><span class="stat-chip gold"${a.winDetails.length ? ` title="${esc(a.winDetails.join("\n"))}" data-tip="${esc(a.winDetails.join("&#10;"))}"` : ""} style="cursor:${a.wins ? "help" : "default"}">${a.wins}</span></td>
       </tr>`;
     }
     const dVal = a.bestD != null ? a.bestD.toFixed(3) : "-";
@@ -907,7 +907,7 @@ async function renderAthletes() {
       <td class="score">${dVal}</td>
       <td class="score">${eVal}</td>
       <td class="score">${a.avgScore > 0 ? a.avgScore.toFixed(3) : "-"}</td>
-      <td class="score score-hi"${a.bestScoreDetail ? ` title="${esc(a.bestScoreDetail)}" style="cursor:help"` : ""}>${a.bestScore.toFixed(3)}</td>
+      <td class="score score-hi"${a.bestScoreDetail ? ` title="${esc(a.bestScoreDetail)}" data-tip="${esc(a.bestScoreDetail)}" style="cursor:help"` : ""}>${a.bestScore.toFixed(3)}</td>
     </tr>`;
   }).join("");
   attachSort(document.getElementById("athlete-table"));
@@ -1783,6 +1783,48 @@ function render() {
 // Init (no DB load - that happens on sport entry)
 // ─────────────────────────────────────────────────────────────────────────────
 initClubDirectory();
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Tap-friendly tooltip (supplements native title= on desktop)
+// ─────────────────────────────────────────────────────────────────────────────
+(function () {
+  const tip = document.getElementById("tip-box");
+  let activeTip = null;
+
+  function showTip(el, text) {
+    tip.textContent = text;
+    tip.classList.add("visible");
+    activeTip = el;
+    // Force layout so offsetWidth/Height are accurate
+    const tw = tip.offsetWidth, th = tip.offsetHeight;
+    const r  = el.getBoundingClientRect();
+    let x = r.left + r.width / 2 - tw / 2;
+    let y = r.bottom + 8;
+    if (y + th > window.innerHeight - 8) y = r.top - th - 8;
+    tip.style.left = Math.max(8, Math.min(x, window.innerWidth - tw - 8)) + "px";
+    tip.style.top  = Math.max(8, y) + "px";
+  }
+
+  function hideTip() {
+    tip.classList.remove("visible");
+    activeTip = null;
+  }
+
+  document.addEventListener("click", e => {
+    const el = e.target.closest("[data-tip]");
+    if (el) {
+      if (activeTip === el) { hideTip(); return; }
+      showTip(el, el.dataset.tip);
+    } else {
+      hideTip();
+    }
+  });
+
+  // Hide on scroll so it doesn't float in the wrong position
+  document.addEventListener("scroll", hideTip, { passive: true });
+})();
 </script>
+<div id="tip-box" role="tooltip"></div>
+
 </body>
 </html>

@@ -310,6 +310,25 @@
       padding: 40px 16px;
     }
     #drill-overlay.open { display: block; }
+    #tip-box {
+      position: fixed;
+      background: #1e1e2e;
+      color: #e8e8f0;
+      border: 1px solid var(--border);
+      padding: 7px 11px;
+      border-radius: 8px;
+      font-size: 0.78rem;
+      line-height: 1.45;
+      max-width: 230px;
+      white-space: pre-line;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.15s;
+      z-index: 9999;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.5);
+    }
+    #tip-box.visible { opacity: 1; }
+
     #drill-box {
       background: var(--surface);
       border: 1px solid var(--border);
