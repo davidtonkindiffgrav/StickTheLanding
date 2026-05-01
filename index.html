@@ -746,7 +746,7 @@ async function renderClubs() {
         <td>${badge}</td>
         <td class="logo-cell">${clubLogo(s.club, "club-logo-sm")}</td>
         <td><strong>${clubDisplay(s.club)}</strong></td>
-        <td class="score score-hi"${s.highScoreDetail ? ` title="${esc(s.highScoreDetail)}" data-tip="${esc(s.highScoreDetail)}" style="cursor:help"` : ""}>${s.highScore.toFixed(3)}</td>
+        <td class="score score-hi"${s.highScoreDetail ? ` title="${esc(s.highScoreDetail)}" data-tip="${esc(s.highScoreDetail)}" style="cursor:pointer"` : ""}>${s.highScore.toFixed(3)}</td>
         <td class="score">${s.avgScore.toFixed(3)}</td>
         <td class="score">${s.comps}</td>
       </tr>`;
@@ -891,8 +891,8 @@ async function renderAthletes() {
         ${showDiv ? `<td data-val="${a.division || a.age_group || ''}">${divCell(a)}</td>` : ""}
         <td class="score">${a.comps}</td>
         <td class="score">${a.avgScore > 0 ? a.avgScore.toFixed(3) : "-"}</td>
-        <td class="score score-hi"${a.bestScoreDetail ? ` title="${esc(a.bestScoreDetail)}" data-tip="${esc(a.bestScoreDetail)}" style="cursor:help"` : ""}>${a.bestScore.toFixed(3)}</td>
-        <td><span class="stat-chip gold"${a.winDetails.length ? ` title="${esc(a.winDetails.join("\n"))}" data-tip="${esc(a.winDetails.join("&#10;"))}"` : ""} style="cursor:${a.wins ? "help" : "default"}">${a.wins}</span></td>
+        <td class="score score-hi"${a.bestScoreDetail ? ` title="${esc(a.bestScoreDetail)}" data-tip="${esc(a.bestScoreDetail)}" style="cursor:pointer"` : ""}>${a.bestScore.toFixed(3)}</td>
+        <td><span class="stat-chip gold"${a.winDetails.length ? ` title="${esc(a.winDetails.join("\n"))}" data-tip="${esc(a.winDetails.join("&#10;"))}"` : ""} style="cursor:${a.winDetails.length ? "pointer" : "default"}">${a.wins}</span></td>
       </tr>`;
     }
     const dVal = a.bestD != null ? a.bestD.toFixed(3) : "-";
@@ -907,7 +907,7 @@ async function renderAthletes() {
       <td class="score">${dVal}</td>
       <td class="score">${eVal}</td>
       <td class="score">${a.avgScore > 0 ? a.avgScore.toFixed(3) : "-"}</td>
-      <td class="score score-hi"${a.bestScoreDetail ? ` title="${esc(a.bestScoreDetail)}" data-tip="${esc(a.bestScoreDetail)}" style="cursor:help"` : ""}>${a.bestScore.toFixed(3)}</td>
+      <td class="score score-hi"${a.bestScoreDetail ? ` title="${esc(a.bestScoreDetail)}" data-tip="${esc(a.bestScoreDetail)}" style="cursor:pointer"` : ""}>${a.bestScore.toFixed(3)}</td>
     </tr>`;
   }).join("");
   attachSort(document.getElementById("athlete-table"));
@@ -1810,7 +1810,28 @@ initClubDirectory();
     activeTip = null;
   }
 
+  // touchend: handles iOS Safari (click doesn't fire on non-pointer elements
+  // in older iOS; belt-and-suspenders even with cursor:pointer fix).
+  // Movement check prevents firing when user scrolls over a [data-tip] cell.
+  let touchStartX = 0, touchStartY = 0, lastTouchMs = 0;
+  document.addEventListener("touchstart", e => {
+    touchStartX = e.touches[0].clientX;
+    touchStartY = e.touches[0].clientY;
+  }, { passive: true });
+  document.addEventListener("touchend", e => {
+    const dx = Math.abs(e.changedTouches[0].clientX - touchStartX);
+    const dy = Math.abs(e.changedTouches[0].clientY - touchStartY);
+    if (dx > 8 || dy > 8) return; // was a scroll/swipe
+    const el = e.target.closest("[data-tip]");
+    if (!el) { hideTip(); return; }
+    lastTouchMs = Date.now();
+    if (activeTip === el) { hideTip(); return; }
+    showTip(el, el.dataset.tip);
+  }, { passive: true });
+
+  // click: handles desktop mouse; skips if touchend just handled it
   document.addEventListener("click", e => {
+    if (Date.now() - lastTouchMs < 500) return;
     const el = e.target.closest("[data-tip]");
     if (el) {
       if (activeTip === el) { hideTip(); return; }
@@ -1820,7 +1841,6 @@ initClubDirectory();
     }
   });
 
-  // Hide on scroll so it doesn't float in the wrong position
   document.addEventListener("scroll", hideTip, { passive: true });
 })();
 </script>
