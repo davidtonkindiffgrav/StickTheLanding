@@ -532,6 +532,14 @@ def parse_filename_meta(path, sport=None):
         if ag_code_m:
             level = int(ag_code_m.group(1))
 
+    # Parent folder fallback: "Level 3/3 Open Meet Results.pdf" style
+    if level is None:
+        for part in path.parts[:-1]:
+            folder_m = re.search(r"(?:level|lvl|(?<![a-zA-Z])L)[_\s-]*(\d+)", part, re.IGNORECASE)
+            if folder_m:
+                level = int(folder_m.group(1))
+                break
+
     # Event type: Team → skip later; apparatus codes; AA by default
     type_m = re.search(
         r"\b(AA|all.?around|VT|UB|BB|FX|PH|SR|PB|HB|vault|bars|beam|floor|team)\b",
@@ -1311,7 +1319,10 @@ def parse_pdf(pdf_path, sport="WAG"):
             return _inject_age_group(events, age_group), "proscore-multi"
 
     # Simple ProScore format (Meet Results Women / 5A / All Ages)
-    if any(t and PROSCORE_SIMPLE_HDR.search(t) for t in text_pages):
+    # Also catches "/ All Levels /" headers where level comes from filename
+    if any(t and PROSCORE_SIMPLE_HDR.search(t) for t in text_pages) or (
+        meta.get("level") is not None and any(t and MEET_RESULTS_RE.search(t) for t in text_pages)
+    ):
         events = parse_proscore_simple(text_pages, pdf_path, sport=sport)
         if events:
             return _inject_age_group(events, age_group), "proscore-simple"
