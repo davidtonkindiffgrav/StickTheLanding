@@ -25,6 +25,9 @@ sys.stdout.reconfigure(encoding="utf-8", errors="replace")
 # Multi-round ProScore header: "Meet Results - Multi Men / 8U / All Ages"
 PROSCORE_MULTI_HDR = re.compile(r"Meet Results\s*-\s*Multi", re.IGNORECASE)
 
+# Scoreholder.com footer
+SCOREHOLDER_RE = re.compile(r"scoreholder\.com", re.IGNORECASE)
+
 # Old ProScore header: "Meet Results - Level 6 Division 1 Women / 6D1"
 PROSCORE_MEET_HDR = re.compile(
     r"Meet Results\s*[-\u2013]\s*Level\s+(\d+)\s+Division\s+(\d+)\s+(\w+)",
@@ -523,6 +526,12 @@ def parse_filename_meta(path, sport=None):
     div_m   = re.search(r"(?:div(?:ision)?|D)[_\s-]*(\d+)", name, re.IGNORECASE)
     level   = int(level_m.group(1)) if level_m else None
 
+    # MAG fallback: "1O", "2U", "1O&U" style codes (e.g. SGC JNR INV format)
+    if level is None and sport == "MAG":
+        ag_code_m = re.search(r"\b(\d+)[OU]", name, re.IGNORECASE)
+        if ag_code_m:
+            level = int(ag_code_m.group(1))
+
     # Event type: Team → skip later; apparatus codes; AA by default
     type_m = re.search(
         r"\b(AA|all.?around|VT|UB|BB|FX|PH|SR|PB|HB|vault|bars|beam|floor|team)\b",
@@ -777,6 +786,92 @@ def parse_team_results(text_pages, pdf_path, sport="WAG"):
     return [
         {"level": lvl, "division": div, "age_group": ag, "event_type": "Team", "results": results}
         for (lvl, div, ag), results in events_by_ld.items()
+        if results
+    ]
+
+
+def parse_scoreholder(text_pages, pdf_path, sport="WAG"):
+    """Parse scoreholder.com PDFs.
+
+    Athlete line:  rank name score(rank) ×6 total
+    Next line:     club/gym full name (to be alias-mapped later)
+    Remaining lines: detail rows (SV B E ND breakdown) — ignored.
+    """
+    file_meta = parse_filename_meta(pdf_path, sport=sport)
+
+    # Level + age_group from page header e.g. "Level 2 - All-around > Open"
+    _hdr_re = re.compile(
+        r"Level\s+(\d+)\s*[-–]\s*All.?[Aa]round\s*[>|]\s*(\w+)", re.IGNORECASE
+    )
+    # Score token with rank annotation: "9.200 (1)" / "8.900 (1=)" / "9.400 (3T)"
+    _SH = r"[\d.]+\s*\(\d+[=T]?\)"
+    _athlete_re = re.compile(
+        rf"^(\d+[=T]?)\s+(.+?)\s+({_SH})\s+({_SH})\s+({_SH})\s+({_SH})\s+({_SH})\s+({_SH})\s+([\d.]+)\s*$"
+    )
+    # Lines that are never club names
+    _skip_line = re.compile(
+        r"^(?:SV\b|Rk\.|Generated\s|Level\s|\d{2}/\d{2}/|\d{4}\s|[\d\s.\-–()+]+$)",
+        re.IGNORECASE
+    )
+
+    events_by_key = {}   # (level, age_group) → list of results
+
+    for text in text_pages:
+        if not text:
+            continue
+
+        level = file_meta.get("level")
+        age_group = file_meta.get("age_group")
+
+        hdr_m = _hdr_re.search(text)
+        if hdr_m:
+            level = int(hdr_m.group(1))
+            ag_raw = hdr_m.group(2).strip().lower()
+            age_group = "Open" if ag_raw == "open" else "Under" if "under" in ag_raw else ag_raw.title()
+
+        if level is None:
+            continue
+
+        key = (level, age_group)
+        if key not in events_by_key:
+            events_by_key[key] = []
+
+        lines = [l.rstrip() for l in text.splitlines() if l.strip()]
+        pending = None
+
+        for line in lines:
+            # Clean CID encoding artifacts (e.g. "(cid:9)" for tab)
+            line = re.sub(r"\(cid:\d+\)", " ", line).strip()
+            if not line:
+                continue
+
+            m = _athlete_re.match(line)
+            if m:
+                rank_str = m.group(1).rstrip("=T")
+                name = _clean_name(m.group(2))
+                raw_scores = [re.match(r"([\d.]+)", g).group(1) for g in m.groups()[2:8]]
+                scores = [_parse_score(s) for s in raw_scores]
+                total = _parse_score(m.group(9))
+                row = {
+                    "rank":    _parse_rank(rank_str),
+                    "bib":     None,
+                    "athlete": name,
+                    "club":    None,
+                    "total":   total,
+                }
+                row.update(_build_app_scores(scores, [], [], sport))
+                events_by_key[key].append(row)
+                pending = row
+                continue
+
+            if pending is not None and pending["club"] is None:
+                if not _skip_line.match(line):
+                    pending["club"] = line.strip()
+                    pending = None
+
+    return [
+        {"level": lvl, "division": None, "age_group": ag, "event_type": "AA", "results": results}
+        for (lvl, ag), results in events_by_key.items()
         if results
     ]
 
@@ -1173,6 +1268,11 @@ def parse_pdf(pdf_path, sport="WAG"):
 
     meta = parse_filename_meta(pdf_path, sport=sport)
     age_group = meta.get("age_group")
+
+    # Scoreholder.com format
+    if SCOREHOLDER_RE.search(full_text):
+        events = parse_scoreholder(text_pages, pdf_path, sport=sport)
+        return (events, "scoreholder") if events else ([], "scoreholder-empty")
 
     # WG scoring program (Natimuk style)
     if WG_HDR_RE.search(full_text):
