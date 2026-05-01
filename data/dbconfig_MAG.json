@@ -1,1 +1,6 @@
-{"serverMode": "full", "requestChunkSize": 1024, "fileLength": 120832}
+{
+  "serverMode": "full",
+  "requestChunkSize": 4096,
+  "url": "../stick_MAG.db",
+  "fileLength": 277504
+}

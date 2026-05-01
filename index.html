@@ -392,9 +392,9 @@ async function initDB() {
   if (DB) return;
   const workerUrl = new URL("sql/sqlite.worker.js", location.href).toString();
   const wasmUrl   = new URL("sql/sql-wasm.wasm",   location.href).toString();
-  const dbUrl     = new URL(`data/stick_${currentSport}.db?v=13`, location.href).toString();
-  const cfgResp   = await fetch(new URL(`data/dbconfig_${currentSport}.json?v=13`, location.href).toString());
+  const cfgResp   = await fetch(new URL(`data/dbconfig_${currentSport}.json`, location.href).toString(), { cache: "no-cache" });
   const dbCfg     = await cfgResp.json();
+  const dbUrl     = new URL(`data/stick_${currentSport}.db?v=${dbCfg.fileLength}`, location.href).toString();
   dbCfg.url       = dbUrl;
   const worker    = await createDbWorker(
     [{ from: "inline", config: dbCfg }],
@@ -767,7 +767,7 @@ function buildAthleteStandings(rows, apparatus = "AA") {
   for (const r of rows) {
     const score = r[scoreField];
     if (score == null && apparatus !== "AA") continue;
-    const key = `${r.athlete}||${r.club}||${r.level}||${r.division || r.age_group || ""}`;
+    const key = `${r.athlete}||${r.club}||${r.level}`;
     if (!athletes[key]) athletes[key] = {
       athlete: r.athlete, club: r.club || "", level: r.level, division: r.division, age_group: r.age_group,
       comps: new Set(), bestScore: 0, bestScoreDetail: "", bestD: null, bestE: null,
@@ -782,6 +782,8 @@ function buildAthleteStandings(rows, apparatus = "AA") {
       a.bestScoreDetail = r.competition || "";
       a.bestD = dField ? r[dField] : null;
       a.bestE = eField ? r[eField] : null;
+      a.division = r.division;
+      a.age_group = r.age_group;
     }
     if (r.rank === 1) { a.wins++; a.winDetails.push(`${r.competition || "?"} (${s.toFixed(3)})`); }
   }
@@ -815,7 +817,7 @@ async function renderAthletes() {
     FROM results r
     JOIN events e ON r.event_id = e.id
     JOIN competitions c ON e.competition_id = c.id
-    WHERE e.event_type != 'Team' AND c.sport = ? AND c.season = ? AND e.level > 4`;
+    WHERE e.event_type != 'Team' AND c.sport = ? AND c.season = ? AND e.level > 4 AND r.total IS NOT NULL`;
   const params = [currentSport, currentSeason];
   if (activeLevel    !== null) { sql += ` AND e.level = ?`;    params.push(activeLevel); }
   if (activeDivision !== null) {
