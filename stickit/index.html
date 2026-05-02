@@ -1,51 +1,210 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en-us">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Stick It — Stick The Landing</title>
-  <link rel="apple-touch-icon" sizes="180x180" href="/assets/favicons/apple-touch-icon.png" />
-  <link rel="icon" type="image/png" sizes="32x32" href="/assets/favicons/favicon-32x32.png" />
-  <link rel="icon" type="image/png" sizes="16x16" href="/assets/favicons/favicon-16x16.png" />
-  <link rel="manifest" href="/assets/favicons/site.webmanifest" />
-  <link rel="shortcut icon" href="/assets/favicons/favicon.ico" />
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Stick It! — Stick The Landing</title>
+  <link rel="shortcut icon" href="/assets/favicons/favicon.ico">
+  <link rel="apple-touch-icon" sizes="180x180" href="/assets/favicons/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/assets/favicons/favicon-32x32.png">
+  <link rel="stylesheet" href="TemplateData/style.css">
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-8302214774959598" crossorigin="anonymous"></script>
   <style>
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #0f0f13;
+      --accent: #7c6dfa;
+      --header-bg: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+      --border: #2e2e42;
+      --muted: #8888aa;
+      --text: #e8e8f0;
+    }
+
     body {
-      background: #0e0e1a;
-      color: #e8e8f0;
+      background: var(--bg);
+      color: var(--text);
       font-family: system-ui, -apple-system, sans-serif;
+      display: flex;
+      flex-direction: column;
       min-height: 100vh;
+    }
+
+    /* ── Header ─────────────────────────────────────────────────── */
+    .site-header {
+      background: var(--header-bg);
+      border-bottom: 2px solid var(--accent);
+      padding: 16px 32px;
+      flex-shrink: 0;
+    }
+    .header-inner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+    .site-header h1 {
+      font-size: 1.5rem;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+    }
+    .site-header h1 a { color: var(--text); text-decoration: none; }
+    .site-header h1 span { color: var(--accent); }
+    .site-header p { color: var(--muted); font-size: 0.85rem; margin-top: 2px; }
+    .back-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 5px 12px;
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      color: var(--muted);
+      font-size: 0.82rem;
+      text-decoration: none;
+      white-space: nowrap;
+      transition: all 0.12s;
+    }
+    .back-link:hover { border-color: var(--accent); color: var(--text); }
+
+    /* ── Game area ───────────────────────────────────────────────── */
+    #game-wrap {
+      flex: 1;
       display: flex;
       flex-direction: column;
       align-items: center;
+      padding: 28px 16px 32px;
+    }
+
+    /* Override Unity's absolute viewport-centering for desktop so the
+       game flows below the header instead of overlapping it */
+    #unity-container { position: relative !important; }
+    #unity-container.unity-desktop {
+      left: auto !important;
+      top: auto !important;
+      transform: none !important;
+    }
+
+    /* ── Ad below game ───────────────────────────────────────────── */
+    .ad-unit {
+      width: 100%;
+      max-width: 960px;
+      margin-top: 20px;
+      min-height: 90px;
+      background: rgba(255,255,255,0.03);
+      border: 1px dashed var(--border);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
       justify-content: center;
-      gap: 1.5rem;
-      padding: 2rem;
     }
-    .logo {
-      font-size: 2rem;
-      font-weight: 700;
-      letter-spacing: -0.02em;
-      color: #fff;
-    }
-    .logo span { color: #7c6af7; }
-    p {
-      color: #9090aa;
-      font-size: 1rem;
-      text-align: center;
-    }
-    a {
-      color: #7c6af7;
-      text-decoration: none;
-      font-size: 0.9rem;
-    }
-    a:hover { text-decoration: underline; }
   </style>
 </head>
 <body>
-  <div class="logo">Stick <span>It</span></div>
-  <p>Game coming soon.</p>
-  <a href="/">← Back to leaderboards</a>
+
+<header class="site-header">
+  <div class="header-inner">
+    <div>
+      <h1><a href="/">Stick The <span>Landing</span></a></h1>
+      <p>Stick It!</p>
+    </div>
+    <a href="/" class="back-link">← Leaderboards</a>
+  </div>
+</header>
+
+<div id="game-wrap">
+  <div id="unity-container" class="unity-desktop">
+    <canvas id="unity-canvas" width=960 height=600 tabindex="-1"></canvas>
+    <div id="unity-loading-bar">
+      <div id="unity-logo"></div>
+      <div id="unity-progress-bar-empty">
+        <div id="unity-progress-bar-full"></div>
+      </div>
+    </div>
+    <div id="unity-warning"> </div>
+    <div id="unity-footer">
+      <div id="unity-logo-title-footer"></div>
+      <div id="unity-fullscreen-button"></div>
+      <div id="unity-build-title">Stick It!</div>
+    </div>
+  </div>
+
+  <div class="ad-unit">
+    <ins class="adsbygoogle"
+         style="display:block;width:100%"
+         data-ad-client="ca-pub-8302214774959598"
+         data-ad-slot="9070201653"
+         data-ad-format="auto"
+         data-full-width-responsive="true"></ins>
+    <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+  </div>
+</div>
+
+<script>
+  var canvas = document.querySelector("#unity-canvas");
+
+  function unityShowBanner(msg, type) {
+    var warningBanner = document.querySelector("#unity-warning");
+    function updateBannerVisibility() {
+      warningBanner.style.display = warningBanner.children.length ? 'block' : 'none';
+    }
+    var div = document.createElement('div');
+    div.innerHTML = msg;
+    warningBanner.appendChild(div);
+    if (type == 'error') div.style = 'background: red; padding: 10px;';
+    else {
+      if (type == 'warning') div.style = 'background: yellow; padding: 10px;';
+      setTimeout(function() {
+        warningBanner.removeChild(div);
+        updateBannerVisibility();
+      }, 5000);
+    }
+    updateBannerVisibility();
+  }
+
+  var buildUrl = "Build";
+  var loaderUrl = buildUrl + "/SecondTestBuild.loader.js";
+  var config = {
+    arguments: [],
+    dataUrl: buildUrl + "/SecondTestBuild.data.unityweb",
+    frameworkUrl: buildUrl + "/SecondTestBuild.framework.js.unityweb",
+    codeUrl: buildUrl + "/SecondTestBuild.wasm.unityweb",
+    streamingAssetsUrl: "StreamingAssets",
+    companyName: "DefaultCompany",
+    productName: "Stick It!",
+    productVersion: "1.0",
+    showBanner: unityShowBanner,
+  };
+
+  if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
+    var meta = document.createElement('meta');
+    meta.name = 'viewport';
+    meta.content = 'width=device-width, height=device-height, initial-scale=1.0, user-scalable=no, shrink-to-fit=yes';
+    document.getElementsByTagName('head')[0].appendChild(meta);
+    document.querySelector("#unity-container").className = "unity-mobile";
+    canvas.className = "unity-mobile";
+  } else {
+    canvas.style.width = "960px";
+    canvas.style.height = "600px";
+  }
+
+  document.querySelector("#unity-loading-bar").style.display = "block";
+
+  var script = document.createElement("script");
+  script.src = loaderUrl;
+  script.onload = () => {
+    createUnityInstance(canvas, config, (progress) => {
+      document.querySelector("#unity-progress-bar-full").style.width = 100 * progress + "%";
+    }).then((unityInstance) => {
+      document.querySelector("#unity-loading-bar").style.display = "none";
+      document.querySelector("#unity-fullscreen-button").onclick = () => {
+        unityInstance.SetFullscreen(1);
+      };
+    }).catch((message) => {
+      alert(message);
+    });
+  };
+
+  document.body.appendChild(script);
+</script>
+
 </body>
 </html>
