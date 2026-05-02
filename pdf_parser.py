@@ -1269,6 +1269,10 @@ def _inject_age_group(events, age_group):
 
 def parse_pdf(pdf_path, sport="WAG"):
     """Returns (events_list, method_string)."""
+    # MMUL/TMUL/EMUL files are combined Prelims+Finals totals — never ingest
+    if re.search(r"\b[MTE]MUL_", Path(pdf_path).name, re.IGNORECASE):
+        return [], "multi-session-skip"
+
     with pdfplumber.open(pdf_path) as pdf:
         text_pages = [page.extract_text() for page in pdf.pages]
 
@@ -1312,11 +1316,10 @@ def parse_pdf(pdf_path, sport="WAG"):
         if events:
             return _inject_age_group(events, age_group), "proscore"
 
-    # Multi-round ProScore (Prelims + Finals + Combined Total)
+    # Multi-round ProScore (Prelims + Finals + Combined Total) — skip entirely;
+    # combined totals are not valid single-session scores for the leaderboard.
     if PROSCORE_MULTI_HDR.search(full_text):
-        events = parse_proscore_multi(text_pages, pdf_path, sport=sport)
-        if events:
-            return _inject_age_group(events, age_group), "proscore-multi"
+        return [], "multi-session-skip"
 
     # Simple ProScore format (Meet Results Women / 5A / All Ages)
     # Also catches "/ All Levels /" headers where level comes from filename
