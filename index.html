@@ -1788,7 +1788,10 @@ initClubDirectory();
 // Tap-friendly tooltip (supplements native title= on desktop)
 // ─────────────────────────────────────────────────────────────────────────────
 (function () {
-  const tip = document.getElementById("tip-box");
+  const tip = document.createElement("div");
+  tip.id = "tip-box";
+  tip.setAttribute("role", "tooltip");
+  document.body.appendChild(tip);
   let activeTip = null;
 
   function showTip(el, text) {
@@ -1844,7 +1847,6 @@ initClubDirectory();
   document.addEventListener("scroll", hideTip, { passive: true });
 })();
 </script>
-<div id="tip-box" role="tooltip"></div>
 
 </body>
 </html>
