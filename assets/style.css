@@ -373,6 +373,20 @@
       white-space: nowrap;
     }
     #search-btn:hover { border-color: var(--accent); color: var(--text); }
+    .stickit-nav-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 5px 11px;
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      color: var(--muted);
+      font-size: 0.78rem;
+      text-decoration: none;
+      white-space: nowrap;
+      transition: all 0.12s;
+    }
+    .stickit-nav-link:hover { border-color: var(--accent); color: var(--text); }
 
     /* ── SEARCH OVERLAY ───────────────────────────────────────────────────── */
     #search-overlay {
@@ -575,7 +589,25 @@
       grid-template-columns: repeat(4, 1fr);
       gap: 18px;
       width: 100%;
-      margin-bottom: 40px;
+      margin-bottom: 16px;
+    }
+    .stickit-landing-cta { margin-bottom: 32px; }
+    .stickit-landing-cta a {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      padding: 7px 18px;
+      border: 1px solid rgba(124,106,247,0.3);
+      border-radius: 20px;
+      color: var(--muted);
+      font-size: 0.85rem;
+      text-decoration: none;
+      transition: all 0.15s;
+    }
+    .stickit-landing-cta a:hover {
+      border-color: var(--accent);
+      color: var(--text);
+      background: rgba(124,106,247,0.08);
     }
     .sport-card {
       position: relative;
