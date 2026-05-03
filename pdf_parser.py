@@ -103,14 +103,16 @@ _HEADER_SKIP = re.compile(
 )
 
 
-# International level codes (101-104) — no division, no numeric level in filename
+# International level codes (101-105) — no division, no numeric level in filename
+# More-specific keywords must appear before the generic ones (first match wins).
 _INT_LEVEL_KEYWORDS = [
-    ("developing international", 101),
-    ("future international",     102),
-    ("junior international",     103),
-    ("senior international",     104),
+    ("developing international 16", 105),  # "16+" / open age group — check before generic DI
+    ("developing international",     101),
+    ("future international",         102),
+    ("junior international",         103),
+    ("senior international",         104),
 ]
-INT_LEVEL_LABELS = {101: "Dev Int", 102: "Fut Int", 103: "Jun Int", 104: "Sen Int"}
+INT_LEVEL_LABELS = {101: "Dev Int", 102: "Fut Int", 103: "Jun Int", 104: "Sen Int", 105: "Dev Int 16+"}
 
 
 # ---------------------------------------------------------------------------

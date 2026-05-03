@@ -1,6 +1,1 @@
-{
-  "serverMode": "full",
-  "requestChunkSize": 4096,
-  "url": "../stick_WAG.db",
-  "fileLength": 1596416
-}
+{"serverMode": "full", "requestChunkSize": 1024, "fileLength": 1631232}
