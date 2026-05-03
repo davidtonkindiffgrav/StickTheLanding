@@ -1297,12 +1297,14 @@ async function executeSearch() {
     const level  = document.getElementById("browse-level").value;
     const div    = document.getElementById("browse-div").value;
     const compName = document.getElementById("browse-comp").options[document.getElementById("browse-comp").selectedIndex]?.text || "";
-    if (!compId || !level || !div) return;
+    const isIntLevel = Number(level) >= 101;
+    if (!compId || !level || (!isIntLevel && !div)) return;
     closeSearchPanel();
     switchToView("search");
-    const divLabel2 = currentSport === "MAG" ? div : `Div ${div}`;
+    const levelLabel = INT_LEVEL_LABELS[Number(level)] || `L${level}`;
+    const divLabel2 = isIntLevel ? "" : (currentSport === "MAG" ? ` ${div}` : ` Div ${div}`);
     document.getElementById("search-view-title").textContent =
-      `${compName} · Level ${level} ${divLabel2}`;
+      `${compName} · ${levelLabel}${divLabel2}`;
     document.getElementById("search-view-content").innerHTML =
       `<p style="color:var(--muted);padding:12px 0">Loading…</p>`;
     await renderCompResults(compId, level, div);
@@ -1393,7 +1395,9 @@ async function renderAthleteResults(athleteName) {
 
 async function renderCompResults(compId, level, div) {
   const isMAG     = currentSport === "MAG";
-  const whereDiv  = isMAG ? "AND e.age_group = ?" : "AND e.division = ?";
+  const isIntLevel = Number(level) >= 101;
+  const whereDiv  = isIntLevel ? "" : (isMAG ? "AND e.age_group = ?" : "AND e.division = ?");
+  const params    = isIntLevel ? [compId, level] : [compId, level, div];
   const rows = _execRows(await DB.exec(`
     SELECT r.rank, r.athlete, r.club, r.vault, r.bars, r.beam, r.floor, r.total,
            r.vault_d, r.vault_e, r.bars_d, r.bars_e, r.beam_d, r.beam_e, r.floor_d, r.floor_e,
@@ -1404,7 +1408,7 @@ async function renderCompResults(compId, level, div) {
     JOIN events e ON r.event_id = e.id
     WHERE e.competition_id = ? AND e.level = ? ${whereDiv}
     ORDER BY r.rank
-  `, [compId, level, div]));
+  `, params));
 
   const el = document.getElementById("search-view-content");
   if (!rows.length) {
@@ -1550,10 +1554,14 @@ async function onBrowseLevelChange(level) {
     divSel.innerHTML = `<option value="">${placeholder}</option>` +
       rows.map(([ag]) => `<option value="${ag}">${ag}</option>`).join("");
     divSel.disabled = rows.length === 0;
+  } else if (Number(level) >= 101) {
+    divSel.innerHTML = `<option value="__none__">—</option>`;
+    divSel.value = "__none__";
+    divSel.disabled = true;
   } else {
     const rows = _execRows(await DB.exec(`
       SELECT DISTINCT e.division FROM events e
-      WHERE e.competition_id = ? AND e.level = ?
+      WHERE e.competition_id = ? AND e.level = ? AND e.division IS NOT NULL
       ORDER BY e.division
     `, [_browseCompId, level]));
     divSel.innerHTML = `<option value="">${placeholder}</option>` +
