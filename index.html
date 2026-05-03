@@ -1097,7 +1097,7 @@ async function openDrill(comp) {
   document.getElementById("drill-meta").textContent = `${events.length} event(s) · ${currentSport} · ${currentSeason}`;
   document.getElementById("drill-events").innerHTML = events.map(ev => {
     const title = [
-      ev.level ? `Level ${ev.level}` : "",
+      ev.level ? (INT_LEVEL_LABELS[ev.level] || `Level ${ev.level}`) : "",
       ev.age_group ? ev.age_group : (ev.division ? `Div ${ev.division}` : ""),
       ev.event_type || "",
     ].filter(Boolean).join(" · ");
