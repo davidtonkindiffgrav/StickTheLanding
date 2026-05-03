@@ -1530,7 +1530,7 @@ async function onBrowseCompChange(compId) {
     ORDER BY e.level
   `, [compId]));
   levelSel.innerHTML = `<option value="">— Level —</option>` +
-    rows.map(([lvl]) => `<option value="${lvl}">Level ${lvl}</option>`).join("");
+    rows.map(([lvl]) => `<option value="${lvl}">${INT_LEVEL_LABELS[lvl] || `L${lvl}`}</option>`).join("");
   levelSel.disabled = rows.length === 0;
 }
 
