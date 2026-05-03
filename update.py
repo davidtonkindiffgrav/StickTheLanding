@@ -621,13 +621,20 @@ def _finalize(con, dbconfig_file: Path, sport: str = "WAG") -> None:
     db.sync_clubs(con, CLUBS_FILE)
     db.vacuum(con)
     file_size = db.DB_PATH.stat().st_size
+    prev_rev = 0
+    if dbconfig_file.exists():
+        try:
+            prev_rev = json.loads(dbconfig_file.read_text(encoding="utf-8")).get("rev", 0)
+        except Exception:
+            pass
     with open(dbconfig_file, "w", encoding="utf-8") as f:
         json.dump({
             "serverMode": "full",
             "requestChunkSize": 1024,
             "fileLength": file_size,
+            "rev": prev_rev + 1,
         }, f)
-    print(f"  dbconfig_{sport}.json updated (fileSize: {file_size:,} bytes)")
+    print(f"  dbconfig_{sport}.json updated (fileSize: {file_size:,} bytes, rev: {prev_rev + 1})")
 
 
 if __name__ == "__main__":
