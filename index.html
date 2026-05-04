@@ -365,6 +365,7 @@ let CLUBS      = {};
 let CLUBS_LIST = [];
 let INTERSTATE = new Set();
 let LEVEL_DIVS = [];
+let MIXED_OVERRIDES = new Map(); // comp name → Set of club codes excluded from team standings
 
 let activeLevel     = null;
 let activeDivision  = null;
@@ -398,6 +399,18 @@ async function initDB() {
   if (DB) return;
   const workerUrl = new URL("sql/sqlite.worker.js", location.href).toString();
   const wasmUrl   = new URL("sql/sql-wasm.wasm",   location.href).toString();
+
+  if (!MIXED_OVERRIDES.size) {
+    try {
+      const ovResp = await fetch(new URL("data/overrides.json", location.href).toString(), { cache: "no-cache" });
+      const ov = await ovResp.json();
+      for (const [comp, codes] of Object.entries(ov.mixed_groups || {})) {
+        if (comp.startsWith("_")) continue;
+        MIXED_OVERRIDES.set(comp, new Set(codes));
+      }
+    } catch (_) {}
+  }
+
   const cfgResp   = await fetch(new URL(`data/dbconfig_${currentSport}.json`, location.href).toString(), { cache: "no-cache" });
   const dbCfg     = await cfgResp.json();
   const dbUrl     = new URL(`data/stick_${currentSport}.db?v=${dbCfg.rev ?? dbCfg.fileLength}`, location.href).toString();
@@ -606,8 +619,10 @@ function rankBadge(rank) {
   return `<span class="rank-badge rank-n">${rank}</span>`;
 }
 
-function isMixed(code) {
-  return code.includes("/") || /^MX\d/i.test(code);
+function isMixed(code, competition = null) {
+  if (code.includes("/") || /^MX\d/i.test(code)) return true;
+  if (competition && MIXED_OVERRIDES.get(competition)?.has(code)) return true;
+  return false;
 }
 
 function attachSort(tableEl) {
@@ -731,7 +746,7 @@ async function renderClubs() {
        pommel, rings, pbars, hbar,
        competition, level, division, age_group }));
 
-  let standings = buildTeamStandings(rows.filter(r => !isMixed(r.club || "")), activeApparatus);
+  let standings = buildTeamStandings(rows.filter(r => !isMixed(r.club || "", r.competition)), activeApparatus);
   if (activeRegion) {
     const clubRegion = {};
     for (const c of CLUBS_LIST) clubRegion[c.code] = c.region;

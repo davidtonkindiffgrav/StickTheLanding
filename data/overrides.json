@@ -26,5 +26,10 @@
 
   "by_athlete": [
     { "_comment": "Format: { competition, athlete (exact name), club (canonical code) }" }
-  ]
+  ],
+
+  "mixed_groups": {
+    "_comment": "Competition name → list of club codes that are mixed/composite groups and should not appear in team standings rankings.",
+    "BTYC MAG and WAG Senior Extravaganza": ["MG2"]
+  }
 }
