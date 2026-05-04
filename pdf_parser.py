@@ -747,6 +747,17 @@ def parse_team_results(text_pages, pdf_path, sport="WAG"):
                 if pl is not None:
                     page_level, page_div = pl, pd
 
+        # Fallback: parse "Level N Division N" from page header text
+        # Handles files with LAll in filename (e.g. TEAM_Women_S2_LAll_AAll.pdf)
+        if page_level is None:
+            hdr_m = re.search(r"Level\s+(\d+)\s+Division\s+(\d+)", text, re.IGNORECASE)
+            if hdr_m:
+                page_level, page_div = int(hdr_m.group(1)), int(hdr_m.group(2))
+            else:
+                hdr_m = re.search(r"Level\s+(\d+)", text, re.IGNORECASE)
+                if hdr_m:
+                    page_level = int(hdr_m.group(1))
+
         if page_level is None:
             continue
 
