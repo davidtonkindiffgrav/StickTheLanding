@@ -55,7 +55,7 @@
     { "code": "MAG",  "name": "Melbourne Acrobatic Gymnastics Academy", "region": "Metro East",     "aliases": [],                                                           "logo": null },
     { "code": "MEL",  "name": "Melton Gymnastics Academy",              "region": "Metro West",     "aliases": ["MELTON", "MGA", "ME1", "ME2", "ME3", "ME4", "ME5", "ME6", "ME7", "ME8", "ME9"], "logo": null },
     { "code": "MAN",  "name": "Mansfield Gymnastic Club",               "region": "Regional NE",    "aliases": [],                                                           "logo": null },
-    { "code": "MGC",  "name": "Melbourne Gymnastics Centre",            "region": "Metro South",    "aliases": [],                                                           "logo": null },
+    { "code": "MGC",  "name": "Melbourne Gymnastics Centre",            "region": "Metro South",    "aliases": ["MG1", "MG2"],                                               "logo": null },
     { "code": "MIL",  "name": "Mildura Gymnastics Centre",              "region": "Regional West",  "aliases": ["MI1", "MI2", "MILDURA"],                                    "logo": null },
     { "code": "MLCT", "name": "Millicent Gymnastics Club",              "region": "Interstate",     "aliases": ["MILLICENT"],                                                "logo": null },
     { "code": "MLC",  "name": "MLC Gymnastics Club",                    "region": "Metro East",     "aliases": ["MLC BLACK", "MLC GREEN", "MLC SILVER", "MLC WHITE"],          "logo": null },

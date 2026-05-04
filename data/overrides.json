@@ -29,7 +29,6 @@
   ],
 
   "mixed_groups": {
-    "_comment": "Competition name → list of club codes that are mixed/composite groups and should not appear in team standings rankings.",
-    "BTYC MAG and WAG Senior Extravaganza": ["MG2"]
+    "_comment": "Competition name → list of club codes that are mixed/composite groups and should not appear in team standings rankings."
   }
 }
