@@ -1408,6 +1408,40 @@ async function renderAthleteResults(athleteName) {
   attachSort(el.querySelector("table.athlete-profile-table"));
 }
 
+function _buildResultTable(objRows, drillApps, isTeam, isMAG) {
+  const fmt    = v => v != null && v !== 0 ? v.toFixed(3) : "-";
+  const hasDE  = !isTeam && objRows.some(r => drillApps.some(a => r[a.d] != null));
+  const hasAppar = objRows.some(r => drillApps.some(a => r[a.col] != null));
+  const appHdrs  = drillApps.map(a => `<th data-sort="num">${a.h} <span class="sort-icon">↕</span></th>`).join("");
+  let header, trows;
+  if (isTeam) {
+    if (hasAppar) {
+      header = `<tr><th>#</th><th data-sort="str">Club <span class="sort-icon">↕</span></th>${appHdrs}<th data-sort="num">Total <span class="sort-icon">↕</span></th></tr>`;
+      trows  = objRows.map(r => {
+        const cells = drillApps.map(a => `<td class="score">${fmt(r[a.col])}</td>`).join("");
+        return `<tr><td>${rankBadge(r.rank)}</td><td><strong>${clubDisplay(r.club||"")}</strong></td>${cells}<td class="score"><strong>${fmt(r.total)}</strong></td></tr>`;
+      }).join("");
+    } else {
+      header = `<tr><th>#</th><th data-sort="str">Club <span class="sort-icon">↕</span></th><th data-sort="num">Total <span class="sort-icon">↕</span></th></tr>`;
+      trows  = objRows.map(r => `<tr><td>${rankBadge(r.rank)}</td><td><strong>${clubDisplay(r.club||"")}</strong></td><td class="score"><strong>${fmt(r.total)}</strong></td></tr>`).join("");
+    }
+  } else {
+    header = `<tr><th>#</th><th data-sort="str">Athlete <span class="sort-icon">↕</span></th><th data-sort="str">Club <span class="sort-icon">↕</span></th>${appHdrs}<th data-sort="num">Total <span class="sort-icon">↕</span></th></tr>`;
+    trows  = objRows.map(r => {
+      const cells = drillApps.map(a => {
+        const s = hasDE && r[a.d] != null
+          ? `${fmt(r[a.d])}/${r[a.e] != null ? r[a.e].toFixed(3) : "-"}=${fmt(r[a.col])}`
+          : fmt(r[a.col]);
+        return `<td class="score" data-val="${r[a.col] ?? ''}">${s}</td>`;
+      }).join("");
+      return `<tr><td>${rankBadge(r.rank)}</td><td><strong>${esc(r.athlete||"")}</strong></td><td>${clubDisplay(r.club||"")}</td>${cells}<td class="score"><strong>${fmt(r.total)}</strong></td></tr>`;
+    }).join("");
+  }
+  return `<div class="card table-card" style="overflow-x:auto">
+    <table class="leaderboard"><thead>${header}</thead><tbody>${trows}</tbody></table>
+  </div>`;
+}
+
 async function renderCompResults(compId, level, div) {
   const isMAG     = currentSport === "MAG";
   const isIntLevel = Number(level) >= 101;
@@ -1431,8 +1465,6 @@ async function renderCompResults(compId, level, div) {
     return;
   }
 
-  const fmt   = v => v != null && v !== 0 ? v.toFixed(3) : "-";
-  const isTeam = rows[0][16] === "Team";
   const drillApps = isMAG
     ? [{col:"floor",d:"floor_d",e:"floor_e",h:"Floor"},{col:"pommel",d:"pommel_d",e:"pommel_e",h:"Pommel"},
        {col:"rings",d:"rings_d",e:"rings_e",h:"Rings"},{col:"vault",d:"vault_d",e:"vault_e",h:"Vault"},
@@ -1449,59 +1481,22 @@ async function renderCompResults(compId, level, div) {
        pommel, pommel_d, pommel_e, rings, rings_d, rings_e, pbars, pbars_d, pbars_e,
        hbar, hbar_d, hbar_e }));
 
-  const hasDE    = !isTeam && objRows.some(r => drillApps.some(a => r[a.d] != null));
-  const hasAppar = objRows.some(r => drillApps.some(a => r[a.col] != null));
+  const aaRows   = objRows.filter(r => r.event_type !== "Team");
+  const teamRows = objRows.filter(r => r.event_type === "Team");
+  const both     = aaRows.length > 0 && teamRows.length > 0;
 
-  const appHdrs = drillApps.map(a => `<th data-sort="num">${a.h} <span class="sort-icon">↕</span></th>`).join("");
-  let header, trows;
-  if (isTeam) {
-    if (hasAppar) {
-      header = `<tr><th>#</th><th data-sort="str">Club <span class="sort-icon">↕</span></th>${appHdrs}<th data-sort="num">Total <span class="sort-icon">↕</span></th></tr>`;
-      trows  = objRows.map(r => {
-        const cells = drillApps.map(a => `<td class="score">${fmt(r[a.col])}</td>`).join("");
-        return `<tr>
-          <td>${rankBadge(r.rank)}</td>
-          <td><strong>${clubDisplay(r.club || "")}</strong></td>
-          ${cells}
-          <td class="score"><strong>${fmt(r.total)}</strong></td>
-        </tr>`;
-      }).join("");
-    } else {
-      header = `<tr><th>#</th><th data-sort="str">Club <span class="sort-icon">↕</span></th><th data-sort="num">Total <span class="sort-icon">↕</span></th></tr>`;
-      trows  = objRows.map(r => `
-        <tr>
-          <td>${rankBadge(r.rank)}</td>
-          <td><strong>${clubDisplay(r.club || "")}</strong></td>
-          <td class="score"><strong>${fmt(r.total)}</strong></td>
-        </tr>`).join("");
-    }
-  } else {
-    header = `<tr><th>#</th><th data-sort="str">Athlete <span class="sort-icon">↕</span></th><th data-sort="str">Club <span class="sort-icon">↕</span></th>${appHdrs}<th data-sort="num">Total <span class="sort-icon">↕</span></th></tr>`;
-    trows  = objRows.map(r => {
-      const cells = drillApps.map(a => {
-        const s = hasDE && r[a.d] != null
-          ? `${fmt(r[a.d])}/${r[a.e] != null ? r[a.e].toFixed(3) : "-"}=${fmt(r[a.col])}`
-          : fmt(r[a.col]);
-        return `<td class="score" data-val="${r[a.col] ?? ''}">${s}</td>`;
-      }).join("");
-      return `<tr>
-        <td>${rankBadge(r.rank)}</td>
-        <td><strong>${esc(r.athlete || "")}</strong></td>
-        <td>${clubDisplay(r.club || "")}</td>
-        ${cells}
-        <td class="score"><strong>${fmt(r.total)}</strong></td>
-      </tr>`;
-    }).join("");
+  let html = "";
+  if (aaRows.length) {
+    if (both) html += `<h3 class="comp-results-section-heading">Individual Results</h3>`;
+    html += _buildResultTable(aaRows, drillApps, false, isMAG);
+  }
+  if (teamRows.length) {
+    if (both) html += `<h3 class="comp-results-section-heading">Team Results</h3>`;
+    html += _buildResultTable(teamRows, drillApps, true, isMAG);
   }
 
-  el.innerHTML = `
-    <div class="card table-card" style="overflow-x:auto">
-      <table class="leaderboard">
-        <thead>${header}</thead>
-        <tbody>${trows}</tbody>
-      </table>
-    </div>`;
-  attachSort(el.querySelector("table.leaderboard"));
+  el.innerHTML = html;
+  el.querySelectorAll("table.leaderboard").forEach(attachSort);
 }
 
 function initBrowseSeasons() {
