@@ -617,7 +617,7 @@ def infer_competition_name(pdf_path):
 _TEAM_RANK_RE = re.compile(
     r"^(\d+)\s+(.+?)\s+([\d]+\.[\d]{3})\s+([\d]+\.[\d]{3})\s+([\d]+\.[\d]{3})\s+([\d]+\.[\d]{3})\s+([\d]+\.[\d]{3})(?:\s+[\d]+\.[\d]{3})?\s*$"
 )
-# MAG variant: total + 6 apparatus (VT FX PH SR PB HB)
+# MAG variant: total + 6 apparatus (FX PH SR VT PB HB) — same order as individual results
 _TEAM_RANK_RE_MAG = re.compile(
     r"^(\d+)\s+(.+?)\s+([\d]+\.[\d]{3})"
     r"\s+([\d]+\.[\d]{3})\s+([\d]+\.[\d]{3})\s+([\d]+\.[\d]{3})"
@@ -781,10 +781,10 @@ def parse_team_results(text_pages, pdf_path, sport="WAG"):
                 events_by_ld[key].append({
                     "rank":   _parse_rank(rank_str),
                     "club":   club,
-                    "vault":  _parse_score(s1),
-                    "floor":  _parse_score(s2),
-                    "pommel": _parse_score(s3),
-                    "rings":  _parse_score(s4),
+                    "floor":  _parse_score(s1),
+                    "pommel": _parse_score(s2),
+                    "rings":  _parse_score(s3),
+                    "vault":  _parse_score(s4),
                     "pbars":  _parse_score(s5),
                     "hbar":   _parse_score(s6),
                     "total":  _parse_score(total),
