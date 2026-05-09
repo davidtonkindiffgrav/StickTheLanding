@@ -318,7 +318,7 @@ def parse_new_proscore(text_pages, pdf_path, sport="WAG"):
         d_scores = []
         e_scores = []
         _club_re = re.compile(
-            r"^(?:[A-Z]{2,6}/)?([A-Z]{2,12})(?:\s+\([A-Z/]+\))?(?:\d+)?(?:\s+(?:Exec:|ExNe[A-Za-z]*::?)|\s*$)"
+            r"^(?:[A-Za-z]{2,6}\s*/\s*)?([A-Za-z]{2,12})(?:\s+\([A-Za-z/]+\))?(?:\d+)?(?:\s+(?:Exec:|ExNe[A-Za-z]*::?)|\s*$)"
         )
         _skip_starts = ("ND:", "Final:", "Place:", "D/E:", "Diff:", "DN/DE:")
         if i + 1 < len(clean_lines):
@@ -326,7 +326,7 @@ def parse_new_proscore(text_pages, pdf_path, sport="WAG"):
             if not nxt.startswith(_skip_starts):
                 m_fwd = _club_re.match(nxt)
                 if m_fwd:
-                    club = m_fwd.group(1)
+                    club = m_fwd.group(1).upper()
 
         # Scan backward up to 5 lines for club (if not found forward), rank+name, and D/E scores
         for offset in range(1, 6):
@@ -370,10 +370,10 @@ def parse_new_proscore(text_pages, pdf_path, sport="WAG"):
             # Handles: "PIT Exec:" / "MYC (HPP)01 Exec:" / "HPP/PIT Exec:" / "EKGA ExNeDc::" / "BTY"
             if club is None:
                 m_club = re.match(
-                    r"^(?:[A-Z]{2,6}/)?([A-Z]{2,12})(?:\s+\([A-Z/]+\))?(?:\d+)?(?:\s+(?:Exec:|ExNe[A-Za-z]*::?)|\s*$)", l
+                    r"^(?:[A-Za-z]{2,6}\s*/\s*)?([A-Za-z]{2,12})(?:\s+\([A-Za-z/]+\))?(?:\d+)?(?:\s+(?:Exec:|ExNe[A-Za-z]*::?)|\s*$)", l
                 )
                 if m_club and not l.startswith(("ND:", "Final:", "Place:", "D/E:", "Diff:", "DN/DE:")):
-                    club = m_club.group(1)
+                    club = m_club.group(1).upper()
 
             # Rank + bib + name: strip Diff:/D/E: suffix then match leading digits
             if rank is None:
