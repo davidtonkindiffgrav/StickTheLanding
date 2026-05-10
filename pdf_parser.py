@@ -533,11 +533,15 @@ def parse_filename_meta(path, sport=None):
     if level is None and any(re.fullmatch(r"L?SNR?", seg, re.IGNORECASE) for seg in re.split(r"[_\s]", name)):
         level = 104
 
-    # MAG fallback: "1O", "2U", "1O&U" style codes (e.g. SGC JNR INV format)
+    # MAG fallback: "5O", "5U", "6P" style codes (e.g. SGC format); also bare leading number "10 and SR"
     if level is None and sport == "MAG":
-        ag_code_m = re.search(r"\b(\d+)[OU]", name, re.IGNORECASE)
+        ag_code_m = re.search(r"\b(\d+)[OUP]", name, re.IGNORECASE)
         if ag_code_m:
             level = int(ag_code_m.group(1))
+    if level is None and sport == "MAG":
+        bare_m = re.match(r"^(\d+)\b", name)
+        if bare_m:
+            level = int(bare_m.group(1))
 
     # Parent folder fallback: "Level 3/3 Open Meet Results.pdf" style
     if level is None:
@@ -566,6 +570,8 @@ def parse_filename_meta(path, sport=None):
         }.get(raw, raw)
 
     if re.search(r"meet.results", name, re.IGNORECASE):
+        event_type = "AA"
+    if re.search(r"\bAA\b", name, re.IGNORECASE):
         event_type = "AA"
     if re.search(r"team.results|team", name, re.IGNORECASE) and "Team" not in event_type:
         if re.search(r"\bteam\b", name, re.IGNORECASE):
