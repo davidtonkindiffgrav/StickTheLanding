@@ -28,7 +28,7 @@
     { "code": "EGG",  "name": "East Gippsland Gym Club",                "region": "Regional SE",    "aliases": [],                                                           "logo": null },
     { "code": "ECL",  "name": "Eclipse Gymnastics Ringwood",            "region": "Metro East",     "aliases": ["ECLIPSE"],                                                  "logo": null },
     { "code": "EDG",  "name": "Edge Gymnastics",                        "region": "Metro South",    "aliases": ["EDGE"],                                                     "logo": null },
-    { "code": "EGC",  "name": "Eastern Gymnastics Club",                "region": "Metro East",     "aliases": ["EAS", "EGCEGA", "EGCEGS", "EGCEG9", "EASTERN", "EG1", "EG2", "EG3", "EG4", "EG5", "EG6", "EG7", "EG8", "EG9"], "logo": null },
+    { "code": "EGC",  "name": "Eastern Gymnastics Club",                "region": "Metro East",     "aliases": ["EAS", "EAST", "EGCEGA", "EGCEGS", "EGCEG9", "EASTERN", "EG1", "EG2", "EG3", "EG4", "EG5", "EG6", "EG7", "EG8", "EG9"], "logo": null },
     { "code": "EKG",  "name": "Essendon Keilor Gym Academy",            "region": "Metro West",     "aliases": ["EKGA", "EKB", "EKS", "EK1", "EK2", "EK3", "EK4", "EK5", "EK6", "EK7", "EK8", "EK9"], "logo": null },
     { "code": "EUR",  "name": "Eureka Gymnastics Club",                 "region": "Regional West",  "aliases": ["EUREKA", "EUREKA 2"],                                       "logo": null },
     { "code": "FLY",  "name": "Flyaway Gymnastics Club",                "region": "Regional NE",    "aliases": ["FLYFLW", "FLYFLP"],                                         "logo": null },
