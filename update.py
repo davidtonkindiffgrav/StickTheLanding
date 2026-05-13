@@ -524,6 +524,7 @@ def main():
     if not to_parse:
         print("\nNothing new to ingest.")
         _finalize(con, dbconfig_file, sport)
+        write_stats_json()
         return
 
     print(f"\nParsing {len(to_parse)} new PDF(s)...")
@@ -580,6 +581,7 @@ def main():
         db.upsert_pdf_manifest(con, cname, files)
 
     _finalize(con, dbconfig_file, sport)
+    write_stats_json()
 
     total_athletes = con.execute("SELECT COUNT(*) FROM results").fetchone()[0]
     total_comps    = con.execute("SELECT COUNT(*) FROM competitions").fetchone()[0]
@@ -615,6 +617,34 @@ def _cmd_resolve_urls(con) -> None:
 
     con.commit()
     print(f"\nDone — {updated} URL(s) updated.")
+
+
+def write_stats_json() -> None:
+    """Query both WAG and MAG DBs and write data/stats.json for the landing page pills."""
+    import datetime
+    stats = {"gymnasts": 0, "competitions": 0, "routines": 0}
+    for sport in ("WAG", "MAG"):
+        db_path = Path(f"data/stick_{sport}.db")
+        if not db_path.exists():
+            continue
+        try:
+            con = db.get_conn(db_path)
+            stats["gymnasts"]     += con.execute(
+                "SELECT COUNT(DISTINCT athlete) FROM results WHERE athlete IS NOT NULL AND athlete != ''"
+            ).fetchone()[0]
+            stats["competitions"] += con.execute(
+                "SELECT COUNT(DISTINCT id) FROM competitions"
+            ).fetchone()[0]
+            stats["routines"]     += con.execute(
+                "SELECT COUNT(*) FROM results"
+            ).fetchone()[0]
+            con.close()
+        except Exception as e:
+            print(f"  [WARN] stats: could not query {sport} DB: {e}")
+    out = Path("data/stats.json")
+    with open(out, "w", encoding="utf-8") as f:
+        json.dump(stats, f)
+    print(f"  stats.json updated — {stats['gymnasts']:,} gymnasts, {stats['competitions']} competitions, {stats['routines']:,} routines")
 
 
 def _finalize(con, dbconfig_file: Path, sport: str = "WAG") -> None:

@@ -1,0 +1,144 @@
+{
+  "events": [
+    {
+      "name": "Maffra Masters",
+      "date_start": "2026-05-16",
+      "date_end": "2026-05-16",
+      "location": "Maffra Gymnastic Club, Cameron Sporting Complex, Morison St, Maffra VIC 3860",
+      "sport": "ALL"
+    },
+    {
+      "name": "Diamond Cup",
+      "date_start": "2026-05-16",
+      "date_end": "2026-05-17",
+      "location": "Glen Iris Rhythmic Gymnastics, 6 Natalia Ave",
+      "sport": "ALL"
+    },
+    {
+      "name": "Maffra Charity Duo Invitational",
+      "date_start": "2026-05-17",
+      "date_end": "2026-05-17",
+      "location": "Maffra Gymnastic Club, Cameron Sporting Complex, Morison St, Maffra VIC 3860",
+      "sport": "ALL"
+    },
+    {
+      "name": "Gymnastics Victoria Senior Victorian Championships",
+      "date_start": "2026-05-22",
+      "date_end": "2026-05-22",
+      "location": "State Netball and Hockey Centre, 10 Brens Drive",
+      "sport": "ALL"
+    },
+    {
+      "name": "MGC Junior Feedback Event",
+      "date_start": "2026-05-31",
+      "date_end": "2026-05-31",
+      "location": "Melbourne Gym Sports, 166 Fulham Rd",
+      "sport": "ALL"
+    },
+    {
+      "name": "Kiroi Academy Cup",
+      "date_start": "2026-06-13",
+      "date_end": "2026-06-14",
+      "location": "Victorian State Gymnastics Centre, 41 Green St",
+      "sport": "ALL"
+    },
+    {
+      "name": "Strathcona Cup",
+      "date_start": "2026-06-20",
+      "date_end": "2026-06-20",
+      "location": "Strathcona Rhythmic Gymnastics Club, 34 Scott Street",
+      "sport": "ALL"
+    },
+    {
+      "name": "Aerodynamix Invitational",
+      "date_start": "2026-06-21",
+      "date_end": "2026-06-21",
+      "location": "",
+      "sport": "ALL"
+    },
+    {
+      "name": "Junior Gippsland Championships",
+      "date_start": "2026-06-21",
+      "date_end": "2026-06-21",
+      "location": "East Gippsland Gymnastics Club, 455 Princess Hwy, Lucknow, Vic, 3875",
+      "sport": "ALL"
+    },
+    {
+      "name": "Ballarat Gymsports WAG Winterfest",
+      "date_start": "2026-06-26",
+      "date_end": "2026-06-28",
+      "location": "Ballarat Gymsports, 2B Michaels Drive",
+      "sport": "WAG"
+    },
+    {
+      "name": "Ballarat Gymsports MAG Winterfest",
+      "date_start": "2026-06-26",
+      "date_end": "2026-06-28",
+      "location": "Ballarat Gymsports, 2B Michaels Drive",
+      "sport": "MAG"
+    },
+    {
+      "name": "Flyaway Invitational",
+      "date_start": "2026-06-27",
+      "date_end": "2026-06-28",
+      "location": "Flyaway Gymnastics, 1014 Nowra St",
+      "sport": "ALL"
+    },
+    {
+      "name": "Ballarat Gymsports TRPsports Winterfest",
+      "date_start": "2026-06-27",
+      "date_end": "2026-06-27",
+      "location": "Ballarat Gymsports, 2B Michaels Drive",
+      "sport": "ALL"
+    },
+    {
+      "name": "Warrnambool Gymnastics Invitational",
+      "date_start": "2026-07-04",
+      "date_end": "2026-07-05",
+      "location": "Strive Gymnastics Club, 31 Hyland Street",
+      "sport": "ALL"
+    },
+    {
+      "name": "BTYC WAG Junior Invite",
+      "date_start": "2026-07-10",
+      "date_end": "2026-07-12",
+      "location": "BTYC Gymnastics, 360 Springvale Road",
+      "sport": "WAG"
+    },
+    {
+      "name": "Niddrie Invitational L2-4",
+      "date_start": "2026-07-11",
+      "date_end": "2026-07-12",
+      "location": "Niddrie Gymnastics Club, 44/235 Wirraway Road, Essendon Fields, Vic, 3031",
+      "sport": "ALL"
+    },
+    {
+      "name": "Werribee Gymnastics - Gymstar",
+      "date_start": "2026-07-12",
+      "date_end": "2026-07-12",
+      "location": "Werribee Gymnastics Club, 3/26 Lock Avenue",
+      "sport": "ALL"
+    },
+    {
+      "name": "Nunawading Gymnastics & Sports Club Gymstar Competition",
+      "date_start": "2026-07-12",
+      "date_end": "2026-07-12",
+      "location": "Nunawading Gymnastics & Sports Club, Maroondah Hwy & Dunlavin Rd",
+      "sport": "ALL"
+    },
+    {
+      "name": "Knox Junior WAG 2-7 Invitational",
+      "date_start": "2026-07-18",
+      "date_end": "2026-07-19",
+      "location": "Knox Gymnastics Club, 291 George Street",
+      "sport": "WAG"
+    },
+    {
+      "name": "Portland Invitational 2026",
+      "date_start": "2026-07-18",
+      "date_end": "2026-07-19",
+      "location": "Portland Gymnastics Club, Yarraman Park, 134 Madeira Packet Road",
+      "sport": "ALL"
+    }
+  ]
+}
