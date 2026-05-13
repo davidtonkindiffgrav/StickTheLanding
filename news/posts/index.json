@@ -1,12 +1,21 @@
 [
   {
+    "slug": "2026-05-03-WAG-Trial-2-Border-Challenge-Trial-2",
+    "title": "Nadiu edges Cross by 0.034 at WAG Trial 2",
+    "subtitle": "Sophie Strano leads a tight Level 8 Division 1 field at CYC, while Emma Hale posts the bars score of the competition",
+    "date": "2026-05-03",
+    "thumbnail": "posts/2026-05-03-WAG-Trial-2-Border-Challenge-Trial-2/hero.jpg",
+    "tldr": "Arianna Nadiu (MAG Academy) won Level 7 by just 0.034 points at WAG Trial 2 and Border Challenge Trial 2, while Sophie Strano (Jets) led L8 Division 1 with 47.332 and Emma Hale posted a 13.033 on bars.",
+    "tags": ["REPORT", "WAG"]
+  },
+  {
     "slug": "2026-01-27-Oceania-Selections",
     "title": "Oceania Selections",
     "subtitle": "Australia Names Strong Squads for Home Oceania Championships and International Tour",
     "date": "2026-01-27",
     "thumbnail": "posts/2026-01-27-Oceania-Selections/hero.jpg",
     "tldr": "Australia has announced full men's and women's squads (senior & junior) for the Oceania Championships in Brisbane, plus selected athletes and coaches for upcoming events in Slovenia and China.",
-    "tags": ["WAG", "MAG"]
+    "tags": ["REPORT", "WAG", "MAG"]
   },
   {
     "slug": "2026-01-27-Three-new-Uneven-Bars-skills",
@@ -15,6 +24,6 @@
     "date": "2026-01-27",
     "thumbnail": "posts/2026-01-27-Three-new-Uneven-Bars-skills/hero.jpg",
     "tldr": "At the Osijek World Cup, Hamelin (FRA), Mesiri (GRE), and Rodrigues Barbosa (BRA) each successfully performed new Uneven Bars skills, meeting the criteria to have them officially named and added to the Code of Points.",
-    "tags": ["WAG"]
+    "tags": ["REPORT", "WAG"]
   }
 ]

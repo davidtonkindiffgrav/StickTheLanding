@@ -202,7 +202,14 @@ body.news-post {
 .post-tldr strong { display: block; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.8px; color: var(--accent); margin-bottom: 6px; }
 .post-body { font-size: 1rem; line-height: 1.8; color: #222238; }
 .post-body h3 { font-size: 1.15rem; font-weight: 700; color: #1a1a2a; margin: 32px 0 12px; }
+.post-body h4 { font-size: 0.95rem; font-weight: 700; color: #1a1a2a; margin: 24px 0 8px; letter-spacing: 0.03em; }
 .post-body p { margin-bottom: 20px; }
+.post-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; margin-bottom: 28px; }
+.post-table th { text-align: left; padding: 7px 10px; background: #f0f0f6; color: #1a1a2a; font-weight: 700; border-bottom: 2px solid #d8d8e8; }
+.post-table td { padding: 6px 10px; border-bottom: 1px solid #e8e8f0; color: #333350; }
+.post-table tr:last-child td { border-bottom: none; }
+.post-table td:first-child, .post-table th:first-child { width: 36px; }
+@media (max-width: 540px) { .post-table { font-size: 0.75rem; } .post-table td, .post-table th { padding: 5px 6px; } }
 .post-body figure { margin: 28px 0; }
 .post-body figure img { width: 100%; border-radius: 10px; display: block; }
 .post-body figcaption { font-size: 0.78rem; color: #888; text-align: center; margin-top: 8px; }
