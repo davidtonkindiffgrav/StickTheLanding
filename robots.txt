@@ -1,0 +1,6 @@
+User-agent: *
+Allow: /
+Disallow: /data/
+Disallow: /news/posts/_template/
+
+Sitemap: https://stickthelanding.com.au/sitemap.xml

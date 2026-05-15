@@ -258,6 +258,14 @@ body.news-post {
 }
 .post-cta a:hover { opacity: 0.85; }
 
+/* ── SITE FOOTER ──────────────────────────────────────────────────────────── */
+.blog-footer {
+  background: #12131f; color: #5a5e7a; text-align: center;
+  padding: 20px 32px; font-size: 0.78rem; margin-top: 0;
+}
+.blog-footer a { color: #7a7e9a; text-decoration: none; }
+.blog-footer a:hover { color: #fff; }
+
 /* ── MOBILE ───────────────────────────────────────────────────────────────── */
 @media (max-width: 600px) {
   .blog-header { padding: 14px 16px; }
