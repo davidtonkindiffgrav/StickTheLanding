@@ -2089,7 +2089,7 @@ initClubDirectory();
       const live     = events.filter(e => toDate(e.date_start) <= today && today <= toDate(e.date_end));
       const upcoming = events.filter(e => toDate(e.date_start) > today)
                              .sort((a,b) => a.date_start.localeCompare(b.date_start))
-                             .slice(0, 2);
+                             .slice(0, Math.max(0, 2 - live.length));
 
       if (!live.length && !upcoming.length) return;
 
