@@ -2117,9 +2117,9 @@ async function renderAcroClubs() {
   const clubs = {};
   for (const [club, rank, total, comp] of raw) {
     if (!club) continue;
-    if (!clubs[club]) clubs[club] = { club, wins:0, totalScore:0, highScore:0, count:0, comps:new Set() };
+    if (!clubs[club]) clubs[club] = { club, wins:0, totalScore:0, highScore:0, highScoreComp:"", count:0, comps:new Set() };
     const c = clubs[club];
-    if (total != null) { c.totalScore += total; c.count++; if (total > c.highScore) c.highScore = total; }
+    if (total != null) { c.totalScore += total; c.count++; if (total > c.highScore) { c.highScore = total; c.highScoreComp = comp || ""; } }
     if (rank === 1) c.wins++;
     if (comp) c.comps.add(comp);
   }
@@ -2133,10 +2133,11 @@ async function renderAcroClubs() {
   tbody.innerHTML = standings.map((s, i) => {
     const rank = i + 1;
     const badge = rank <= 3 ? `<span class="rank-badge rank-${rank}">${rank}</span>` : `<span class="rank-badge rank-n">${rank}</span>`;
+    const hiTip = s.highScoreComp ? ` title="${esc(s.highScoreComp)}" data-tip="${esc(s.highScoreComp)}" style="cursor:pointer"` : "";
     return `<tr>
       <td>${badge}</td><td></td>
       <td><strong>${esc(s.club)}</strong></td>
-      <td class="score score-hi">${s.highScore > 0 ? s.highScore.toFixed(3) : "-"}</td>
+      <td class="score score-hi"${hiTip}>${s.highScore > 0 ? s.highScore.toFixed(3) : "-"}</td>
       <td class="score">${s.avgScore > 0 ? s.avgScore.toFixed(3) : "-"}</td>
       <td class="score">${s.comps}</td>
     </tr>`;
