@@ -434,28 +434,51 @@ def store_competitions(con, new_comps: list) -> None:
     for comp in new_comps:
         db.upsert_competition(con, comp)
         print(f"  [NEW]  {comp['name']} — {len(comp['events'])} event(s)")
+        sport = comp.get("sport", "WAG")
         for ev in comp["events"]:
-            event_id = db.insert_event(con, comp["id"], ev)
-            for r in ev.get("results", []):
-                db.insert_result(con, event_id, r)
+            if sport == "ACRO":
+                event_id = db.insert_acro_event(con, comp["id"], ev)
+                for r in ev.get("results", []):
+                    db.insert_acro_result(con, event_id, r)
+            else:
+                event_id = db.insert_event(con, comp["id"], ev)
+                for r in ev.get("results", []):
+                    db.insert_result(con, event_id, r)
 
 
 def update_existing_competition(con, comp: dict) -> None:
+    sport = comp.get("sport", "WAG")
     existing_keys = set()
-    rows = con.execute(
-        "SELECT level, division, event_type, source_file FROM events WHERE competition_id = ?",
-        (comp["id"],),
-    ).fetchall()
-    for row in rows:
-        existing_keys.add((row["level"], row["division"], row["event_type"], row["source_file"]))
+    if sport == "ACRO":
+        rows = con.execute(
+            "SELECT level, category, event_type, source_file FROM events WHERE competition_id = ?",
+            (comp["id"],),
+        ).fetchall()
+        for row in rows:
+            existing_keys.add((row["level"], row["category"], row["event_type"], row["source_file"]))
+    else:
+        rows = con.execute(
+            "SELECT level, division, event_type, source_file FROM events WHERE competition_id = ?",
+            (comp["id"],),
+        ).fetchall()
+        for row in rows:
+            existing_keys.add((row["level"], row["division"], row["event_type"], row["source_file"]))
 
     added = 0
     for ev in comp["events"]:
-        key = (ev.get("level"), ev.get("division"), ev.get("event_type"), ev.get("source_file"))
+        if sport == "ACRO":
+            key = (ev.get("level"), ev.get("category"), ev.get("event_type"), ev.get("source_file"))
+        else:
+            key = (ev.get("level"), ev.get("division"), ev.get("event_type"), ev.get("source_file"))
         if key not in existing_keys:
-            event_id = db.insert_event(con, comp["id"], ev)
-            for r in ev.get("results", []):
-                db.insert_result(con, event_id, r)
+            if sport == "ACRO":
+                event_id = db.insert_acro_event(con, comp["id"], ev)
+                for r in ev.get("results", []):
+                    db.insert_acro_result(con, event_id, r)
+            else:
+                event_id = db.insert_event(con, comp["id"], ev)
+                for r in ev.get("results", []):
+                    db.insert_result(con, event_id, r)
             added += 1
 
     label = f"+{added} new event(s)" if added else "already up to date"
@@ -490,7 +513,10 @@ def main():
     dbconfig_file = Path(f"data/dbconfig_{sport}.json")
 
     con = db.get_conn(db.DB_PATH)
-    db.create_schema(con)
+    if sport == "ACRO":
+        db.create_acro_schema(con)
+    else:
+        db.create_schema(con)
 
     if args.resolve_urls:
         _cmd_resolve_urls(con)
@@ -620,8 +646,7 @@ def _cmd_resolve_urls(con) -> None:
 
 
 def write_stats_json() -> None:
-    """Query both WAG and MAG DBs and write data/stats.json for the landing page pills."""
-    import datetime
+    """Query WAG, MAG, and ACRO DBs and write data/stats.json for the landing page pills."""
     stats = {"gymnasts": 0, "competitions": 0, "routines": 0}
     for sport in ("WAG", "MAG"):
         db_path = Path(f"data/stick_{sport}.db")
@@ -641,6 +666,22 @@ def write_stats_json() -> None:
             con.close()
         except Exception as e:
             print(f"  [WARN] stats: could not query {sport} DB: {e}")
+    acro_path = Path("data/stick_ACRO.db")
+    if acro_path.exists():
+        try:
+            con = db.get_conn(acro_path)
+            stats["gymnasts"]     += con.execute(
+                "SELECT COUNT(DISTINCT athletes) FROM results WHERE athletes IS NOT NULL AND athletes != ''"
+            ).fetchone()[0]
+            stats["competitions"] += con.execute(
+                "SELECT COUNT(DISTINCT id) FROM competitions"
+            ).fetchone()[0]
+            stats["routines"]     += con.execute(
+                "SELECT COUNT(*) FROM results"
+            ).fetchone()[0]
+            con.close()
+        except Exception as e:
+            print(f"  [WARN] stats: could not query ACRO DB: {e}")
     out = Path("data/stats.json")
     with open(out, "w", encoding="utf-8") as f:
         json.dump(stats, f)
@@ -648,7 +689,8 @@ def write_stats_json() -> None:
 
 
 def _finalize(con, dbconfig_file: Path, sport: str = "WAG") -> None:
-    db.sync_clubs(con, CLUBS_FILE)
+    if sport != "ACRO":
+        db.sync_clubs(con, CLUBS_FILE)
     db.vacuum(con)
     file_size = db.DB_PATH.stat().st_size
     prev_rev = 0

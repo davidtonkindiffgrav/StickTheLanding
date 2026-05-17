@@ -102,6 +102,40 @@ _HEADER_SKIP = re.compile(
     re.IGNORECASE,
 )
 
+# ---------------------------------------------------------------------------
+# ScoreExpress ACRO constants
+# ---------------------------------------------------------------------------
+
+# PUA font: digits 0-9 encoded as 0xE44F-0xE458; null byte (0x00) = decimal point
+_SE_FONT = {
+    0xe44f: "0", 0xe450: "1", 0xe451: "2", 0xe452: "3", 0xe453: "4",
+    0xe454: "5", 0xe455: "6", 0xe456: "7", 0xe457: "8", 0xe458: "9",
+    0x00: ".",
+}
+
+SCOREEXPRESS_RE = re.compile(r"created with ScoreExpress", re.IGNORECASE)
+
+# "LEVEL 6 WOMEN'S GROUP - ALL-AROUND" / "JUNIOR 12-18 MIXED PAIR - BALANCE" / "SENIOR …"
+_SE_SECTION_RE = re.compile(
+    r"^(LEVEL\s+\d+|JUNIOR\s+\d+-\d+|SENIOR)\s+"
+    r"((?:WOMEN'?S|MEN'?S|MIXED)\s+(?:GROUP|PAIR))\s*-\s*"
+    r"(BALANCE|DYNAMIC|COMBINED|ALL[\s-]AROUND)$",
+    re.IGNORECASE,
+)
+
+_SE_CATEGORY_MAP = {
+    "WOMEN'S GROUP": "Women's Group", "WOMENS GROUP": "Women's Group",
+    "WOMEN'S PAIR":  "Women's Pair",  "WOMENS PAIR":  "Women's Pair",
+    "MEN'S GROUP":   "Men's Group",   "MENS GROUP":   "Men's Group",
+    "MEN'S PAIR":    "Men's Pair",    "MENS PAIR":    "Men's Pair",
+    "MIXED PAIR":    "Mixed Pair",
+}
+
+_SE_ET_MAP = {
+    "BALANCE": "Balance", "DYNAMIC": "Dynamic",
+    "COMBINED": "Combined", "ALL-AROUND": "All-Around", "ALL AROUND": "All-Around",
+}
+
 
 # International level codes (101-105) — no division, no numeric level in filename
 # More-specific keywords must appear before the generic ones (first match wins).
@@ -1281,6 +1315,190 @@ def parse_gymp(text_pages, pdf_path):
     return [{"level": level, "division": division, "event_type": event_type, "results": results}]
 
 
+# ---------------------------------------------------------------------------
+# ScoreExpress ACRO parser
+# ---------------------------------------------------------------------------
+
+def _decode_se(s: str) -> str:
+    return "".join(_SE_FONT.get(ord(c), c) for c in s)
+
+
+def _se_normalise_level(s: str) -> str:
+    u = s.strip().upper()
+    if u.startswith("LEVEL"):
+        return "Level " + u.split()[-1]
+    if u.startswith("JUNIOR"):
+        return "Junior " + s.strip().split()[-1]
+    if u == "SENIOR":
+        return "Senior"
+    return s.strip().title()
+
+
+def _se_parse_aa_results(lines, group_size):
+    """Parse an All-Around section. group_size: 2=pair, 3=group. Always 5 lines per block."""
+    FLOATS = re.compile(r"\d+\.\d+")
+    results = []
+    i = 0
+    while i < len(lines):
+        m = re.match(r"^(\d+)\s+(.+)", lines[i])
+        if not m:
+            i += 1
+            continue
+        rank = int(m.group(1))
+        rest0 = m.group(2)
+        # "a1 diff X.XXX [diff X.XXX ...]"
+        diff_parts = re.split(r"\s+diff\b", rest0)
+        if len(diff_parts) < 2:
+            i += 1
+            continue
+        a1 = diff_parts[0].strip()
+        if i + 4 >= len(lines):
+            break
+        l1, l2, l3, l4 = lines[i + 1], lines[i + 2], lines[i + 3], lines[i + 4]
+        athletes = [a1]
+        if group_size == 3:
+            # l1: a2+art, l2: a3+exec, l3: club+pen, l4: bib+totals
+            a2_p = re.split(r"\s+art\b", l1)
+            athletes.append(a2_p[0].strip())
+            a3_p = re.split(r"\s+exec\b", l2)
+            athletes.append(a3_p[0].strip())
+            club_p = re.split(r"\s+pen\b", l3)
+            club = club_p[0].strip()
+            totals = [float(v) for v in FLOATS.findall(l4)]
+        else:
+            # l1: a2+art, l2: club+exec, l3: bib+pen, l4: totals only
+            a2_p = re.split(r"\s+art\b", l1)
+            athletes.append(a2_p[0].strip())
+            club_p = re.split(r"\s+exec\b", l2)
+            club = club_p[0].strip()
+            totals = [float(v) for v in FLOATS.findall(l4)]
+        grand_total = totals[-1] if totals else None
+        rt = totals[:-1]
+        results.append({
+            "rank":     rank,
+            "athletes": "|".join(athletes),
+            "club":     club,
+            "total":    grand_total,
+            "bal":      rt[0] if len(rt) > 0 else None,
+            "dyn":      rt[1] if len(rt) > 1 else None,
+            "com":      rt[2] if len(rt) > 2 else None,
+        })
+        i += 5
+    return results
+
+
+def _se_parse_routine_results(lines, group_size):
+    """Parse a Balance/Dynamic/Combined section. block_size = group_size + 2."""
+    results = []
+    block_size = group_size + 2
+    i = 0
+    while i + block_size <= len(lines):
+        m = re.match(r"^(\d+)\s+(.+)", lines[i])
+        if not m:
+            i += 1
+            continue
+        rank = int(m.group(1))
+        rest0 = m.group(2)
+        # Name = tokens before first float (X.Y... pattern)
+        tokens = rest0.split()
+        score_start = next(
+            (j for j, t in enumerate(tokens) if re.match(r"^\d+\.", t)), len(tokens)
+        )
+        a1 = " ".join(tokens[:score_start])
+        scores = [float(t) for t in tokens[score_start:] if re.match(r"^\d+\.?\d*$", t)]
+        if not a1 or len(scores) < 5:
+            i += 1
+            continue
+        # 6 values: P1, D, P, E, A, T — take [1:]; 5 values: D, P, E, A, T
+        if len(scores) >= 6:
+            diff, pen, exec_s, art, total = scores[1], scores[2], scores[3], scores[4], scores[5]
+        else:
+            diff, pen, exec_s, art, total = scores[0], scores[1], scores[2], scores[3], scores[4]
+        athletes = [a1]
+        for j in range(1, group_size):
+            idx = i + j
+            if idx < len(lines):
+                athletes.append(lines[idx].strip())
+        club_idx = i + group_size
+        club = lines[club_idx].strip() if club_idx < len(lines) else ""
+        results.append({
+            "rank":       rank,
+            "athletes":   "|".join(athletes),
+            "club":       club,
+            "diff":       diff,
+            "pen":        pen,
+            "exec_score": exec_s,
+            "art":        art,
+            "total":      total,
+        })
+        i += block_size
+    return results
+
+
+def parse_scoreexpress_acro(text_pages, pdf_path):
+    """Parse ScoreExpress ACRO PDFs. Returns list of event dicts."""
+    decoded = [_decode_se(p) for p in text_pages if p]
+    if not decoded:
+        return []
+    first_lines = decoded[0].split("\n")
+    comp_title = next((l.strip() for l in first_lines if l.strip()), "")
+    title_re = re.compile(r"^" + re.escape(comp_title) + r"$", re.IGNORECASE) if comp_title else None
+
+    _NOISE = re.compile(
+        r"created with ScoreExpress|^�|"
+        r"^\d{2}/\d{2}/\d{4}|"
+        r"^PLACE\s+PARTICIPANT",
+        re.IGNORECASE,
+    )
+
+    all_lines = []
+    for page_text in decoded:
+        for line in page_text.split("\n"):
+            s = line.strip()
+            if not s:
+                continue
+            if _NOISE.search(s):
+                continue
+            if title_re and title_re.match(s):
+                continue
+            all_lines.append(s)
+
+    sections = []
+    current_match = None
+    current_lines = []
+    for line in all_lines:
+        m = _SE_SECTION_RE.match(line)
+        if m:
+            if current_match and current_lines:
+                sections.append((current_match, current_lines))
+            current_match = m
+            current_lines = []
+        elif current_match is not None:
+            current_lines.append(line)
+    if current_match and current_lines:
+        sections.append((current_match, current_lines))
+
+    events = []
+    for hdr_m, sec_lines in sections:
+        level_raw, cat_raw, type_raw = hdr_m.groups()
+        level      = _se_normalise_level(level_raw)
+        category   = _SE_CATEGORY_MAP.get(cat_raw.strip().upper(), cat_raw.strip().title())
+        et_key     = type_raw.upper().replace(" ", "-")
+        event_type = _SE_ET_MAP.get(et_key, type_raw.title())
+        group_size = 3 if "GROUP" in cat_raw.upper() else 2
+        is_aa      = event_type == "All-Around"
+        results    = _se_parse_aa_results(sec_lines, group_size) if is_aa \
+                     else _se_parse_routine_results(sec_lines, group_size)
+        if results:
+            events.append({
+                "level":      level,
+                "category":   category,
+                "event_type": event_type,
+                "results":    results,
+            })
+    return events
+
+
 def _inject_age_group(events, age_group):
     """Stamp age_group from filename onto every event that doesn't already have one."""
     if age_group is None:
@@ -1301,6 +1519,11 @@ def parse_pdf(pdf_path, sport="WAG"):
         text_pages = [page.extract_text() for page in pdf.pages]
 
     full_text = "\n".join(t for t in text_pages if t)
+
+    # ScoreExpress ACRO — check before filename-meta guard (ACRO files have no level in name)
+    if sport == "ACRO" and SCOREEXPRESS_RE.search(full_text):
+        events = parse_scoreexpress_acro(text_pages, pdf_path)
+        return (events, "scoreexpress-acro") if events else ([], "scoreexpress-acro-empty")
 
     meta = parse_filename_meta(pdf_path, sport=sport)
     age_group = meta.get("age_group")
@@ -1389,6 +1612,8 @@ def group_into_competitions(all_entries, sport="WAG"):
                 "source_file": entry["source_file"],
                 "results":    ev.get("results", []),
             }
+            if sport == "ACRO":
+                ev_entry["category"] = ev.get("category")
             for r in ev_entry["results"]:
                 r.pop("bib", None)
             comp_map[map_key]["events"].append(ev_entry)

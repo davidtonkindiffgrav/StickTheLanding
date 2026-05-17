@@ -215,3 +215,88 @@ def update_manifest_url(con: sqlite3.Connection, comp_name: str, file_path: str,
 def vacuum(con: sqlite3.Connection) -> None:
     con.commit()
     con.execute("VACUUM")
+
+
+# ---------------------------------------------------------------------------
+# ACRO schema (separate DB: stick_ACRO.db)
+# ---------------------------------------------------------------------------
+
+def create_acro_schema(con: sqlite3.Connection) -> None:
+    con.executescript("""
+        PRAGMA page_size = 1024;
+
+        CREATE TABLE IF NOT EXISTS competitions (
+            id      TEXT PRIMARY KEY,
+            name    TEXT NOT NULL,
+            season  TEXT NOT NULL,
+            sport   TEXT NOT NULL
+        );
+
+        CREATE TABLE IF NOT EXISTS events (
+            id              INTEGER PRIMARY KEY AUTOINCREMENT,
+            competition_id  TEXT NOT NULL REFERENCES competitions(id),
+            level           TEXT,
+            category        TEXT,
+            event_type      TEXT,
+            source_file     TEXT
+        );
+
+        CREATE TABLE IF NOT EXISTS results (
+            id          INTEGER PRIMARY KEY AUTOINCREMENT,
+            event_id    INTEGER NOT NULL REFERENCES events(id),
+            rank        INTEGER,
+            athletes    TEXT,
+            club        TEXT,
+            diff        REAL,
+            exec_score  REAL,
+            art         REAL,
+            pen         REAL,
+            total       REAL,
+            bal         REAL,
+            dyn         REAL,
+            com         REAL
+        );
+
+        CREATE TABLE IF NOT EXISTS processed_files (
+            source_key          TEXT PRIMARY KEY,
+            competition_name    TEXT,
+            processed_at        TEXT DEFAULT (datetime('now'))
+        );
+
+        CREATE TABLE IF NOT EXISTS pdf_manifest (
+            competition_name    TEXT NOT NULL,
+            file_path           TEXT NOT NULL,
+            source_url          TEXT,
+            PRIMARY KEY (competition_name, file_path)
+        );
+
+        CREATE INDEX IF NOT EXISTS idx_results_event     ON results(event_id);
+        CREATE INDEX IF NOT EXISTS idx_events_comp       ON events(competition_id);
+        CREATE INDEX IF NOT EXISTS idx_comp_sport_season ON competitions(sport, season);
+    """)
+    con.commit()
+
+
+def insert_acro_event(con, competition_id, ev):
+    cur = con.execute(
+        "INSERT INTO events (competition_id, level, category, event_type, source_file) "
+        "VALUES (?, ?, ?, ?, ?)",
+        (competition_id, ev.get("level"), ev.get("category"),
+         ev.get("event_type"), ev.get("source_file")),
+    )
+    return cur.lastrowid
+
+
+def insert_acro_result(con, event_id, r):
+    con.execute(
+        "INSERT INTO results "
+        "(event_id, rank, athletes, club, diff, exec_score, art, pen, total, bal, dyn, com) "
+        "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+        (
+            event_id,
+            r.get("rank"),    r.get("athletes"), r.get("club"),
+            r.get("diff"),    r.get("exec_score"), r.get("art"),
+            r.get("pen"),     r.get("total"),
+            r.get("bal"),     r.get("dyn"),      r.get("com"),
+        ),
+    )
