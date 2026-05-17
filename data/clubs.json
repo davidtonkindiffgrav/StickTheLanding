@@ -94,9 +94,9 @@
     { "code": "STV/FLY",      "name": "Strive / Flyaway (Joint)",               "region": "Multi-Region",  "aliases": ["STRIVE/FLYAWAY", "STRIVE/FLY"],                             "logo": null },
     { "code": "BTY/FUN",      "name": "BTYC / Funtastic (Joint)",               "region": "Multi-Region",  "aliases": ["BTYC/FUNTASTIC", "BTYC/FUN"],                               "logo": null },
 
-    { "code": "SKY",  "name": "Skylark Sports",                        "region": "Unknown",        "aliases": [],  "logo": null },
-    { "code": "ADR",  "name": "Team Adrenalin",                        "region": "Unknown",        "aliases": [],  "logo": null },
-    { "code": "SPA",  "name": "Sparta Gymnastics",                     "region": "Unknown",        "aliases": [],  "logo": null },
-    { "code": "YVG",  "name": "Yarra Valley Gymsports Academy",        "region": "Unknown",        "aliases": [],  "logo": null }
+    { "code": "SKY",  "name": "Skylark Sports",                        "region": "Metro South",    "aliases": [],  "logo": null },
+    { "code": "ADR",  "name": "Team Adrenalin",                        "region": "Metro West",     "aliases": [],  "logo": null },
+    { "code": "SPA",  "name": "Sparta Gymnastics",                     "region": "Metro East",     "aliases": [],  "logo": null },
+    { "code": "YVG",  "name": "Yarra Valley Gymsports Academy",        "region": "Metro East",     "aliases": [],  "logo": null }
   ]
 }
