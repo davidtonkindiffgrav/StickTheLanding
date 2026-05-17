@@ -115,11 +115,13 @@ _SE_FONT = {
 
 SCOREEXPRESS_RE = re.compile(r"created with ScoreExpress", re.IGNORECASE)
 
-# "LEVEL 6 WOMEN'S GROUP - ALL-AROUND" / "JUNIOR 12-18 MIXED PAIR - BALANCE" / "SENIOR …"
+# "LEVEL 6 WOMEN'S GROUP - ALL-AROUND" / "LEVEL 4 JUNIOR - BALANCE" / "LEVEL 5 - ALL-AROUND"
 _SE_SECTION_RE = re.compile(
-    r"^(LEVEL\s+\d+|JUNIOR\s+\d+-\d+|SENIOR)\s+"
-    r"((?:WOMEN'?S|MEN'?S|MIXED)\s+(?:GROUP|PAIR))\s*-\s*"
-    r"(BALANCE|DYNAMIC|COMBINED|ALL[\s-]AROUND)$",
+    r"^(?P<level>LEVEL\s+\d+|JUNIOR\s+\d+-\d+|SENIOR)"
+    r"(?:\s+(?P<qualifier>JUNIOR|SENIOR))?"
+    r"(?:\s+(?P<category>(?:WOMEN'?S|MEN'?S|MIXED)\s+(?:GROUP|PAIR)))?"
+    r"\s*-\s*"
+    r"(?P<et>BALANCE|DYNAMIC|COMBINED|ALL[\s-]AROUND)$",
     re.IGNORECASE,
 )
 
@@ -1334,8 +1336,8 @@ def _se_normalise_level(s: str) -> str:
     return s.strip().title()
 
 
-def _se_parse_aa_results(lines, group_size):
-    """Parse an All-Around section. group_size: 2=pair, 3=group. Always 5 lines per block."""
+def _se_parse_aa_results(lines, group_size=None):
+    """Parse an All-Around section. group_size=None means auto-detect per block."""
     FLOATS = re.compile(r"\d+\.\d+")
     results = []
     i = 0
@@ -1356,8 +1358,12 @@ def _se_parse_aa_results(lines, group_size):
             break
         l1, l2, l3, l4 = lines[i + 1], lines[i + 2], lines[i + 3], lines[i + 4]
         athletes = [a1]
-        if group_size == 3:
-            # l1: a2+art, l2: a3+exec, l3: club+pen, l4: bib+totals
+        # Auto-detect per block: l3 = "pen X.XXX" means pair; "Club pen X.XXX" means group
+        gs = group_size if group_size is not None else (
+            2 if re.match(r"^pen\s", l3.strip(), re.IGNORECASE) else 3
+        )
+        if gs == 3:
+            # l1: a2+art, l2: a3+exec, l3: club+pen, l4: bib/totals
             a2_p = re.split(r"\s+art\b", l1)
             athletes.append(a2_p[0].strip())
             a3_p = re.split(r"\s+exec\b", l2)
@@ -1366,7 +1372,7 @@ def _se_parse_aa_results(lines, group_size):
             club = club_p[0].strip()
             totals = [float(v) for v in FLOATS.findall(l4)]
         else:
-            # l1: a2+art, l2: club+exec, l3: bib+pen, l4: totals only
+            # l1: a2+art, l2: club+exec, l3: pen line, l4: totals
             a2_p = re.split(r"\s+art\b", l1)
             athletes.append(a2_p[0].strip())
             club_p = re.split(r"\s+exec\b", l2)
@@ -1382,6 +1388,78 @@ def _se_parse_aa_results(lines, group_size):
             "bal":      rt[0] if len(rt) > 0 else None,
             "dyn":      rt[1] if len(rt) > 1 else None,
             "com":      rt[2] if len(rt) > 2 else None,
+        })
+        i += 5
+    return results
+
+
+def _se_parse_labelled_routine_results(lines):
+    """Parse Balance/Dynamic/Combined in the labelled-per-line ScoreExpress format.
+
+    Each 5-line block:
+      pair:  rank+a1+diff, a2+art, club+exec, pen, totals
+      group: rank+a1+diff, a2+art, a3+exec,  club+pen, totals
+    Pair vs group auto-detected: l3 starts with 'pen' → pair.
+    """
+    FLOAT_RE = re.compile(r"\d+\.\d+")
+    results = []
+    i = 0
+    while i + 4 < len(lines):
+        m = re.match(r"^(\d+)\s+(.+)", lines[i])
+        if not m:
+            i += 1
+            continue
+        rank = int(m.group(1))
+        rest0 = m.group(2)
+        diff_p = re.split(r"\s+diff\b", rest0, maxsplit=1)
+        if len(diff_p) < 2:
+            i += 1
+            continue
+        a1 = diff_p[0].strip()
+        diff_m = FLOAT_RE.search(diff_p[1])
+        diff = float(diff_m.group()) if diff_m else None
+
+        l1, l2, l3, l4 = lines[i+1], lines[i+2], lines[i+3], lines[i+4]
+        is_pair = bool(re.match(r"^pen\s", l3.strip(), re.IGNORECASE))
+
+        if is_pair:
+            art_p = re.split(r"\s+art\b", l1, maxsplit=1)
+            a2 = art_p[0].strip()
+            art_m = FLOAT_RE.search(art_p[1]) if len(art_p) > 1 else None
+            art = float(art_m.group()) if art_m else None
+            exec_p = re.split(r"\s+exec\b", l2, maxsplit=1)
+            club = exec_p[0].strip()
+            exec_m = FLOAT_RE.search(exec_p[1]) if len(exec_p) > 1 else None
+            exec_s = float(exec_m.group()) if exec_m else None
+            pen_m = FLOAT_RE.search(l3)
+            pen = float(pen_m.group()) if pen_m else 0.0
+            athletes = [a1, a2]
+        else:
+            art_p = re.split(r"\s+art\b", l1, maxsplit=1)
+            a2 = art_p[0].strip()
+            art_m = FLOAT_RE.search(art_p[1]) if len(art_p) > 1 else None
+            art = float(art_m.group()) if art_m else None
+            exec_p = re.split(r"\s+exec\b", l2, maxsplit=1)
+            a3 = exec_p[0].strip()
+            exec_m = FLOAT_RE.search(exec_p[1]) if len(exec_p) > 1 else None
+            exec_s = float(exec_m.group()) if exec_m else None
+            pen_p = re.split(r"\s+pen\b", l3, maxsplit=1)
+            club = pen_p[0].strip()
+            pen_m = FLOAT_RE.search(pen_p[1]) if len(pen_p) > 1 else None
+            pen = float(pen_m.group()) if pen_m else 0.0
+            athletes = [a1, a2, a3]
+
+        totals = [float(v) for v in FLOAT_RE.findall(l4)]
+        total = totals[-1] if totals else None
+        results.append({
+            "rank":       rank,
+            "athletes":   "|".join(athletes),
+            "club":       club,
+            "diff":       diff,
+            "art":        art,
+            "exec_score": exec_s,
+            "pen":        pen,
+            "total":      total,
         })
         i += 5
     return results
@@ -1480,15 +1558,31 @@ def parse_scoreexpress_acro(text_pages, pdf_path):
 
     events = []
     for hdr_m, sec_lines in sections:
-        level_raw, cat_raw, type_raw = hdr_m.groups()
+        level_raw  = hdr_m.group("level")
+        cat_raw    = hdr_m.group("category") or ""
+        qualifier  = hdr_m.group("qualifier") or ""
+        type_raw   = hdr_m.group("et")
         level      = _se_normalise_level(level_raw)
-        category   = _SE_CATEGORY_MAP.get(cat_raw.strip().upper(), cat_raw.strip().title())
+        if qualifier:
+            level  = f"{level} {qualifier.title()}"
+        if cat_raw:
+            category   = _SE_CATEGORY_MAP.get(cat_raw.strip().upper(), cat_raw.strip().title())
+            group_size = 3 if "GROUP" in cat_raw.upper() else 2
+        else:
+            category   = None
+            group_size = None
         et_key     = type_raw.upper().replace(" ", "-")
         event_type = _SE_ET_MAP.get(et_key, type_raw.title())
-        group_size = 3 if "GROUP" in cat_raw.upper() else 2
         is_aa      = event_type == "All-Around"
-        results    = _se_parse_aa_results(sec_lines, group_size) if is_aa \
-                     else _se_parse_routine_results(sec_lines, group_size)
+        if is_aa:
+            results = _se_parse_aa_results(sec_lines, group_size)
+        else:
+            # Labelled format: rank line contains "diff" keyword; inline: scores only on rank line
+            first_rank = next((l for l in sec_lines if re.match(r"^\d+\s+", l)), None)
+            if first_rank and re.search(r"\bdiff\b", first_rank, re.IGNORECASE):
+                results = _se_parse_labelled_routine_results(sec_lines)
+            else:
+                results = _se_parse_routine_results(sec_lines, group_size or 2)
         if results:
             events.append({
                 "level":      level,
