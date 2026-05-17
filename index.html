@@ -1273,6 +1273,51 @@ async function openDrill(comp) {
   document.getElementById("drill-events").innerHTML  = `<p style="color:var(--muted);padding:12px">Loading…</p>`;
   document.getElementById("drill-overlay").classList.add("open");
 
+  if (currentSport === "ACRO") {
+    const raw = _execRows(await DB.exec(`
+      SELECT e.id, e.level, e.category, e.event_type,
+             r.rank, r.athletes, r.club, r.total, r.diff, r.exec_score, r.art, r.pen,
+             r.bal, r.dyn, r.com
+      FROM events e
+      LEFT JOIN results r ON r.event_id = e.id
+      WHERE e.competition_id = ?
+      ORDER BY e.id, r.rank
+    `, [comp.id]));
+    const evMap = new Map();
+    for (const [eid, level, category, event_type,
+                rank, athletes, club, total, diff, exec_score, art, pen, bal, dyn, com] of raw) {
+      if (!evMap.has(eid)) evMap.set(eid, { level, category, event_type, results: [] });
+      if (rank !== null) evMap.get(eid).results.push({ rank, athletes, club, total, diff, exec_score, art, pen, bal, dyn, com });
+    }
+    const events = [...evMap.values()];
+    const fmt = v => v != null ? v.toFixed(3) : "-";
+    document.getElementById("drill-meta").textContent = `${events.length} event(s) · ACRO · ${currentSeason}`;
+    document.getElementById("drill-events").innerHTML = events.map(ev => {
+      const isAA = ev.event_type === "All-Around";
+      const title = [ev.level, ev.category, ev.event_type].filter(Boolean).join(" · ");
+      const header = isAA
+        ? `<tr><th>#</th><th>Partnership</th><th>Club</th><th data-sort="num">Bal <span class="sort-icon">↕</span></th><th data-sort="num">Dyn <span class="sort-icon">↕</span></th><th data-sort="num">Com <span class="sort-icon">↕</span></th><th data-sort="num">Total <span class="sort-icon">↕</span></th></tr>`
+        : `<tr><th>#</th><th>Partnership</th><th>Club</th><th data-sort="num">Diff <span class="sort-icon">↕</span></th><th data-sort="num">Exec <span class="sort-icon">↕</span></th><th data-sort="num">Art <span class="sort-icon">↕</span></th><th data-sort="num">Pen <span class="sort-icon">↕</span></th><th data-sort="num">Total <span class="sort-icon">↕</span></th></tr>`;
+      const trows = ev.results.map(r => {
+        const names = (r.athletes || "").split("|").map(n => esc(n)).join(" / ");
+        const scoreCells = isAA
+          ? `<td class="score">${fmt(r.bal)}</td><td class="score">${fmt(r.dyn)}</td><td class="score">${fmt(r.com)}</td>`
+          : `<td class="score">${fmt(r.diff)}</td><td class="score">${fmt(r.exec_score)}</td><td class="score">${fmt(r.art)}</td><td class="score">${fmt(r.pen)}</td>`;
+        return `<tr><td>${rankBadge(r.rank)}</td><td><strong>${names}</strong></td><td>${esc(r.club || "")}</td>${scoreCells}<td class="score">${fmt(r.total)}</td></tr>`;
+      }).join("");
+      const colspan = isAA ? 7 : 8;
+      return `<div class="event-section">
+        <h4>${esc(title)}</h4>
+        <table class="leaderboard">
+          <thead>${header}</thead>
+          <tbody>${trows || `<tr><td colspan="${colspan}" style="color:var(--muted);padding:12px">No results parsed</td></tr>`}</tbody>
+        </table>
+      </div>`;
+    }).join("");
+    document.getElementById("drill-events").querySelectorAll("table.leaderboard").forEach(t => attachSort(t));
+    return;
+  }
+
   const raw = _execRows(await DB.exec(`
     SELECT e.id, e.level, e.division, e.age_group, e.event_type,
            r.rank, r.athlete, r.club, r.total,
