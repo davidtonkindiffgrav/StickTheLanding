@@ -449,8 +449,9 @@ let currentSport   = null;
 let currentSeason  = null;
 let availableSeasons = [];
 
-let CLUBS      = {};
-let CLUBS_LIST = [];
+let CLUBS         = {};
+let CLUBS_LIST    = [];
+let CLUBS_BY_NAME = {};
 let INTERSTATE = new Set();
 let LEVEL_DIVS = [];
 let MIXED_OVERRIDES = new Map(); // comp name → Set of club codes excluded from team standings
@@ -536,14 +537,15 @@ async function enterSport(sport) {
     currentSeason    = availableSeasons[0] || new Date().getFullYear().toString();
     document.getElementById("apparatus-year").textContent = currentSeason;
 
-    // Clubs (WAG/MAG only — ACRO stores full club names, no clubs table)
-    if (sport !== "ACRO" && !CLUBS_LIST.length) {
+    // Clubs
+    if (!CLUBS_LIST.length) {
       const clubRows = _execRows(await DB.exec(
         "SELECT code, name, region, logo FROM clubs ORDER BY name"
       ));
       for (const [code, name, region, logo] of clubRows) {
         CLUBS[code] = name;
         CLUBS_LIST.push({ code, name, region, logo });
+        if (sport === "ACRO") CLUBS_BY_NAME[name] = code;
       }
       INTERSTATE = new Set(CLUBS_LIST.filter(c => c.region === "Interstate").map(c => c.code));
     }
@@ -595,6 +597,7 @@ function exitToLanding() {
   DB           = null;
   CLUBS        = {};
   CLUBS_LIST   = [];
+  CLUBS_BY_NAME = {};
   INTERSTATE   = new Set();
   availableSeasons = [];
   // Reset view state so next entry is fresh
@@ -2137,9 +2140,12 @@ async function renderAcroClubs() {
     const rank = i + 1;
     const badge = rank <= 3 ? `<span class="rank-badge rank-${rank}">${rank}</span>` : `<span class="rank-badge rank-n">${rank}</span>`;
     const hiTip = s.highScoreComp ? ` title="${esc(s.highScoreComp)}" data-tip="${esc(s.highScoreComp)}" style="cursor:pointer"` : "";
+    const code = CLUBS_BY_NAME[s.club];
+    const logoCell = code ? `<td class="logo-cell">${clubLogo(code, "club-logo-sm")}</td>` : `<td></td>`;
+    const nameCell = code ? `<strong>${clubDisplay(code)}</strong>` : `<strong>${esc(s.club)}</strong>`;
     return `<tr>
-      <td>${badge}</td><td></td>
-      <td><strong>${esc(s.club)}</strong></td>
+      <td>${badge}</td>${logoCell}
+      <td>${nameCell}</td>
       <td class="score score-hi"${hiTip}>${s.highScore > 0 ? s.highScore.toFixed(3) : "-"}</td>
       <td class="score">${s.avgScore > 0 ? s.avgScore.toFixed(3) : "-"}</td>
       <td class="score">${s.comps}</td>
@@ -2225,10 +2231,12 @@ async function renderAcroPartnerships() {
     const scoreCells = isAA
       ? `<td class="score">${fmt(p.bestBal)}</td><td class="score">${fmt(p.bestDyn)}</td><td class="score">${fmt(p.bestCom)}</td>`
       : `<td class="score">${fmt(p.bestDiff)}</td><td class="score">${fmt(p.bestExec)}</td><td class="score">${fmt(p.bestArt)}</td>`;
+    const pCode = CLUBS_BY_NAME[p.club];
+    const pClub = pCode ? clubDisplay(pCode) : esc(p.club);
     return `<tr>
       <td>${badge}</td>
       <td>${names}</td>
-      <td>${esc(p.club)}</td>
+      <td>${pClub}</td>
       ${scoreCells}
       <td class="score score-hi"${p.bestComp ? ` title="${esc(p.bestComp)}"` : ""}>${fmt(p.bestScore)}</td>
       <td class="score">${p.comps}</td>

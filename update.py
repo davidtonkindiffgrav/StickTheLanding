@@ -689,8 +689,7 @@ def write_stats_json() -> None:
 
 
 def _finalize(con, dbconfig_file: Path, sport: str = "WAG") -> None:
-    if sport != "ACRO":
-        db.sync_clubs(con, CLUBS_FILE)
+    db.sync_clubs(con, CLUBS_FILE)
     db.vacuum(con)
     file_size = db.DB_PATH.stat().st_size
     prev_rev = 0

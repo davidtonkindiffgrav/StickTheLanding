@@ -225,6 +225,13 @@ def create_acro_schema(con: sqlite3.Connection) -> None:
     con.executescript("""
         PRAGMA page_size = 1024;
 
+        CREATE TABLE IF NOT EXISTS clubs (
+            code    TEXT PRIMARY KEY,
+            name    TEXT NOT NULL,
+            region  TEXT,
+            logo    TEXT
+        );
+
         CREATE TABLE IF NOT EXISTS competitions (
             id      TEXT PRIMARY KEY,
             name    TEXT NOT NULL,
