@@ -1934,14 +1934,14 @@ function buildLevelFilters() {
         const btn = document.createElement("button");
         btn.className = "filter-btn";
         btn.dataset.level    = ld.level;
-        btn.dataset.division = ld.category;
-        btn.textContent = `${ld.level} ${ld.category}`;
+        btn.dataset.division = ld.category ?? "";
+        btn.textContent = ld.category ? `${ld.level} ${ld.category}` : ld.level;
         bar.appendChild(btn);
         btn.addEventListener("click", () => {
           activeLevel    = ld.level;
           activeDivision = ld.category;
           bars.forEach(b2 => b2.querySelectorAll(".filter-btn").forEach(b =>
-            b.classList.toggle("active", b.dataset.level === ld.level && b.dataset.division === ld.category)
+            b.classList.toggle("active", b.dataset.level === ld.level && b.dataset.division === (ld.category ?? ""))
           ));
           render();
         });
@@ -2102,18 +2102,21 @@ async function renderAcroClubs() {
   const titleEl = document.getElementById("team-title");
   const tbody   = document.getElementById("team-highscore-tbody");
   const routineType = activeApparatus || "All-Around";
+  const levelLabel = [activeLevel, activeDivision].filter(Boolean).join(" ");
   titleEl.textContent = `Club Standings · ${currentSeason}` +
-    (activeLevel ? ` · ${activeLevel} ${activeDivision} · ${routineType}` : "");
+    (activeLevel ? ` · ${levelLabel} · ${routineType}` : "");
   if (activeLevel === null) {
     tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;color:var(--muted);padding:36px 12px">
       Select a category above to see club standings.</td></tr>`;
     return;
   }
+  const catClauseC = activeDivision != null ? "AND e.category=?" : "AND e.category IS NULL";
+  const catParamsC = activeDivision != null ? [currentSeason, activeLevel, activeDivision, routineType] : [currentSeason, activeLevel, routineType];
   const raw = _execRows(await DB.exec(`
     SELECT r.club, r.rank, r.total, c.name
     FROM results r JOIN events e ON r.event_id = e.id JOIN competitions c ON e.competition_id = c.id
-    WHERE c.sport='ACRO' AND c.season=? AND e.level=? AND e.category=? AND e.event_type=?
-  `, [currentSeason, activeLevel, activeDivision, routineType]));
+    WHERE c.sport='ACRO' AND c.season=? AND e.level=? ${catClauseC} AND e.event_type=?
+  `, catParamsC));
   const clubs = {};
   for (const [club, rank, total, comp] of raw) {
     if (!club) continue;
@@ -2150,21 +2153,24 @@ async function renderAcroPartnerships() {
   const titleEl = document.getElementById("athlete-title");
   const tbody   = document.getElementById("athlete-tbody");
   const routineType = activeApparatus || "All-Around";
+  const levelLabelP = [activeLevel, activeDivision].filter(Boolean).join(" ");
   titleEl.textContent = `Partnership Rankings · ${currentSeason}` +
-    (activeLevel ? ` · ${activeLevel} ${activeDivision} · ${routineType}` : "");
+    (activeLevel ? ` · ${levelLabelP} · ${routineType}` : "");
   if (activeLevel === null) {
     tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;color:var(--muted);padding:36px 12px">
       Select a category above to see partnership rankings.</td></tr>`;
     return;
   }
   const isAA = routineType === "All-Around";
+  const catClauseP = activeDivision != null ? "AND e.category=?" : "AND e.category IS NULL";
+  const catParamsP = activeDivision != null ? [currentSeason, activeLevel, activeDivision, routineType] : [currentSeason, activeLevel, routineType];
   const raw = _execRows(await DB.exec(`
     SELECT r.rank, r.athletes, r.club, r.total, r.diff, r.exec_score, r.art, r.pen,
            r.bal, r.dyn, r.com, c.name
     FROM results r JOIN events e ON r.event_id = e.id JOIN competitions c ON e.competition_id = c.id
-    WHERE c.sport='ACRO' AND c.season=? AND e.level=? AND e.category=? AND e.event_type=?
+    WHERE c.sport='ACRO' AND c.season=? AND e.level=? ${catClauseP} AND e.event_type=?
     ORDER BY r.total DESC
-  `, [currentSeason, activeLevel, activeDivision, routineType]));
+  `, catParamsP));
 
   const partnerships = {};
   for (const [rank, athletes, club, total, diff, exec_score, art, pen, bal, dyn, com, competition] of raw) {
