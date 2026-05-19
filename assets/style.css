@@ -703,7 +703,7 @@
     #landing-view .v3-sport.wag  { background-image: linear-gradient(to bottom, rgba(20,5,60,0.45) 0%, rgba(20,5,60,0.75) 100%), url('/assets/images/WAG_button.jpg'); }
     #landing-view .v3-sport.mag  { background-image: linear-gradient(to bottom, rgba(0,30,15,0.45) 0%, rgba(0,30,15,0.75) 100%), url('/assets/images/MAG_button.jpg'); }
     #landing-view .v3-sport.acro { background-image: linear-gradient(to bottom, rgba(40,15,0,0.45) 0%, rgba(40,15,0,0.75) 100%), url('/assets/images/ACRO_button.jpg'); }
-    #landing-view .v3-sport.game { background-image: linear-gradient(to bottom, rgba(26,13,46,0.45) 0%, rgba(59,26,106,0.75) 100%), url('/assets/images/GAME_button.jpg'); background-size: cover; background-position: center; background-color: #2a1045; }
+    #landing-view .v3-sport.game { background-image: linear-gradient(to bottom, rgba(26,13,46,0.45) 0%, rgba(59,26,106,0.75) 100%), url('/assets/images/stickit_playnow.jpg'); background-size: cover; background-position: center; background-color: #2a1045; }
     #landing-view .v3-sport.cal  { background: linear-gradient(135deg, #0d1f3c 0%, #1a3a6a 100%); }
     #landing-view .v3-sport .top { display: flex; justify-content: space-between; align-items: flex-start; }
     #landing-view .v3-sport .code {
