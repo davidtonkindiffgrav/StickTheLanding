@@ -41,6 +41,21 @@
       #portrait-blocker .icon { font-size: 52px; line-height: 1; }
       #portrait-blocker .label { font-size: 18px; margin: 0; opacity: 0.75; }
       @media (orientation: portrait) { #portrait-blocker { display: flex; } }
+
+      /* On touch devices: canvas goes fullscreen and header is hidden */
+      @media (hover: none) and (pointer: coarse) {
+        #unity-canvas {
+          position: fixed !important;
+          top: 0 !important;
+          left: 0 !important;
+          width: 100% !important;
+          height: 100% !important;
+          touch-action: none;
+          z-index: 10;
+        }
+        .blog-header { display: none; }
+        body { overflow: hidden; }
+      }
     </style>
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-8302214774959598" crossorigin="anonymous"></script>
   </head>
@@ -70,21 +85,10 @@
     <script src="Build/SecondTestBuild.loader.js"></script>
     <script>
       if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
-        // Mobile device style: fill the whole browser client area with the game canvas:
         var meta = document.createElement('meta');
         meta.name = 'viewport';
         meta.content = 'width=device-width, height=device-height, initial-scale=1.0, user-scalable=no, shrink-to-fit=yes';
         document.getElementsByTagName('head')[0].appendChild(meta);
-
-        var canvas = document.querySelector("#unity-canvas");
-        canvas.style.width = "100%";
-        canvas.style.height = "100%";
-        canvas.style.position = "fixed";
-        canvas.style.top = "0";
-        canvas.style.left = "0";
-        document.body.style.overflow = "hidden";
-
-        document.body.style.textAlign = "left";
       }
 
       createUnityInstance(document.querySelector("#unity-canvas"), {
