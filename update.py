@@ -89,8 +89,9 @@ def _strip_colour(raw: str, aliases: dict):
 
 
 def normalise_clubs(competitions: list, aliases: dict, overrides: dict) -> None:
-    by_comp    = overrides.get("by_competition", {})
-    hosts      = overrides.get("hosts", {})
+    by_comp        = overrides.get("by_competition", {})
+    hosts          = overrides.get("hosts", {})
+    name_corrections = overrides.get("name_corrections", {})
     by_athlete = {
         (e["competition"], e["athlete"]): e["club"]
         for e in overrides.get("by_athlete", [])
@@ -102,6 +103,8 @@ def normalise_clubs(competitions: list, aliases: dict, overrides: dict) -> None:
         host          = hosts.get(comp_name)
         for ev in comp.get("events", []):
             for r in ev.get("results", []):
+                if r.get("athlete") in name_corrections:
+                    r["athlete"] = name_corrections[r["athlete"]]
                 raw = (r.get("club") or "").upper()
                 if raw in aliases:
                     r["club"] = aliases[raw]

@@ -28,6 +28,11 @@
     { "_comment": "Format: { competition, athlete (exact name), club (canonical code) }" }
   ],
 
+  "name_corrections": {
+    "_comment": "Global athlete name corrections — applied whenever the wrong spelling is seen regardless of competition. Format: { \"Wrong Spelling\": \"Correct Spelling\" }",
+    "Darby Westin": "Darby Weston"
+  },
+
   "mixed_groups": {
     "_comment": "Competition name → list of club codes that are mixed/composite groups and should not appear in team standings rankings."
   }

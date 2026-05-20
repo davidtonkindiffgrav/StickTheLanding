@@ -142,13 +142,16 @@ _SE_ET_MAP = {
 # International level codes (101-105) — no division, no numeric level in filename
 # More-specific keywords must appear before the generic ones (first match wins).
 _INT_LEVEL_KEYWORDS = [
-    ("developing international 16", 105),  # "16+" / open age group — check before generic DI
+    ("developing international 16", 105),  # most specific — check before generic DI
     ("developing international",     101),
+    ("developing open",              105),  # DO = Developing Open (16+ age group)
+    ("developing 16",                105),  # filename pattern "Developing 16+" or "Developing 16-18"
+    ("developing 13",                101),  # filename pattern "Developing 13-15yrs"
     ("future international",         102),
     ("junior international",         103),
     ("senior international",         104),
 ]
-INT_LEVEL_LABELS = {101: "Dev Int", 102: "Fut Int", 103: "Jun Int", 104: "Sen Int", 105: "Dev Int 16+"}
+INT_LEVEL_LABELS = {101: "Dev Int", 102: "Fut Int", 103: "Jun Int", 104: "Sen Int", 105: "Dev Open"}
 
 
 # ---------------------------------------------------------------------------
