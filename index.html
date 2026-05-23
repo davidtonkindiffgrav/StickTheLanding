@@ -2614,7 +2614,10 @@ initClubDirectory();
     const ctx = document.getElementById('graph-canvas-composite').getContext('2d');
 
     if (type === 'radar') {
-      const top = Math.ceil(Math.max(...avg, 10) / 2) * 2;
+      const minVal = Math.max(0, Math.floor(Math.min(...avg) - 1));
+      const top    = Math.ceil(Math.max(...avg) + 0.5);
+      const range  = top - minVal;
+      const step   = range <= 4 ? 0.5 : 1;
       _gCompChart = new Chart(ctx, {
         type: 'radar',
         data: {
@@ -2638,8 +2641,8 @@ initClubDirectory();
           },
           scales: {
             r: {
-              min: 0, max: top,
-              ticks: { color: '#8888aa', backdropColor: 'transparent', font: { size: 10 }, stepSize: Math.max(1, Math.round(top / 4)) },
+              min: minVal, max: top,
+              ticks: { color: '#8888aa', backdropColor: 'transparent', font: { size: 10 }, stepSize: step, callback: v => v.toFixed(1) },
               grid: GRID, angleLines: GRID,
               pointLabels: { color: colors, font: { size: 12, weight: '700' } },
             },
@@ -2661,9 +2664,9 @@ initClubDirectory();
           }],
         },
         options: {
-          responsive: true, aspectRatio: 1.3,
+          responsive: true, aspectRatio: 1.1,
           plugins: {
-            legend: { position: 'bottom', labels: LEG },
+            legend: { position: 'right', labels: LEG },
             tooltip: {
               callbacks: {
                 label: i => {
