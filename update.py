@@ -20,6 +20,7 @@ from pathlib import Path
 sys.stdout.reconfigure(encoding="utf-8", errors="replace")
 
 import db
+from date_extractor import resolve_comp_date
 from pdf_parser import parse_pdf, group_into_competitions
 
 PDF_ROOT       = Path("pdfs")
@@ -559,6 +560,7 @@ def main():
     print(f"\nParsing {len(to_parse)} new PDF(s)...")
     new_entries = []
     newly_processed = []
+    comp_pdfs: dict[str, list] = {}  # comp name -> PDFs parsed this run
 
     url_map = load_url_map()
 
@@ -572,6 +574,7 @@ def main():
             db.add_processed_file(con, key, cname)
             con.commit()
             continue
+        comp_pdfs.setdefault(cname, []).append(pdf)
         try:
             events, method = parse_pdf(pdf, sport=sport)
             total = sum(len(e.get("results", [])) for e in events)
@@ -593,6 +596,16 @@ def main():
     new_comps = group_into_competitions(new_entries, sport=sport)
     normalise_clubs(new_comps, aliases, overrides)
     merge_to_db(con, new_comps)
+
+    # Resolve competition dates from PDF content or calendar
+    missing_dates = []
+    for comp in new_comps:
+        pdfs_for_comp = comp_pdfs.get(comp["name"], [])
+        date_val = resolve_comp_date(comp["name"], pdfs_for_comp)
+        if date_val:
+            db.set_competition_date(con, comp["id"], date_val)
+        else:
+            missing_dates.append(f"{comp['name']} ({sport})")
 
     # Record processed files
     for key, cname in newly_processed:
@@ -616,6 +629,11 @@ def main():
     total_comps    = con.execute("SELECT COUNT(*) FROM competitions").fetchone()[0]
     print(f"\nDone — {total_comps} competition(s), {total_athletes} total athletes.")
     print("Refresh http://localhost:8080 to see updates.")
+
+    if missing_dates:
+        print("\nCould not find dates for the following competitions — please enter manually:")
+        for name in missing_dates:
+            print(f"  - {name}")
 
 
 def _cmd_resolve_urls(con) -> None:

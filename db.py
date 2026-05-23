@@ -37,7 +37,8 @@ def create_schema(con: sqlite3.Connection) -> None:
             id      TEXT PRIMARY KEY,
             name    TEXT NOT NULL,
             season  TEXT NOT NULL,
-            sport   TEXT NOT NULL
+            sport   TEXT NOT NULL,
+            date    TEXT
         );
 
         CREATE TABLE IF NOT EXISTS events (
@@ -105,6 +106,10 @@ def create_schema(con: sqlite3.Connection) -> None:
             con.execute(f"ALTER TABLE events ADD COLUMN {col}")
         except Exception:
             pass
+    try:
+        con.execute("ALTER TABLE competitions ADD COLUMN date TEXT")
+    except Exception:
+        pass
     con.commit()
 
 
@@ -138,8 +143,16 @@ def add_processed_file(con: sqlite3.Connection, key: str, comp_name: str) -> Non
 
 def upsert_competition(con: sqlite3.Connection, comp: dict) -> None:
     con.execute(
-        "INSERT OR IGNORE INTO competitions (id, name, season, sport) VALUES (?, ?, ?, ?)",
-        (comp["id"], comp["name"], comp.get("season", str(datetime.date.today().year)), comp.get("sport", "WAG")),
+        "INSERT OR IGNORE INTO competitions (id, name, season, sport, date) VALUES (?, ?, ?, ?, ?)",
+        (comp["id"], comp["name"], comp.get("season", str(datetime.date.today().year)), comp.get("sport", "WAG"), comp.get("date")),
+    )
+
+
+def set_competition_date(con: sqlite3.Connection, comp_id: str, date_str: str) -> None:
+    """Set date on a competition only if it has no date yet (never overwrites a manual entry)."""
+    con.execute(
+        "UPDATE competitions SET date = ? WHERE id = ? AND date IS NULL",
+        (date_str, comp_id),
     )
 
 
@@ -236,7 +249,8 @@ def create_acro_schema(con: sqlite3.Connection) -> None:
             id      TEXT PRIMARY KEY,
             name    TEXT NOT NULL,
             season  TEXT NOT NULL,
-            sport   TEXT NOT NULL
+            sport   TEXT NOT NULL,
+            date    TEXT
         );
 
         CREATE TABLE IF NOT EXISTS events (
@@ -282,6 +296,11 @@ def create_acro_schema(con: sqlite3.Connection) -> None:
         CREATE INDEX IF NOT EXISTS idx_comp_sport_season ON competitions(sport, season);
     """)
     con.commit()
+    try:
+        con.execute("ALTER TABLE competitions ADD COLUMN date TEXT")
+        con.commit()
+    except Exception:
+        pass
 
 
 def insert_acro_event(con, competition_id, ev):
