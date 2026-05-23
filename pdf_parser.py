@@ -177,7 +177,45 @@ def _clean_name(name):
             joined[-1] += tok
         else:
             joined.append(tok)
-    return " ".join(joined)
+    return _normalise_name(" ".join(joined))
+
+
+def _normalise_name(name):
+    """Normalise athlete name to consistent title case.
+
+    Handles: Mc/Mac prefixes, O'/D' prefixes, hyphens, parenthetical
+    nicknames, and lowercase Dutch/French particles (van, der, de, von, le, la).
+    """
+    if not name or name.startswith("["):
+        return name
+    _PARTICLES = {"van", "der", "de", "von", "le", "la", "du", "den"}
+    def _cap(part):
+        if not part:
+            return part
+        # Parenthetical nickname: (judy) -> (Judy)
+        if part.startswith("(") and part.endswith(")") and len(part) > 2:
+            return "(" + _cap(part[1:-1]) + ")"
+        up = part.upper()
+        if up.startswith("D'") and len(part) > 2:
+            return "D'" + part[2:].capitalize()
+        if up.startswith("O'") and len(part) > 2:
+            return "O'" + part[2:].capitalize()
+        # Mac prefix: require at least 3 chars after "Mac" (avoids Macy, Macey, Macie)
+        if up.startswith("MAC") and len(part) > 5:
+            return "Mac" + part[3:].capitalize()
+        if up.startswith("MC") and len(part) > 2:
+            return "Mc" + part[2:].capitalize()
+        return part.capitalize()
+    words = name.split()
+    result = []
+    for word in words:
+        if word.lower() in _PARTICLES:
+            result.append(word.lower())
+        elif "-" in word:
+            result.append("-".join(_cap(p) for p in word.split("-")))
+        else:
+            result.append(_cap(word))
+    return " ".join(result)
 
 
 def _parse_score(s):
@@ -1286,7 +1324,7 @@ def parse_wg(text_pages, pdf_path):
 
             results.append({
                 "rank":    rank,
-                "athlete": " ".join(name_parts),
+                "athlete": _normalise_name(" ".join(name_parts)),
                 "club":    " ".join(club_parts).upper(),
                 "vault":   vault,
                 "bars":    bars,
