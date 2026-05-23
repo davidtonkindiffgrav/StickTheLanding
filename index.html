@@ -20,6 +20,7 @@
   {"@context":"https://schema.org","@type":"WebSite","name":"Stick The Landing","url":"https://stickthelanding.com.au","description":"Season leaderboards for Victorian artistic gymnastics — WAG and MAG competition scores across every level, apparatus, and round of the Victorian season."}
   </script>
   <script src="sql/sql-httpvfs.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
   <link rel="apple-touch-icon" sizes="180x180" href="/assets/favicons/apple-touch-icon.png" />
   <link rel="icon" type="image/png" sizes="32x32" href="/assets/favicons/favicon-32x32.png" />
   <link rel="icon" type="image/png" sizes="16x16" href="/assets/favicons/favicon-16x16.png" />
@@ -181,6 +182,7 @@
     <button data-view="competitions">Competitions</button>
     <button data-view="club-directory">Clubs</button>
     <button onclick="showCalendar('app')">Events</button>
+    <button data-view="graphs">Graphs</button>
     <button onclick="showContact('app')" style="margin-left:auto">Contact</button>
   </nav>
   <nav id="apparatus-nav">
@@ -289,6 +291,65 @@
         <h2 id="search-view-title" style="margin:0;font-size:1.2rem"></h2>
       </div>
       <div id="search-view-content"></div>
+    </section>
+
+    <!-- GRAPHS -->
+    <section class="view" id="view-graphs">
+      <div class="graph-container">
+        <div class="graph-search-bar">
+          <div class="search-input-wrap">
+            <span class="search-icon"><i class="fas fa-search"></i></span>
+            <input type="text" id="graph-athlete-input" placeholder="Search for an athlete…" autocomplete="off" spellcheck="false">
+          </div>
+          <div id="graph-athlete-suggestions" style="display:none"></div>
+        </div>
+
+        <div id="graph-placeholder" class="graph-empty">
+          <i class="fas fa-chart-line"></i>
+          <p>Search for an athlete to see their scores over time</p>
+        </div>
+
+        <div id="graph-content" style="display:none">
+          <p class="graph-athlete-heading" id="graph-athlete-label"></p>
+
+          <div id="graph-level-filter" style="display:none;margin-bottom:4px">
+            <div class="graph-type-row" id="graph-level-btns"></div>
+          </div>
+
+          <div class="graph-type-row" id="graph-type-row">
+            <button class="active" data-gtype="line"><i class="fas fa-chart-line"></i> Line</button>
+            <button data-gtype="bar"><i class="fas fa-chart-bar"></i> Bar</button>
+            <button data-gtype="radar"><i class="fas fa-bullseye"></i> Radar</button>
+            <button data-gtype="pie"><i class="fas fa-chart-pie"></i> Pie</button>
+          </div>
+
+          <!-- Line / Bar -->
+          <div id="graph-timeseries">
+            <div class="graph-canvas-card" id="graph-app-card">
+              <p class="graph-canvas-label">Apparatus Scores</p>
+              <canvas id="graph-canvas-app"></canvas>
+            </div>
+            <div class="graph-canvas-card">
+              <p class="graph-canvas-label">All-Around Total</p>
+              <canvas id="graph-canvas-aa"></canvas>
+            </div>
+          </div>
+
+          <!-- Radar / Pie -->
+          <div id="graph-composite" style="display:none">
+            <div class="graph-slider-card">
+              <label>Avg of last <strong id="graph-n-val">5</strong> complete results</label>
+              <input type="range" id="graph-n-slider" min="1" max="5" value="5">
+              <span class="graph-slider-note" id="graph-n-note"></span>
+            </div>
+            <div class="graph-canvas-card">
+              <div class="graph-composite-inner">
+                <canvas id="graph-canvas-composite"></canvas>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
     </section>
   </main>
 </div>
@@ -575,12 +636,14 @@ async function enterSport(sport) {
   buildLevelFilters();
   buildRegionFilters();
 
+  history.replaceState(null, "", "#" + sport + "/clubs");
   const firstLevelBtn = document.querySelector("#level-filter-bar .filter-btn");
   if (firstLevelBtn) firstLevelBtn.click();
   else render();
 }
 
 function exitToLanding() {
+  history.replaceState(null, "", location.pathname);
   document.documentElement.removeAttribute('data-sport');
   document.getElementById("app-shell").style.display  = "none";
   document.getElementById("landing-view").style.display = "";
@@ -767,6 +830,12 @@ function calFormatDate(s, e) {
   if (sd.getMonth() === ed.getMonth() && sd.getFullYear() === ed.getFullYear())
     return `${sd.getDate()}–${ed.toLocaleDateString("en-AU", { ...o, year: "numeric" })}`;
   return `${sd.toLocaleDateString("en-AU", o)} – ${ed.toLocaleDateString("en-AU", { ...o, year: "numeric" })}`;
+}
+
+function fmtCompDate(dateStr) {
+  if (!dateStr) return "";
+  const d = new Date(dateStr + "T00:00:00");
+  return d.toLocaleDateString("en-AU", { day: "numeric", month: "short", year: "numeric" });
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -1144,14 +1213,14 @@ async function renderCompetitions() {
   const grid = document.getElementById("comp-grid");
 
   const raw = _execRows(await DB.exec(`
-    SELECT c.id, c.name, COUNT(DISTINCT e.id), COUNT(r.id)
+    SELECT c.id, c.name, COUNT(DISTINCT e.id), COUNT(r.id), c.date
     FROM competitions c
     JOIN events e ON e.competition_id = c.id
     LEFT JOIN results r ON r.event_id = e.id
     WHERE c.sport = ? AND c.season = ?
-    GROUP BY c.id ORDER BY c.name
+    GROUP BY c.id ORDER BY c.date, c.name
   `, [currentSport, currentSeason]));
-  _compList = raw.map(([id, name, event_count, athlete_count]) => ({ id, name, event_count, athlete_count }));
+  _compList = raw.map(([id, name, event_count, athlete_count, date]) => ({ id, name, event_count, athlete_count, date }));
 
   if (!_compList.length) {
     grid.innerHTML = `<div class="no-data" style="grid-column:1/-1"><strong>No competitions loaded</strong>Run update.py first.</div>`;
@@ -1161,7 +1230,7 @@ async function renderCompetitions() {
   grid.innerHTML = _compList.map((c, i) => `
     <div class="comp-card">
       <h3>${esc(c.name)}</h3>
-      <p class="comp-meta">${c.event_count} event(s) &bull; ${c.athlete_count} athlete result(s)</p>
+      <p class="comp-meta">${c.date ? `<i class="fas fa-calendar-alt"></i> ${fmtCompDate(c.date)} &bull; ` : ''}${c.event_count} event(s) &bull; ${c.athlete_count} athlete result(s)</p>
       <span class="comp-pill">${esc(currentSport)} · ${esc(currentSeason)}</span>
       <div class="comp-actions">
         <button class="comp-btn btn-results" data-idx="${i}">Results</button>
@@ -1477,14 +1546,23 @@ let _pendingAthlete    = null;  // athlete name confirmed via suggestion or inpu
 
 async function loadAthleteList() {
   const rows = _execRows(await DB.exec(`
-    SELECT DISTINCT r.athlete, r.club, e.level, e.division, e.age_group
+    SELECT r.athlete, r.club, e.level, e.division, e.age_group,
+           MAX(COALESCE(c.date, c.season)) AS last_date
     FROM results r
     JOIN events e ON r.event_id = e.id
     JOIN competitions c ON e.competition_id = c.id
     WHERE c.sport = ? AND e.event_type != 'Team'
-    ORDER BY r.athlete
+    GROUP BY r.athlete, r.club
+    ORDER BY r.athlete, last_date DESC
   `, [currentSport]));
-  ATHLETE_LIST = rows.map(([athlete, club, level, division, age_group]) => ({ athlete, club, level, division, age_group }));
+  const seen = new Set();
+  ATHLETE_LIST = rows
+    .map(([athlete, club, level, division, age_group]) => ({ athlete, club, level, division, age_group }))
+    .filter(a => {
+      if (seen.has(a.athlete)) return false;
+      seen.add(a.athlete);
+      return true;
+    });
 }
 
 function openSearchPanel() {
@@ -1582,6 +1660,9 @@ function switchToView(view) {
   );
   const isLeaderboard = view === "clubs" || view === "athletes";
   document.getElementById("apparatus-nav").style.display = isLeaderboard ? "" : "none";
+  if (currentSport && view !== "search") {
+    history.replaceState(null, "", "#" + currentSport + "/" + view);
+  }
 }
 
 function clearSearchView() {
@@ -1634,7 +1715,7 @@ async function renderAthleteResults(athleteName) {
       ${clubLogo(club, "club-logo-md", false)}
       <div>
         <div class="ap-name">${esc(athleteName)}</div>
-        <div class="ap-meta">${clubDisplay(club)}</div>
+        <div class="ap-meta">${esc(CLUBS[club] || club)}</div>
       </div>
     </div>
     <div class="card table-card" style="overflow-x:auto">
@@ -2060,9 +2141,15 @@ document.querySelectorAll("#app-nav button[data-view]").forEach(btn => {
     document.querySelectorAll(".view").forEach(v => v.classList.remove("active"));
     btn.classList.add("active");
     document.getElementById(`view-${activeView}`).classList.add("active");
+    if (currentSport) history.replaceState(null, "", "#" + currentSport + "/" + activeView);
 
     const showApparatusNav = activeView === "clubs" || activeView === "athletes";
     document.getElementById("apparatus-nav").style.display = showApparatusNav ? "" : "none";
+
+    if (activeView === "graphs") {
+      setTimeout(() => document.getElementById("graph-athlete-input").focus(), 50);
+      return;
+    }
 
     if (activeLevel === null) {
       const barId   = activeView === "athletes" ? "#athlete-level-filter-bar" : "#level-filter-bar";
@@ -2264,6 +2351,362 @@ function render() {
 initClubDirectory();
 
 // ─────────────────────────────────────────────────────────────────────────────
+// GRAPHS
+// ─────────────────────────────────────────────────────────────────────────────
+(function () {
+  let _gRows         = [];   // all result rows for current athlete (chron. order)
+  let _gFilteredRows = [];   // _gRows filtered to the active level group
+  let _gCompleteRows = [];   // _gFilteredRows with all apparatus non-zero (newest first)
+  let _gActiveLevel  = null; // 'compulsory' | 'optional' | null
+  let _gType       = 'line';
+  let _gAppChart   = null;
+  let _gAaChart    = null;
+  let _gCompChart  = null;
+  let _gDebounce   = null;
+
+  // Apparatus keys per sport (excludes AA)
+  const G_APP_KEYS = { WAG: ['VT','UB','BB','FX'], MAG: ['VT','FX','PH','SR','PB','HB'], ACRO: [] };
+  // Apparatus key → results row property name
+  const G_COL = { VT:'vault', UB:'bars', BB:'beam', FX:'floor', PH:'pommel', SR:'rings', PB:'pbars', HB:'hbar' };
+  // Fixed colour per apparatus
+  const G_COLOR = {
+    VT: '#4e8ef7', UB: '#a855f7', BB: '#14b8a6', FX: '#f97316',
+    PH: '#ef4444', SR: '#eab308', PB: '#8b5cf6', HB: '#22c55e',
+  };
+
+  function _label(r) {
+    const n = r.name;
+    return n.length > 20 ? n.slice(0, 18) + '…' : n;
+  }
+
+  function _destroy() {
+    [_gAppChart, _gAaChart, _gCompChart].forEach(c => { try { c && c.destroy(); } catch(_){} });
+    _gAppChart = _gAaChart = _gCompChart = null;
+  }
+
+  const TICK  = { color: '#8888aa', font: { size: 11 } };
+  const GRID  = { color: '#2e2e42' };
+  const LEG   = { color: '#e8e8f0', padding: 12, font: { size: 12 } };
+
+  function _xScale()  { return { ticks: { ...TICK, maxRotation: 45 }, grid: GRID }; }
+  function _yScale(t) { return { title: { display: !!t, text: t || '', color: '#8888aa', font: { size: 11 } }, ticks: TICK, grid: GRID }; }
+  function _tooltipTitle(items) {
+    const r = _gFilteredRows[items[0].dataIndex];
+    return r.name + (r.date ? ' · ' + r.date : ' · ' + r.season);
+  }
+  function _tooltipLabel(item) {
+    return item.dataset.label + ': ' + (item.raw != null ? item.raw.toFixed(3) : '—');
+  }
+
+  function _baseLine(color, type) {
+    return {
+      borderColor: color,
+      backgroundColor: type === 'bar' ? color + '99' : color + '22',
+      borderWidth: type === 'bar' ? 0 : 2,
+      pointRadius: type === 'bar' ? 0 : 4,
+      pointHoverRadius: type === 'bar' ? 0 : 6,
+      tension: 0.35,
+      spanGaps: false,
+    };
+  }
+
+  // ── search ─────────────────────────────────────────────────────────────────
+  function onInput(val) {
+    clearTimeout(_gDebounce);
+    const q = val.trim().toLowerCase();
+    const sug = document.getElementById('graph-athlete-suggestions');
+    if (q.length < 2) { sug.style.display = 'none'; sug.innerHTML = ''; return; }
+    // Reset placeholder to default in case a previous selection showed the info message
+    const ph = document.getElementById('graph-placeholder');
+    if (!ph.querySelector('i.fa-chart-line')) {
+      ph.innerHTML = '<i class="fas fa-chart-line"></i><p>Search for an athlete to see their scores over time</p>';
+    }
+    _gDebounce = setTimeout(() => {
+      const matches = ATHLETE_LIST.filter(a => a.athlete.toLowerCase().includes(q)).slice(0, 10);
+      if (!matches.length) {
+        sug.innerHTML = '<div class="search-suggestion-item" style="cursor:default;color:var(--muted)">No athletes found</div>';
+      } else {
+        sug.innerHTML = matches.map(a => `
+          <div class="search-suggestion-item" data-athlete="${esc(a.athlete)}">
+            <span class="sug-name">${esc(a.athlete)}</span>
+            ${clubLogo(a.club, 'club-logo-lg', false)}
+            <span class="sug-meta">${esc(CLUBS[a.club] || a.club)} · ${levelDivDisplay(a.level, a.division, a.age_group)}</span>
+          </div>`).join('');
+        sug.querySelectorAll('.search-suggestion-item[data-athlete]').forEach(el => {
+          el.addEventListener('click', () => {
+            document.getElementById('graph-athlete-input').value = el.dataset.athlete;
+            sug.style.display = 'none';
+            loadAthleteGraph(el.dataset.athlete);
+          });
+        });
+      }
+      sug.style.display = 'block';
+    }, 180);
+  }
+
+  // ── data load ──────────────────────────────────────────────────────────────
+  async function loadAthleteGraph(name) {
+    const raw = _execRows(await DB.exec(`
+      SELECT c.name, COALESCE(c.date, c.season || '-06-01') AS sort_date,
+             c.date, c.season,
+             r.vault, r.bars, r.beam, r.floor, r.total,
+             r.pommel, r.rings, r.pbars, r.hbar,
+             e.level, e.division, e.age_group
+      FROM results r
+      JOIN events e ON r.event_id = e.id
+      JOIN competitions c ON e.competition_id = c.id
+      WHERE r.athlete = ? AND c.sport = ? AND e.event_type != 'Team'
+      ORDER BY sort_date, c.name
+    `, [name, currentSport]));
+
+    _gRows = raw.map(r => ({
+      name: r[0], sortDate: r[1], date: r[2], season: r[3],
+      vault: r[4], bars: r[5], beam: r[6], floor: r[7], total: r[8],
+      pommel: r[9], rings: r[10], pbars: r[11], hbar: r[12],
+      level: r[13], division: r[14], ageGroup: r[15],
+    }));
+
+    // Determine which level groups the athlete has data for
+    const hasCompulsory = _gRows.some(r => r.level !== null && r.level <= 6);
+    const hasOptional   = _gRows.some(r => r.level !== null && r.level > 6);
+
+    // Set up level group selector
+    const lvlFilter = document.getElementById('graph-level-filter');
+    const lvlBtns   = document.getElementById('graph-level-btns');
+    lvlBtns.innerHTML = '';
+    if (hasCompulsory && hasOptional) {
+      [['compulsory', 'Compulsory'], ['optional', 'Optionals']].forEach(([val, label]) => {
+        const btn = document.createElement('button');
+        btn.textContent = label;
+        btn.dataset.glevel = val;
+        if (val === 'optional') btn.classList.add('active');
+        btn.addEventListener('click', () => {
+          document.querySelectorAll('#graph-level-btns button').forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          _gActiveLevel = val;
+          _applyLevelFilter();
+          _show(_gType);
+        });
+        lvlBtns.appendChild(btn);
+      });
+      lvlFilter.style.display = '';
+      _gActiveLevel = 'optional';
+    } else {
+      lvlFilter.style.display = 'none';
+      _gActiveLevel = hasOptional ? 'optional' : 'compulsory';
+    }
+
+    _applyLevelFilter();
+
+    const distinctComps = new Set(_gFilteredRows.map(r => r.name)).size;
+    if (distinctComps <= 1) {
+      document.getElementById('graph-placeholder').style.display = '';
+      document.getElementById('graph-placeholder').innerHTML =
+        '<i class="fas fa-info-circle"></i><p>This gymnast needs results from more than one competition to display a graph.</p>';
+      document.getElementById('graph-content').style.display = 'none';
+      return;
+    }
+
+    document.getElementById('graph-placeholder').style.display = 'none';
+    document.getElementById('graph-content').style.display = '';
+    document.getElementById('graph-athlete-label').textContent = name;
+
+    // Reset to line chart on new athlete
+    _gType = 'line';
+    document.querySelectorAll('#graph-type-row button').forEach(b =>
+      b.classList.toggle('active', b.dataset.gtype === 'line')
+    );
+    _show('line');
+  }
+
+  // ── level filter ───────────────────────────────────────────────────────────
+  function _applyLevelFilter() {
+    const appKeys = G_APP_KEYS[currentSport] || [];
+    _gFilteredRows = _gActiveLevel === 'compulsory'
+      ? _gRows.filter(r => r.level <= 6)
+      : _gRows.filter(r => r.level > 6);
+    _gCompleteRows = [..._gFilteredRows].reverse()
+      .filter(r => appKeys.every(k => r[G_COL[k]] > 0));
+    const nMax   = _gCompleteRows.length;
+    const slider = document.getElementById('graph-n-slider');
+    const curN   = Math.min(nMax, parseInt(slider.value, 10) || 5);
+    slider.max      = Math.max(nMax, 1);
+    slider.value    = curN;
+    slider.disabled = nMax === 0;
+    document.getElementById('graph-n-val').textContent  = curN;
+    document.getElementById('graph-n-note').textContent = 'of ' + nMax + ' complete';
+  }
+
+  // ── render dispatcher ──────────────────────────────────────────────────────
+  function _show(type) {
+    _gType = type;
+    const isTime = type === 'line' || type === 'bar';
+    document.getElementById('graph-timeseries').style.display = isTime ? '' : 'none';
+    document.getElementById('graph-composite').style.display  = isTime ? 'none' : '';
+    if (isTime) _renderTime(type);
+    else        _renderComp(type, parseInt(document.getElementById('graph-n-slider').value, 10));
+  }
+
+  // ── time-series chart ──────────────────────────────────────────────────────
+  function _renderTime(type) {
+    _destroy();
+    const appKeys  = G_APP_KEYS[currentSport] || [];
+    const appNames = appName();
+    const labels   = _gFilteredRows.map(_label);
+    const cb       = { title: _tooltipTitle, label: _tooltipLabel };
+
+    // Apparatus card visibility
+    document.getElementById('graph-app-card').style.display = appKeys.length ? '' : 'none';
+
+    if (appKeys.length) {
+      const datasets = appKeys.map(k => ({
+        label: appNames[k] || k,
+        data:  _gFilteredRows.map(r => { const v = r[G_COL[k]]; return (v != null && v > 0) ? v : null; }),
+        ..._baseLine(G_COLOR[k], type),
+      }));
+      _gAppChart = new Chart(document.getElementById('graph-canvas-app').getContext('2d'), {
+        type,
+        data: { labels, datasets },
+        options: {
+          responsive: true, maintainAspectRatio: true, aspectRatio: 2.5,
+          interaction: { mode: 'index', intersect: false },
+          plugins: { legend: { labels: LEG }, tooltip: { callbacks: cb } },
+          scales: { x: _xScale(), y: _yScale('Score') },
+        },
+      });
+    }
+
+    const aaData = _gFilteredRows.map(r => (r.total != null && r.total > 0) ? r.total : null);
+    _gAaChart = new Chart(document.getElementById('graph-canvas-aa').getContext('2d'), {
+      type,
+      data: { labels, datasets: [{ label: 'All-Around', data: aaData, ..._baseLine('#f5c518', type) }] },
+      options: {
+        responsive: true, maintainAspectRatio: true, aspectRatio: 3,
+        interaction: { mode: 'index', intersect: false },
+        plugins: { legend: { display: false }, tooltip: { callbacks: cb } },
+        scales: { x: _xScale(), y: _yScale('AA Total') },
+      },
+    });
+  }
+
+  // ── composite chart (radar / pie) ──────────────────────────────────────────
+  function _renderComp(type, n) {
+    _destroy();
+    const appKeys = G_APP_KEYS[currentSport] || [];
+
+    if (!appKeys.length) {
+      document.getElementById('graph-n-note').textContent = 'Not available for this sport';
+      document.getElementById('graph-n-slider').disabled = true;
+      return;
+    }
+
+    const selected = _gCompleteRows.slice(0, n);
+    if (!selected.length) return;
+
+    const appNames = appName();
+    const lbl    = appKeys.map(k => appNames[k] || k);
+    const colors = appKeys.map(k => G_COLOR[k]);
+    const avg    = appKeys.map(k => {
+      const col = G_COL[k];
+      return selected.reduce((a, r) => a + r[col], 0) / selected.length;
+    });
+
+    const ctx = document.getElementById('graph-canvas-composite').getContext('2d');
+
+    if (type === 'radar') {
+      const top = Math.ceil(Math.max(...avg, 10) / 2) * 2;
+      _gCompChart = new Chart(ctx, {
+        type: 'radar',
+        data: {
+          labels: lbl,
+          datasets: [{
+            label: 'Avg · last ' + n,
+            data: avg,
+            backgroundColor: 'rgba(124,109,250,0.15)',
+            borderColor:     'rgba(124,109,250,0.85)',
+            borderWidth: 2,
+            pointBackgroundColor: colors,
+            pointBorderColor: '#1a1a24',
+            pointRadius: 5, pointHoverRadius: 7,
+          }],
+        },
+        options: {
+          responsive: true, aspectRatio: 1,
+          plugins: {
+            legend: { labels: LEG },
+            tooltip: { callbacks: { label: i => i.label + ': ' + i.raw.toFixed(3) } },
+          },
+          scales: {
+            r: {
+              min: 0, max: top,
+              ticks: { color: '#8888aa', backdropColor: 'transparent', font: { size: 10 }, stepSize: Math.max(1, Math.round(top / 4)) },
+              grid: GRID, angleLines: GRID,
+              pointLabels: { color: colors, font: { size: 12, weight: '700' } },
+            },
+          },
+        },
+      });
+    } else {
+      _gCompChart = new Chart(ctx, {
+        type: 'pie',
+        data: {
+          labels: lbl,
+          datasets: [{
+            label: 'Avg · last ' + n,
+            data: avg,
+            backgroundColor: colors.map(c => c + 'bb'),
+            borderColor: colors,
+            borderWidth: 2,
+            hoverOffset: 8,
+          }],
+        },
+        options: {
+          responsive: true, aspectRatio: 1.3,
+          plugins: {
+            legend: { position: 'bottom', labels: LEG },
+            tooltip: {
+              callbacks: {
+                label: i => {
+                  const total = i.dataset.data.reduce((a, b) => a + b, 0);
+                  return i.label + ': ' + i.raw.toFixed(3) + ' (' + ((i.raw / total) * 100).toFixed(1) + '%)';
+                },
+              },
+            },
+          },
+        },
+      });
+    }
+  }
+
+  // ── event wiring ───────────────────────────────────────────────────────────
+  document.getElementById('graph-athlete-input').addEventListener('input', e => onInput(e.target.value));
+
+  document.getElementById('graph-n-slider').addEventListener('input', function() {
+    const n = parseInt(this.value, 10);
+    document.getElementById('graph-n-val').textContent = n;
+    if (_gRows.length) _renderComp(_gType, n);
+  });
+
+  document.getElementById('graph-type-row').addEventListener('click', e => {
+    const btn = e.target.closest('[data-gtype]');
+    if (!btn || !_gRows.length) return;
+    document.querySelectorAll('#graph-type-row button').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    _show(btn.dataset.gtype);
+  });
+
+  // Close suggestions when clicking outside
+  document.addEventListener('click', e => {
+    if (!e.target.closest('#graph-athlete-input') && !e.target.closest('#graph-athlete-suggestions')) {
+      document.getElementById('graph-athlete-suggestions').style.display = 'none';
+    }
+  });
+
+  // Expose for nav handler
+  window.loadAthleteGraph = loadAthleteGraph;
+})();
+
+// ─────────────────────────────────────────────────────────────────────────────
 // Tap-friendly tooltip (supplements native title= on desktop)
 // ─────────────────────────────────────────────────────────────────────────────
 (function () {
@@ -2385,6 +2828,18 @@ initClubDirectory();
     if (gb && s.competitions) gb.textContent = s.competitions;
     if (gc && s.routines)     gc.textContent = fmtNum(s.routines);
   }).catch(() => {});
+
+  // ── Hash router: auto-navigate on direct URL load ─────────────────────────
+  (function() {
+    const parts = location.hash.replace("#", "").split("/");
+    const sport = (parts[0] || "").toUpperCase();
+    const view  = parts[1] || "";
+    if (["WAG", "MAG", "ACRO"].includes(sport)) {
+      enterSport(sport).then(() => {
+        if (view && view !== "clubs") switchToView(view);
+      });
+    }
+  })();
 
   (function loadNewsCards() {
     fetch("news/posts/index.json").then(r => r.json()).then(posts => {

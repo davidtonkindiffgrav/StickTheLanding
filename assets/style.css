@@ -1062,3 +1062,41 @@
   .calendar-main { padding: 20px 16px; }
   .cal-event-grid { grid-template-columns: 1fr; }
 }
+
+/* ── GRAPHS VIEW ─────────────────────────────────────────────────────────── */
+#view-graphs { padding: 0; }
+.graph-container { max-width: 960px; margin: 0 auto; padding: 24px; }
+.graph-search-bar { position: relative; max-width: 480px; margin-bottom: 4px; }
+#graph-athlete-suggestions { position: absolute; top: 100%; left: 0; right: 0; background: var(--surface2);
+  border: 1px solid var(--border); border-top: none; border-radius: 0 0 var(--radius) var(--radius);
+  overflow: hidden; z-index: 200; }
+.graph-type-row { display: flex; gap: 8px; margin: 16px 0 24px; flex-wrap: wrap; }
+.graph-type-row button { display: flex; align-items: center; gap: 7px; padding: 7px 16px;
+  border: 1px solid var(--border); background: var(--surface); color: var(--text);
+  border-radius: 999px; cursor: pointer; font-size: 0.85rem; font-weight: 600;
+  transition: all 0.15s; font-family: inherit; }
+.graph-type-row button:hover { border-color: var(--accent); color: var(--accent); }
+.graph-type-row button.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+.graph-canvas-card { background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 20px 20px 14px; margin-bottom: 20px; }
+.graph-canvas-label { font-size: 0.74rem; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 0.12em; color: var(--muted); margin-bottom: 14px;
+  font-family: 'JetBrains Mono', monospace; }
+.graph-composite-inner { max-width: 460px; margin: 0 auto; }
+.graph-slider-card { display: flex; align-items: center; gap: 14px; flex-wrap: wrap;
+  background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+  padding: 14px 20px; margin-bottom: 20px; }
+.graph-slider-card label { font-size: 0.92rem; color: var(--text); white-space: nowrap; }
+.graph-slider-card input[type=range] { flex: 1; min-width: 100px; accent-color: var(--accent); cursor: pointer; }
+.graph-slider-note { font-size: 0.78rem; color: var(--muted); white-space: nowrap; }
+.graph-empty { text-align: center; padding: 80px 24px; color: var(--muted); }
+.graph-empty i { font-size: 3rem; display: block; margin-bottom: 16px; opacity: 0.3; }
+.graph-empty p { font-size: 1rem; }
+.graph-athlete-heading { font-size: 1.25rem; font-weight: 700; margin-bottom: 18px; }
+
+@media (max-width: 600px) {
+  .graph-container { padding: 14px; }
+  .graph-composite-inner { max-width: 100%; }
+  .graph-type-row button { padding: 6px 12px; font-size: 0.82rem; gap: 5px; }
+  .graph-slider-card { gap: 10px; }
+}
