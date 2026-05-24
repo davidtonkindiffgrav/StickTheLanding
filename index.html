@@ -565,7 +565,7 @@ async function initDB() {
 
   const cfgResp   = await fetch(new URL(`data/dbconfig_${currentSport}.json`, location.href).toString(), { cache: "no-cache" });
   const dbCfg     = await cfgResp.json();
-  const dbUrl     = new URL(`data/stick_${currentSport}.db?v=${dbCfg.rev ?? dbCfg.fileLength}`, location.href).toString();
+  const dbUrl     = new URL(`data/stick_${currentSport}.db?v=${dbCfg.fileLength}`, location.href).toString();
   dbCfg.url       = dbUrl;
   const worker    = await createDbWorker(
     [{ from: "inline", config: dbCfg }],
