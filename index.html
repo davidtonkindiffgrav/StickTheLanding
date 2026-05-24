@@ -540,7 +540,7 @@ let _calendarFrom   = "landing";
 let _calendarData   = null;
 let _calSportFilter = "ALL";
 
-let ATHLETE_LIST      = [];  // { athlete, club, level, division } - loaded once at sport entry
+let ATHLETE_LIST      = [];  // { athlete, club, level, division } - loaded lazily on first search
 let _searchDebounce   = null;
 let _browseCompId     = null;
 
@@ -609,7 +609,7 @@ async function enterSport(sport) {
     }
 
     await reloadLevelDivs();
-    if (sport !== "ACRO") await loadAthleteList();
+    ATHLETE_LIST = [];
   } catch (e) {
     showLoading(false);
     document.getElementById("landing-view").style.display = "";
@@ -1565,7 +1565,13 @@ async function loadAthleteList() {
     });
 }
 
-function openSearchPanel() {
+async function ensureAthleteList() {
+  if (currentSport === "ACRO" || ATHLETE_LIST.length > 0) return;
+  await loadAthleteList();
+}
+
+async function openSearchPanel() {
+  await ensureAthleteList();
   document.getElementById("search-overlay").classList.add("open");
   document.getElementById("search-input").value = "";
   document.getElementById("search-suggestions").style.display = "none";
@@ -2421,7 +2427,8 @@ initClubDirectory();
     if (!ph.querySelector('i.fa-chart-line')) {
       ph.innerHTML = '<i class="fas fa-chart-line"></i><p>Search for an athlete to see their scores over time</p>';
     }
-    _gDebounce = setTimeout(() => {
+    _gDebounce = setTimeout(async () => {
+      await ensureAthleteList();
       const matches = ATHLETE_LIST.filter(a => a.athlete.toLowerCase().includes(q)).slice(0, 10);
       if (!matches.length) {
         sug.innerHTML = '<div class="search-suggestion-item" style="cursor:default;color:var(--muted)">No athletes found</div>';
