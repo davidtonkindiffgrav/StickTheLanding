@@ -1604,11 +1604,14 @@ def parse_scoreexpress_acro(text_pages, pdf_path):
         qualifier  = hdr_m.group("qualifier") or ""
         type_raw   = hdr_m.group("et")
         level      = _se_normalise_level(level_raw)
-        if qualifier:
+        if qualifier and cat_raw:
             level  = f"{level} {qualifier.title()}"
         if cat_raw:
             category   = _SE_CATEGORY_MAP.get(cat_raw.strip().upper(), cat_raw.strip().title())
             group_size = 3 if "GROUP" in cat_raw.upper() else 2
+        elif qualifier:
+            category   = qualifier.title()   # "Junior" or "Senior" stored as category
+            group_size = None
         else:
             category   = None
             group_size = None

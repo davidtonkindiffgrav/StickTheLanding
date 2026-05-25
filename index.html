@@ -1943,10 +1943,6 @@ function resetFilters() {
   activeRegion   = null;
   document.getElementById("level-filter-bar").innerHTML         = "<label>Level:</label>";
   document.getElementById("athlete-level-filter-bar").innerHTML = "<label>Level:</label>";
-  if (currentSport === "ACRO") {
-    // Division and region bars are hidden for ACRO (handled in buildLevelFilters)
-    return;
-  }
   const divLabel = currentSport === "MAG" ? "Group:" : "Division:";
   document.getElementById("division-filter-bar").innerHTML         = `<label>${divLabel}</label><button class="filter-btn active" data-division="all">All</button>`;
   document.getElementById("athlete-division-filter-bar").innerHTML = `<label>${divLabel}</label><button class="filter-btn active" data-division="all">All</button>`;
@@ -2012,32 +2008,65 @@ function rebuildApparatusNav(sport) {
 }
 
 function buildLevelFilters() {
-  // ACRO: combined level+category filter buttons; hide division/region bars
   if (currentSport === "ACRO") {
-    const bars = document.querySelectorAll("#level-filter-bar, #athlete-level-filter-bar");
-    bars.forEach(bar => {
-      bar.querySelectorAll(".filter-btn").forEach(b => b.remove());
-      LEVEL_DIVS.forEach(ld => {
+    const levelBars = document.querySelectorAll("#level-filter-bar, #athlete-level-filter-bar");
+    const divBars   = document.querySelectorAll("#division-filter-bar, #athlete-division-filter-bar");
+
+    // Clear existing dynamic buttons
+    levelBars.forEach(bar => bar.querySelectorAll(".filter-btn").forEach(b => b.remove()));
+    divBars.forEach(bar => bar.querySelectorAll(".filter-btn[data-division]:not([data-division='all'])").forEach(b => b.remove()));
+    activeLevel = null;
+
+    const acroLevelLabel = lvl => lvl.replace(/^Level\s+(\d+)$/i, "L$1");
+    const acroLevelSort  = (a, b) => {
+      const na = parseInt((a.match(/^Level\s+(\d+)$/i) || [])[1], 10);
+      const nb = parseInt((b.match(/^Level\s+(\d+)$/i) || [])[1], 10);
+      if (!isNaN(na) && !isNaN(nb)) return na - nb;
+      if (!isNaN(na)) return -1;
+      if (!isNaN(nb)) return 1;
+      return a.localeCompare(b);
+    };
+
+    const levels = [...new Set(LEVEL_DIVS.map(ld => ld.level))].sort(acroLevelSort);
+    levelBars.forEach(bar => {
+      levels.forEach(lvl => {
         const btn = document.createElement("button");
-        btn.className = "filter-btn";
-        btn.dataset.level    = ld.level;
-        btn.dataset.division = ld.category ?? "";
-        btn.textContent = ld.category ? `${ld.level} ${ld.category}` : ld.level;
+        btn.className     = "filter-btn";
+        btn.dataset.level = lvl;
+        btn.textContent   = acroLevelLabel(lvl);
         bar.appendChild(btn);
         btn.addEventListener("click", () => {
-          activeLevel    = ld.level;
-          activeDivision = ld.category;
-          bars.forEach(b2 => b2.querySelectorAll(".filter-btn").forEach(b =>
-            b.classList.toggle("active", b.dataset.level === ld.level && b.dataset.division === (ld.category ?? ""))
-          ));
+          activeLevel = btn.dataset.level;
+          document.querySelectorAll("#level-filter-bar .filter-btn, #athlete-level-filter-bar .filter-btn")
+            .forEach(b => b.classList.toggle("active", b.dataset.level === btn.dataset.level));
           render();
         });
       });
     });
-    document.querySelectorAll("#division-filter-bar, #athlete-division-filter-bar, #region-filter-bar")
-      .forEach(b => b.style.display = "none");
-    // Auto-select first
-    const first = document.querySelector("#level-filter-bar .filter-btn");
+
+    const categories = [...new Set(LEVEL_DIVS.map(ld => ld.category).filter(Boolean))].sort();
+    divBars.forEach(bar => {
+      categories.forEach(cat => {
+        const btn = document.createElement("button");
+        btn.className        = "filter-btn";
+        btn.dataset.division = cat;
+        btn.textContent      = cat;
+        bar.appendChild(btn);
+        btn.addEventListener("click", () => {
+          activeDivision = btn.dataset.division === "all" ? null : btn.dataset.division;
+          document.querySelectorAll("#division-filter-bar .filter-btn, #athlete-division-filter-bar .filter-btn")
+            .forEach(b => b.classList.toggle("active", b.dataset.division === btn.dataset.division));
+          render();
+        });
+      });
+    });
+
+    // Show division bar, keep region bar hidden
+    divBars.forEach(b => b.style.display = "");
+    document.querySelectorAll("#region-filter-bar").forEach(b => b.style.display = "none");
+
+    // Auto-select first level
+    const first = document.querySelector("#level-filter-bar .filter-btn[data-level]");
     if (first) first.click();
     return;
   }
@@ -2200,10 +2229,10 @@ async function renderAcroClubs() {
     (activeLevel ? ` · ${levelLabel} · ${routineType}` : "");
   if (activeLevel === null) {
     tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;color:var(--muted);padding:36px 12px">
-      Select a category above to see club standings.</td></tr>`;
+      Select a Level above to see club standings.</td></tr>`;
     return;
   }
-  const catClauseC = activeDivision != null ? "AND e.category=?" : "AND e.category IS NULL";
+  const catClauseC = activeDivision != null ? "AND e.category=?" : "";
   const catParamsC = activeDivision != null ? [currentSeason, activeLevel, activeDivision, routineType] : [currentSeason, activeLevel, routineType];
   const raw = _execRows(await DB.exec(`
     SELECT r.club, r.rank, r.total, c.name
@@ -2254,11 +2283,11 @@ async function renderAcroPartnerships() {
     (activeLevel ? ` · ${levelLabelP} · ${routineType}` : "");
   if (activeLevel === null) {
     tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;color:var(--muted);padding:36px 12px">
-      Select a category above to see partnership rankings.</td></tr>`;
+      Select a Level above to see partnership rankings.</td></tr>`;
     return;
   }
   const isAA = routineType === "All-Around";
-  const catClauseP = activeDivision != null ? "AND e.category=?" : "AND e.category IS NULL";
+  const catClauseP = activeDivision != null ? "AND e.category=?" : "";
   const catParamsP = activeDivision != null ? [currentSeason, activeLevel, activeDivision, routineType] : [currentSeason, activeLevel, routineType];
   const raw = _execRows(await DB.exec(`
     SELECT r.rank, r.athletes, r.club, r.total, r.diff, r.exec_score, r.art, r.pen,
