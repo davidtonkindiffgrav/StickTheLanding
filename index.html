@@ -962,6 +962,9 @@ function clubDisplay(code) {
   if (!name) return `<span class="club-code">${esc(code)}</span>`;
   return `${esc(name)} <span class="club-code">${esc(code)}</span>`;
 }
+function clubName(code) {
+  return esc(CLUBS[code] || code);
+}
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Team standings
@@ -1127,6 +1130,7 @@ async function renderAthletes() {
     if (currentSport === "MAG") { sql += ` AND e.age_group = ?`; } else { sql += ` AND e.division = ?`; }
     params.push(activeDivision);
   }
+  if (isAA)  { sql += ` AND c.name NOT LIKE '%Apparatus%'`; }
   if (!isAA) { sql += ` AND r.${actAppCol} IS NOT NULL`; }
 
   const raw = _execRows(await DB.exec(sql, params));
@@ -1444,46 +1448,49 @@ async function openDrill(comp) {
       ev.event_type || "",
     ].filter(Boolean).join(" · ");
     let header, trows, colspan;
-    const appHdrs = drillApps.map(a => `<th data-sort="num">${a.h} <span class="sort-icon">↕</span></th>`).join("");
+    // Only show apparatus columns that have at least one non-null value in this event
+    const evApps = drillApps.filter(a => ev.results.some(r => r[a.col] != null));
+    const activeApps = evApps.length ? evApps : drillApps;
+    const appHdrs = activeApps.map(a => `<th data-sort="num">${a.h} <span class="sort-icon">↕</span></th>`).join("");
     if (ev.event_type === "Team") {
-      const hasApparatus = ev.results.some(r => drillApps.some(a => r[a.col] != null));
+      const hasApparatus = ev.results.some(r => activeApps.some(a => r[a.col] != null));
       if (hasApparatus) {
         header = `<tr><th>#</th><th data-sort="str">Club <span class="sort-icon">↕</span></th>${appHdrs}<th data-sort="num">Total <span class="sort-icon">↕</span></th></tr>`;
         trows  = ev.results.map(r => {
-          const cells = drillApps.map(a => `<td class="score">${fmt(r[a.col])}</td>`).join("");
+          const cells = activeApps.map(a => `<td class="score">${fmt(r[a.col])}</td>`).join("");
           return `<tr>
             <td>${rankBadge(r.rank)}</td>
-            <td><strong>${clubDisplay(r.club || "")}</strong></td>
+            <td><strong>${clubName(r.club || "")}</strong></td>
             ${cells}
             <td class="score">${fmt(r.total)}</td>
           </tr>`;
         }).join("");
-        colspan = drillApps.length + 2;
+        colspan = activeApps.length + 2;
       } else {
         header = `<tr><th>#</th><th data-sort="str">Club <span class="sort-icon">↕</span></th><th data-sort="num">Total <span class="sort-icon">↕</span></th></tr>`;
         trows  = ev.results.map(r => `
           <tr>
             <td>${rankBadge(r.rank)}</td>
-            <td><strong>${clubDisplay(r.club || "")}</strong></td>
+            <td><strong>${clubName(r.club || "")}</strong></td>
             <td class="score">${fmt(r.total)}</td>
           </tr>`).join("");
         colspan = 3;
       }
     } else {
-      const hasDE = ev.results.some(r => drillApps.some(a => r[a.d] != null));
+      const hasDE = ev.results.some(r => activeApps.some(a => r[a.d] != null));
       if (hasDE) {
         header = `<tr><th>#</th><th data-sort="str">Athlete <span class="sort-icon">↕</span></th><th data-sort="str">Club <span class="sort-icon">↕</span></th>${appHdrs}<th data-sort="num">Total <span class="sort-icon">↕</span></th></tr>`;
         trows  = ev.results.map(r => {
-          const cells = drillApps.map(a => {
+          const cells = activeApps.map(a => {
             const s = r[a.d] != null
-              ? `${fmt(r[a.d])}/${r[a.e] != null ? r[a.e].toFixed(3) : "-"}=${fmt(r[a.col])}`
+              ? `<span style="font-size:0.72em;opacity:0.7">${fmt(r[a.d])}/${r[a.e] != null ? r[a.e].toFixed(3) : "-"}</span><br>${fmt(r[a.col])}`
               : fmt(r[a.col]);
             return `<td class="score" data-val="${r[a.col] ?? ''}">${s}</td>`;
           }).join("");
           return `<tr>
             <td>${rankBadge(r.rank)}</td>
             <td><strong>${esc(r.athlete || "")}</strong></td>
-            <td>${clubDisplay(r.club || "")}</td>
+            <td>${clubName(r.club || "")}</td>
             ${cells}
             <td class="score">${fmt(r.total)}</td>
           </tr>`;
@@ -1491,17 +1498,17 @@ async function openDrill(comp) {
       } else {
         header = `<tr><th>#</th><th data-sort="str">Athlete <span class="sort-icon">↕</span></th><th data-sort="str">Club <span class="sort-icon">↕</span></th>${appHdrs}<th data-sort="num">Total <span class="sort-icon">↕</span></th></tr>`;
         trows  = ev.results.map(r => {
-          const cells = drillApps.map(a => `<td class="score">${fmt(r[a.col])}</td>`).join("");
+          const cells = activeApps.map(a => `<td class="score">${fmt(r[a.col])}</td>`).join("");
           return `<tr>
             <td>${rankBadge(r.rank)}</td>
             <td><strong>${esc(r.athlete || "")}</strong></td>
-            <td>${clubDisplay(r.club || "")}</td>
+            <td>${clubName(r.club || "")}</td>
             ${cells}
             <td class="score">${fmt(r.total)}</td>
           </tr>`;
         }).join("");
       }
-      colspan = drillApps.length + 4;
+      colspan = activeApps.length + 4;
     }
     return `<div class="event-section">
       <h4>${esc(title)}</h4>

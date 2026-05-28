@@ -36,7 +36,8 @@ PROSCORE_MEET_HDR = re.compile(
 
 # Detects "Team Results" even when letters are space-separated (BTYC font issue)
 TEAM_RESULTS_RE = re.compile(
-    r"T\s*e\s*a\s*m\s+R\s*e\s*s\s*u\s*l\s*t\s*s",
+    r"T\s*e\s*a\s*m\s+R\s*e\s*s\s*u\s*l\s*t\s*s"
+    r"|DAY\s+1\s+STANDINGS\s+TEAM",
     re.IGNORECASE,
 )
 
@@ -44,6 +45,22 @@ TEAM_RESULTS_RE = re.compile(
 MEET_RESULTS_RE = re.compile(
     r"M\s*e\s*e\s*t\s+R\s*e\s*s\s*u\s*l\s*t\s*s",
     re.IGNORECASE,
+)
+
+# Detects ProScore "Day 1 Standings" format (no apparatus column headers)
+DAY1_STANDINGS_RE = re.compile(r"DAY\s+1\s+STANDINGS", re.IGNORECASE)
+
+# Detects ProScore "Event Results" individual apparatus finals format (spaced title)
+EVENT_RESULTS_RE = re.compile(r"E\s*v\s*e\s*n\s*t\s+R\s*e\s*s\s*u\s*l\s*t\s*s", re.IGNORECASE)
+
+# Row in Event Results format: rank bib name gym diff exec s+ nd score out
+# diff/exec/score: \d+\.\d{3} or __.___ placeholders; s+/nd: -?\d+\.\d or _._
+_EVNT_ROW_RE = re.compile(
+    r"^(\d+[TF*]?)\s+(\d+)\s+(.+?)\s+"
+    r"([A-Z]{2,8}(?:/[A-Z]{2,8})?(?:\s+\([A-Z/]{2,12}\))?)\s+"
+    r"([\d_]+\.[\d_]+)\s+([\d_]+\.[\d_]+)\s+"
+    r"(-?[\d_.]+)\s+(-?[\d_.]+)\s+"
+    r"([\d_]+\.[\d_]+)\s+([\d.]+)\s*$"
 )
 
 # Score token: real score OR blank placeholder
@@ -116,8 +133,9 @@ _SE_FONT = {
 SCOREEXPRESS_RE = re.compile(r"created with ScoreExpress", re.IGNORECASE)
 
 # "LEVEL 6 WOMEN'S GROUP - ALL-AROUND" / "LEVEL 4 JUNIOR - BALANCE" / "LEVEL 5 - ALL-AROUND"
+# Also handles "JNR XX-XX" short form used by some ScoreExpress versions
 _SE_SECTION_RE = re.compile(
-    r"^(?P<level>LEVEL\s+\d+|JUNIOR\s+\d+-\d+|SENIOR)"
+    r"^(?P<level>LEVEL\s+\d+|(?:JUNIOR|JNR)\s+\d+-\d+|SENIOR)"
     r"(?:\s+(?P<qualifier>JUNIOR|SENIOR))?"
     r"(?:\s+(?P<category>(?:WOMEN'?S|MEN'?S|MIXED)\s+(?:GROUP|PAIR)))?"
     r"\s*-\s*"
@@ -628,21 +646,30 @@ def parse_filename_meta(path, sport=None):
                 level = int(folder_m.group(1))
                 break
 
-    # Event type: Team → skip later; apparatus codes; AA by default
+    # Event type: Team → skip later; apparatus codes; AA by default.
+    # Multi-word MAG apparatus names come before generic "bars"/"beam" to win alternation.
     type_m = re.search(
-        r"\b(AA|all.?around|VT|UB|BB|FX|PH|SR|PB|HB|vault|bars|beam|floor|team)\b",
+        r"\b(AA|all.?around|VT|UB|BB|FX|PH|SR|PB|HB|vault"
+        r"|p[\s-]bars|parallel[\s-]bars|pbars|hbars?"
+        r"|high[\s-]bar|h\.?bar"
+        r"|pommel|rings"
+        r"|bars|beam|floor|team)\b",
         name, re.IGNORECASE,
     )
     event_type = "AA"
     if type_m:
-        raw = type_m.group(1).upper().replace("-", "")
+        raw = re.sub(r"[\s-]", "", type_m.group(1)).upper()
         event_type = {
             "ALLAROUND": "AA", "AA": "AA",
             "VT": "VT", "VAULT": "VT",
-            "UB": "UB", "BARS": "UB",
+            "UB": "UB", "BARS": "UB",          # WAG bars = UB
             "BB": "BB", "BEAM": "BB",
             "FX": "FX", "FLOOR": "FX",
-            "PH": "PH", "SR": "SR", "PB": "PB", "HB": "HB",
+            "PH": "PH", "POMMEL": "PH",
+            "SR": "SR", "RINGS": "SR",
+            "PB": "PB", "PBARS": "PB", "PARALLELBARS": "PB",  # P-Bars / Parallel Bars
+            "HB": "HB", "HBAR": "HB", "HBARS": "HB",          # High Bar
+            "HIGHBAR": "HB", "HBAR": "HB",
             "TEAM": "Team",
         }.get(raw, raw)
 
@@ -650,8 +677,18 @@ def parse_filename_meta(path, sport=None):
         event_type = "AA"
     if re.search(r"\bAA\b", name, re.IGNORECASE):
         event_type = "AA"
+    # EVNT_ files: apparatus is the 3rd underscore-delimited token (e.g. EVNT_Men_Floor_S8_L10)
+    # The \bAA\b check above may fire on "AAll" suffix — fix by re-extracting from token
+    if re.match(r"EVNT_", name, re.IGNORECASE):
+        evnt_m = re.search(r"_(Floor|Vault|HBar|PBars|Pommel|Rings|Bars|Beam)_", name, re.IGNORECASE)
+        if evnt_m:
+            event_type = {
+                "floor": "FX", "vault": "VT", "hbar": "HB", "pbars": "PB",
+                "pommel": "PH", "rings": "SR", "bars": "UB", "beam": "BB",
+            }.get(evnt_m.group(1).lower(), event_type)
     if re.search(r"team.results|team", name, re.IGNORECASE) and "Team" not in event_type:
-        if re.search(r"\bteam\b", name, re.IGNORECASE):
+        # (?<![a-zA-Z])team(?![a-zA-Z]) handles "TEAM_" prefix (underscore is \w so \bteam\b fails)
+        if re.search(r"(?<![a-zA-Z])team(?![a-zA-Z])", name, re.IGNORECASE):
             event_type = "Team"
 
     # MAG age group parsing (order matters: specific patterns before generic)
@@ -668,7 +705,7 @@ def parse_filename_meta(path, sport=None):
             age_group = "U14"
         elif re.search(r"Open|(?<=\d)O\b", name, re.IGNORECASE):
             age_group = "Open"
-        elif re.search(r"Under|(?<=\d)U\b", name, re.IGNORECASE):
+        elif re.search(r"Under|(?<=\d)U(?![a-zA-Z\d])", name, re.IGNORECASE):
             age_group = _MAG_LEVEL_AGE.get(level, "Under")
         elif re.search(r"Optional|(?<=\d)P\b", name, re.IGNORECASE):
             age_group = "Optional"
@@ -1061,6 +1098,58 @@ def parse_proscore_multi(text_pages, pdf_path, sport="WAG"):
     ]
 
 
+def parse_event_results(text_pages, pdf_path, sport="WAG"):
+    """Parse ProScore 'Event Results' individual apparatus finals format.
+
+    One line per athlete: rank bib name gym diff exec s+ nd score out
+    Level and apparatus come from filename metadata.
+    """
+    file_meta = parse_filename_meta(pdf_path, sport=sport)
+    level     = file_meta.get("level")
+    age_group = file_meta.get("age_group")
+    event_type = file_meta.get("event_type")
+
+    if level is None or event_type in (None, "AA", "Team"):
+        return []
+
+    wag_app_map = {"VT": "vault", "UB": "bars", "BB": "beam", "FX": "floor"}
+    app_col = MAG_APPARATUS_MAP.get(event_type) if sport == "MAG" else wag_app_map.get(event_type)
+    if app_col is None:
+        return []
+
+    results = []
+    for text in text_pages:
+        if not text:
+            continue
+        for line in text.splitlines():
+            m = _EVNT_ROW_RE.match(line.strip())
+            if not m:
+                continue
+            rank_str, bib, name, gym, diff, exec_s, _, _, score, _ = m.groups()
+            total = _parse_score(score)
+            if total is None:
+                continue
+            row = {
+                "rank":    _parse_rank(rank_str),
+                "bib":     bib,
+                "athlete": _clean_name(name),
+                "club":    gym.strip().split()[0].upper(),
+                "total":   total,
+                app_col:   total,
+            }
+            d_val = _parse_score(diff)
+            e_val = _parse_score(exec_s)
+            if d_val is not None:
+                row[f"{app_col}_d"] = d_val
+            if e_val is not None:
+                row[f"{app_col}_e"] = e_val
+            results.append(row)
+
+    if not results:
+        return []
+    return [{"level": level, "age_group": age_group, "event_type": event_type, "results": results}]
+
+
 def parse_proscore_simple(text_pages, pdf_path, sport="WAG"):
     """
     Parse 'Meet Results Women / 5A' style ProScore PDFs.
@@ -1370,7 +1459,7 @@ def _se_normalise_level(s: str) -> str:
     u = s.strip().upper()
     if u.startswith("LEVEL"):
         return "Level " + u.split()[-1]
-    if u.startswith("JUNIOR"):
+    if u.startswith("JUNIOR") or u.startswith("JNR"):
         return "Junior " + s.strip().split()[-1]
     if u == "SENIOR":
         return "Senior"
@@ -1403,22 +1492,36 @@ def _se_parse_aa_results(lines, group_size=None):
         gs = group_size if group_size is not None else (
             2 if re.match(r"^pen\s", l3.strip(), re.IGNORECASE) else 3
         )
+        # Detect block size: some formats include a bib number between the last data line
+        # and the totals summary line, making a 6-line block instead of 5.
+        l4_stripped = l4.strip()
+        if re.match(r"^\d+$", l4_stripped):
+            # l4 is a bib number (pure integer) — totals are on l5
+            totals_line = lines[i + 5] if i + 5 < len(lines) else ""
+            advance = 6
+        elif re.match(r"^[\d\s.]+$", l4_stripped) and "." in l4_stripped:
+            # l4 is already the totals line (all digits/spaces/dots, has a decimal)
+            totals_line = l4
+            advance = 5
+        else:
+            # l4 is the next rank block — no separate totals for this block
+            totals_line = ""
+            advance = 4
         if gs == 3:
-            # l1: a2+art, l2: a3+exec, l3: club+pen, l4: bib/totals
+            # l1: a2+art, l2: a3+exec, l3: club+pen
             a2_p = re.split(r"\s+art\b", l1)
             athletes.append(a2_p[0].strip())
             a3_p = re.split(r"\s+exec\b", l2)
             athletes.append(a3_p[0].strip())
             club_p = re.split(r"\s+pen\b", l3)
             club = club_p[0].strip()
-            totals = [float(v) for v in FLOATS.findall(l4)]
         else:
-            # l1: a2+art, l2: club+exec, l3: pen line, l4: totals
+            # l1: a2+art, l2: club+exec, l3: pen line
             a2_p = re.split(r"\s+art\b", l1)
             athletes.append(a2_p[0].strip())
             club_p = re.split(r"\s+exec\b", l2)
             club = club_p[0].strip()
-            totals = [float(v) for v in FLOATS.findall(l4)]
+        totals = [float(v) for v in FLOATS.findall(totals_line)]
         grand_total = totals[-1] if totals else None
         rt = totals[:-1]
         results.append({
@@ -1430,7 +1533,7 @@ def _se_parse_aa_results(lines, group_size=None):
             "dyn":      rt[1] if len(rt) > 1 else None,
             "com":      rt[2] if len(rt) > 2 else None,
         })
-        i += 5
+        i += advance
     return results
 
 
@@ -1511,7 +1614,7 @@ def _se_parse_routine_results(lines, group_size):
     results = []
     block_size = group_size + 2
     i = 0
-    while i + block_size <= len(lines):
+    while i + group_size + 1 <= len(lines):  # need rank line + (n-1) athletes + club at minimum
         m = re.match(r"^(\d+)\s+(.+)", lines[i])
         if not m:
             i += 1
@@ -1707,13 +1810,23 @@ def parse_pdf(pdf_path, sport="WAG"):
         return [], "multi-session-skip"
 
     # Simple ProScore format (Meet Results Women / 5A / All Ages)
-    # Also catches "/ All Levels /" headers where level comes from filename
+    # Also catches "/ All Levels /" headers where level comes from filename,
+    # and ProScore "Day 1 Standings" format (no apparatus column headers).
     if any(t and PROSCORE_SIMPLE_HDR.search(t) for t in text_pages) or (
         meta.get("level") is not None and any(t and MEET_RESULTS_RE.search(t) for t in text_pages)
+    ) or (
+        meta.get("level") is not None and sport == "MAG"
+        and any(t and DAY1_STANDINGS_RE.search(t) for t in text_pages)
     ):
         events = parse_proscore_simple(text_pages, pdf_path, sport=sport)
         if events:
             return _inject_age_group(events, age_group), "proscore-simple"
+
+    # ProScore "Event Results" apparatus finals (spaced title, Diff/Exec/Score columns)
+    if any(t and EVENT_RESULTS_RE.search(t) for t in text_pages):
+        events = parse_event_results(text_pages, pdf_path, sport=sport)
+        if events:
+            return _inject_age_group(events, age_group), "event-results"
 
     # Fallback: table
     results = parse_generic_tables(pdf_path)
