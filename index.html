@@ -32,6 +32,7 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
   <link rel="stylesheet" href="assets/style.css" />
   <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-8302214774959598" crossorigin="anonymous"></script>
+  <script async src="https://tally.so/widgets/embed.js"></script>
 </head>
 <body>
 
@@ -56,6 +57,10 @@
       </div>
     </div>
     <div class="right">
+      <button onclick="openSearchFromLanding()" style="background:#161927;border:1px solid #232944;border-radius:10px;padding:10px 14px 8px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:4px;transition:border-color 0.15s" onmouseover="this.style.borderColor='#7c6dfa'" onmouseout="this.style.borderColor='#232944'">
+        <i class="fas fa-search" style="font-size:16px;color:#c9a4ff"></i>
+        <span style="font:600 9px/1 'JetBrains Mono',monospace;text-transform:uppercase;letter-spacing:0.1em;color:#8d92ac">Find Athlete</span>
+      </button>
       <span id="v3-date"></span>
       <span style="color:#ffd24a">Season 2026</span>
     </div>
@@ -473,6 +478,14 @@
   <div id="search-box">
     <button class="search-close-btn" id="close-search">&#x2715;</button>
     <h2>Search</h2>
+
+    <div class="search-mode-row">
+      <label>Sport</label>
+      <select id="search-sport-select" class="browse-select" style="flex:0;min-width:220px">
+        <option value="WAG">Women's Artistic (WAG)</option>
+        <option value="MAG">Men's Artistic (MAG)</option>
+      </select>
+    </div>
 
     <div class="search-mode-row">
       <label>Search by</label>
@@ -1652,6 +1665,7 @@ async function ensureAthleteList() {
 
 async function openSearchPanel() {
   await ensureAthleteList();
+  document.getElementById("search-sport-select").value = currentSport || "WAG";
   document.getElementById("search-overlay").classList.add("open");
   document.getElementById("search-input").value = "";
   document.getElementById("search-suggestions").style.display = "none";
@@ -1661,6 +1675,18 @@ async function openSearchPanel() {
   onSearchModeChange(_searchMode);
   initBrowseSeasons();
   if (_searchMode === "athlete") document.getElementById("search-input").focus();
+}
+
+async function onSearchSportChange(sport) {
+  if (sport === currentSport) return;
+  closeSearchPanel();
+  await enterSport(sport);
+  await openSearchPanel();
+}
+
+async function openSearchFromLanding() {
+  if (!currentSport) await enterSport("WAG");
+  await openSearchPanel();
 }
 
 function closeSearchPanel() {
@@ -2002,6 +2028,7 @@ document.addEventListener("keydown", e => {
   if (e.key === "Escape" && document.getElementById("search-overlay").classList.contains("open"))
     closeSearchPanel();
 });
+document.getElementById("search-sport-select").addEventListener("change", e => onSearchSportChange(e.target.value));
 document.getElementById("search-mode-select").addEventListener("change", e => onSearchModeChange(e.target.value));
 document.getElementById("search-input").addEventListener("input", e => onAthleteSearchInput(e.target.value));
 document.getElementById("search-input").addEventListener("keydown", e => {
@@ -3066,7 +3093,7 @@ async function renderAthleteProfile(athleteName) {
   <div class="profile-grid">
     <div class="card profile-card">
       <div class="profile-hero-row">
-        <img class="profile-img" src="${esc(imgSrc)}" alt="${esc(athleteName)}" ${imgTipAttr} onerror="this.src='${SILO}'">
+        <img class="profile-img" src="${esc(imgSrc)}" alt="${esc(athleteName)}" ${imgTipAttr} ${!image ? `data-tally-open="7RModL" data-tally-emoji-text="👋" data-tally-emoji-animation="wave" data-athlete-name="${esc(athleteName)}" data-sport="${esc(currentSport)}" style="cursor:pointer"` : ''} onerror="this.src='${SILO}'">
         <div style="flex:1;min-width:0">
           <div class="profile-name">${esc(athleteName)}</div>
           ${profLevelLabel ? `<div class="profile-club-level" style="margin-top:2px">${esc(profLevelLabel)}</div>` : ''}
@@ -3080,6 +3107,9 @@ async function renderAthleteProfile(athleteName) {
         </div>
       </div>
       ${affilHtml}
+      <div style="margin-top:12px;text-align:left">
+        <button class="link-btn" data-tally-open="7RModL" data-tally-emoji-text="👋" data-tally-emoji-animation="wave" data-athlete-name="${esc(athleteName)}" data-sport="${esc(currentSport)}" style="font-size:0.8rem;cursor:pointer"><i class="fas fa-camera" style="margin-right:4px"></i>Add Profile Pic or Nickname</button>
+      </div>
     </div>
 
     <div class="card profile-card">
