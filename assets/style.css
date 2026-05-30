@@ -313,6 +313,25 @@
     .filter-btn:hover { border-color: var(--accent); color: var(--text); }
     .filter-btn.active { background: var(--accent); border-color: var(--accent); color: #fff; }
 
+    /* ── FILTER ROW (dropdown selects) ────────────────────────────────────── */
+    .filter-row { display: flex; gap: 12px; margin-bottom: 16px; align-items: flex-end; }
+    .filter-group { display: flex; flex-direction: column; gap: 4px; flex: 1; }
+    .filter-label { color: var(--muted); font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+    .filter-select {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 6px 10px;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      font-weight: 500;
+      cursor: pointer;
+      min-height: 34px;
+      width: 100%;
+    }
+    .filter-select:hover { border-color: var(--accent); }
+    .filter-select:focus { outline: none; border-color: var(--accent); }
+
     .no-data { text-align: center; color: var(--muted); padding: 48px 20px; font-size: 0.95rem; }
     .no-data strong { display: block; font-size: 1.1rem; color: var(--text); margin-bottom: 8px; }
     .updated { color: var(--muted); font-size: 0.78rem; margin-bottom: 20px; }
@@ -1132,4 +1151,135 @@
   .graph-composite-inner { max-width: 100%; }
   .graph-type-row button { padding: 6px 12px; font-size: 0.82rem; gap: 5px; }
   .graph-slider-card { gap: 10px; }
+}
+
+/* ── ATHLETE PROFILE ──────────────────────────────────────────────────────── */
+.profile-grid {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 16px;
+  align-items: stretch;
+}
+.profile-card { margin-bottom: 0; }
+.profile-history { grid-column: 1 / -1; overflow-x: auto; }
+
+.profile-hero-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  margin-bottom: 14px;
+}
+.profile-img-wrap { position: relative; flex-shrink: 0; cursor: default; }
+.profile-img {
+  width: 96px; height: 96px;
+  object-fit: cover;
+  border-radius: 10px;
+  border: 2px solid var(--border);
+  background: var(--surface2);
+  display: block;
+}
+.profile-name  { font-size: 1.35rem; font-weight: 700; line-height: 1.2; }
+.profile-nickname { font-size: 0.88rem; color: var(--muted); margin: 3px 0 8px; font-style: italic; }
+
+.profile-best-row {
+  display: flex; align-items: center; gap: 8px; margin-top: 8px; flex-wrap: wrap;
+}
+.profile-field-label {
+  font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.6px;
+  color: var(--muted); font-weight: 700;
+}
+.profile-app-chip {
+  display: inline-flex; align-items: center; gap: 5px;
+  font-size: 0.8rem; font-weight: 600;
+  padding: 2px 9px; border-radius: 20px;
+}
+.profile-app-dot {
+  width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0;
+}
+
+.profile-club-row {
+  display: flex; align-items: center; gap: 10px;
+  margin-top: 12px; padding-top: 12px;
+  border-top: 1px solid var(--border);
+}
+.profile-club-name  { font-size: 0.95rem; font-weight: 600; }
+.profile-club-level { font-size: 0.8rem; color: var(--muted); margin-top: 2px; }
+
+.profile-hero-club {
+  flex-shrink: 0;
+  text-align: right;
+}
+.profile-affil-section { margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border); }
+.profile-affil-list { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+.profile-affil-chip {
+  display: inline-flex; align-items: center; gap: 5px;
+  font-size: 0.78rem; padding: 3px 8px; border-radius: 6px;
+  background: var(--surface2); border: 1px solid var(--border); color: var(--text);
+}
+
+.profile-card-title {
+  font-size: 0.78rem; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 0.6px; color: var(--muted); margin-bottom: 12px;
+}
+.profile-pb-list { display: flex; flex-direction: column; gap: 8px; }
+.profile-pb-item { display: flex; align-items: center; gap: 8px; }
+.profile-pb-dot  { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+.profile-pb-icon {
+  width: 24px; height: 24px; flex-shrink: 0; display: inline-block;
+  -webkit-mask-repeat: no-repeat; mask-repeat: no-repeat;
+  -webkit-mask-position: center; mask-position: center;
+  -webkit-mask-size: contain; mask-size: contain;
+}
+.profile-pb-key  {
+  font-size: 0.75rem; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 0.4px; color: var(--muted); flex-shrink: 0;
+}
+.pb-name-short { display: none; }
+.profile-pb-val  { font-size: 0.9rem; font-weight: 600; font-variant-numeric: tabular-nums; margin-left: auto; }
+.profile-pb-aa {
+  margin-top: 4px; padding-top: 10px;
+  border-top: 1px solid var(--border);
+}
+.profile-pb-aa .profile-pb-key { color: var(--text); }
+.profile-pb-aa .profile-pb-val { font-size: 1rem; color: var(--gold); }
+
+.profile-card-header {
+  display: flex; align-items: center; gap: 8px;
+  flex-wrap: wrap; margin-bottom: 12px;
+}
+.profile-inner-tabs { display: flex; gap: 3px; }
+.profile-inner-tabs .filter-btn { padding: 3px 9px; font-size: 0.72rem; }
+.profile-level-filter { display: flex; gap: 4px; margin-bottom: 10px; }
+.profile-level-filter .filter-btn { padding: 3px 9px; font-size: 0.72rem; }
+
+.profile-canvas-wrap    { position: relative; width: 100%; }
+.profile-canvas-sq canvas { max-height: 280px; }
+
+@media (max-width: 700px) {
+  .profile-grid { grid-template-columns: 1fr; }
+  .profile-hero-row { flex-wrap: wrap; }
+  .profile-hero-club {
+    flex: 0 0 100%;
+    text-align: left;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px solid var(--border);
+  }
+  .profile-hero-club .profile-field-label { display: none; }
+  .profile-hero-club img { margin: 0; }
+  .profile-pb-list { flex-direction: row; flex-wrap: wrap; gap: 6px; }
+  .profile-pb-item {
+    flex: 1 1 calc(16.66% - 6px);
+    flex-direction: column; align-items: center;
+    text-align: center; gap: 3px; min-width: 40px;
+  }
+  .profile-pb-key { width: auto; }
+  .profile-pb-val { margin-left: 0; }
+  .pb-name-full  { display: none; }
+  .pb-name-short { display: inline; }
+  .profile-pb-aa { margin-top: 0; padding-top: 0; border-top: none; }
+  .profile-pb-aa .profile-pb-val { font-size: 0.9rem; }
 }

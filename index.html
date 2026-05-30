@@ -213,14 +213,19 @@
     <section class="view active" id="view-clubs">
       <h2 id="team-title">Team Standings</h2>
       <div class="table-context-header" id="team-context-header"></div>
-      <div class="filter-bar" id="level-filter-bar"><label>Level:</label></div>
-      <div class="filter-bar" id="division-filter-bar">
-        <label>Division:</label>
-        <button class="filter-btn active" data-division="all">All</button>
-      </div>
-      <div class="filter-bar" id="region-filter-bar">
-        <label>Region:</label>
-        <button class="filter-btn active" data-region="all">All</button>
+      <div class="filter-row">
+        <div class="filter-group" id="level-filter-bar">
+          <label class="filter-label">Level</label>
+          <select class="filter-select" id="sel-level"></select>
+        </div>
+        <div class="filter-group" id="division-filter-bar">
+          <label class="filter-label">Division</label>
+          <select class="filter-select" id="sel-division"><option value="all">All</option></select>
+        </div>
+        <div class="filter-group" id="region-filter-bar">
+          <label class="filter-label">Region</label>
+          <select class="filter-select" id="sel-region"><option value="all">All</option></select>
+        </div>
       </div>
       <p class="standings-note">Clubs may enter multiple squads in the same event. All squads from the same club are counted together - points and wins from every squad contribute to the club's total.</p>
       <h3 class="standings-subtitle">By High Score</h3>
@@ -246,10 +251,15 @@
     <section class="view" id="view-athletes">
       <h2 id="athlete-title">Individual Rankings</h2>
       <div class="table-context-header" id="athlete-context-header"></div>
-      <div class="filter-bar" id="athlete-level-filter-bar"><label>Level:</label></div>
-      <div class="filter-bar" id="athlete-division-filter-bar">
-        <label>Division:</label>
-        <button class="filter-btn active" data-division="all">All</button>
+      <div class="filter-row">
+        <div class="filter-group" id="athlete-level-filter-bar">
+          <label class="filter-label">Level</label>
+          <select class="filter-select" id="sel-athlete-level"></select>
+        </div>
+        <div class="filter-group" id="athlete-division-filter-bar">
+          <label class="filter-label">Division</label>
+          <select class="filter-select" id="sel-athlete-division"><option value="all">All</option></select>
+        </div>
       </div>
       <div class="card table-card">
         <table class="leaderboard" id="athlete-table">
@@ -1703,10 +1713,10 @@ async function executeSearch() {
     if (!name) return;
     closeSearchPanel();
     switchToView("search");
-    document.getElementById("search-view-title").textContent = name;
+    document.getElementById("search-view-title").textContent = "Athlete Profile";
     document.getElementById("search-view-content").innerHTML =
       `<p style="color:var(--muted);padding:12px 0">Loading…</p>`;
-    await renderAthleteResults(name);
+    await renderAthleteProfile(name);
   } else {
     const compId = _browseCompId;
     const level  = document.getElementById("browse-level").value;
@@ -1742,6 +1752,7 @@ function switchToView(view) {
 }
 
 function clearSearchView() {
+  _profDestroyCharts();
   document.getElementById("search-view-content").innerHTML = "";
   switchToView("clubs");
   render();
@@ -2011,43 +2022,51 @@ function resetFilters() {
   activeLevel    = null;
   activeDivision = null;
   activeRegion   = null;
-  document.getElementById("level-filter-bar").innerHTML         = "<label>Level:</label>";
-  document.getElementById("athlete-level-filter-bar").innerHTML = "<label>Level:</label>";
-  const divLabel = currentSport === "MAG" ? "Group:" : "Division:";
-  document.getElementById("division-filter-bar").innerHTML         = `<label>${divLabel}</label><button class="filter-btn active" data-division="all">All</button>`;
-  document.getElementById("athlete-division-filter-bar").innerHTML = `<label>${divLabel}</label><button class="filter-btn active" data-division="all">All</button>`;
-  document.querySelectorAll("#division-filter-bar, #athlete-division-filter-bar, #region-filter-bar")
-    .forEach(b => b.style.display = "");
-  const regionBar = document.getElementById("region-filter-bar");
-  if (regionBar) regionBar.innerHTML = `<label>Region:</label><button class="filter-btn active" data-region="all">All</button>`;
+
+  ['sel-level','sel-athlete-level'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.innerHTML = '';
+  });
+
+  const divLabel = currentSport === "MAG" ? "Group" : "Division";
+  ['division-filter-bar','athlete-division-filter-bar'].forEach(id => {
+    const grp = document.getElementById(id);
+    if (!grp) return;
+    const lbl = grp.querySelector('.filter-label');
+    if (lbl) lbl.textContent = divLabel;
+    const sel = grp.querySelector('.filter-select');
+    if (sel) sel.innerHTML = '<option value="all">All</option>';
+    grp.style.display = '';
+  });
+
+  const regionGrp = document.getElementById('region-filter-bar');
+  if (regionGrp) {
+    regionGrp.style.display = '';
+    const sel = regionGrp.querySelector('.filter-select');
+    if (sel) sel.innerHTML = '<option value="all">All</option>';
+  }
 }
 
 function buildRegionFilters() {
-  const bar = document.getElementById("region-filter-bar");
-  if (!bar) return;
+  const sel = document.getElementById("sel-region");
+  if (!sel) return;
   const regions = [...new Set(
     CLUBS_LIST.filter(c => c.region && c.region !== "Multi-Region" && c.region !== "Interstate")
               .map(c => c.region)
   )].sort((a, b) => (REGION_ORDER[a] || 99) - (REGION_ORDER[b] || 99));
 
+  sel.innerHTML = '<option value="all">All</option>';
   regions.forEach(region => {
-    const btn = document.createElement("button");
-    btn.className    = "filter-btn";
-    btn.dataset.region = region;
-    btn.textContent  = region;
-    bar.appendChild(btn);
+    const opt = document.createElement("option");
+    opt.value = region;
+    opt.textContent = region;
+    sel.appendChild(opt);
   });
 
-  bar.querySelectorAll(".filter-btn").forEach(btn => {
-    btn.addEventListener("click", () => {
-      const r = btn.dataset.region;
-      activeRegion = r === "all" ? null : r;
-      bar.querySelectorAll(".filter-btn").forEach(b =>
-        b.classList.toggle("active", b.dataset.region === r)
-      );
-      render();
-    });
-  });
+  sel.onchange = () => {
+    activeRegion = sel.value === "all" ? null : sel.value;
+    render();
+  };
 }
 
 function rebuildApparatusNav(sport) {
@@ -2078,13 +2097,38 @@ function rebuildApparatusNav(sport) {
 }
 
 function buildLevelFilters() {
-  if (currentSport === "ACRO") {
-    const levelBars = document.querySelectorAll("#level-filter-bar, #athlete-level-filter-bar");
-    const divBars   = document.querySelectorAll("#division-filter-bar, #athlete-division-filter-bar");
+  function _fillLevelSel(selId, levels, labelFn, onChange) {
+    const sel = document.getElementById(selId);
+    if (!sel) return;
+    sel.innerHTML = '';
+    levels.forEach(lvl => {
+      const opt = document.createElement("option");
+      opt.value = lvl;
+      opt.textContent = labelFn(lvl);
+      sel.appendChild(opt);
+    });
+    sel.onchange = () => onChange(sel.value);
+  }
 
-    // Clear existing dynamic buttons
-    levelBars.forEach(bar => bar.querySelectorAll(".filter-btn").forEach(b => b.remove()));
-    divBars.forEach(bar => bar.querySelectorAll(".filter-btn[data-division]:not([data-division='all'])").forEach(b => b.remove()));
+  function _fillDivSel(selId, vals, labelFn, onChange) {
+    const sel = document.getElementById(selId);
+    if (!sel) return;
+    sel.innerHTML = '<option value="all">All</option>';
+    vals.forEach(v => {
+      const opt = document.createElement("option");
+      opt.value = v;
+      opt.textContent = labelFn(v);
+      sel.appendChild(opt);
+    });
+    sel.onchange = () => onChange(sel.value);
+  }
+
+  function _syncSel(id, val) {
+    const el = document.getElementById(id);
+    if (el && [...el.options].some(o => o.value === String(val))) el.value = String(val);
+  }
+
+  if (currentSport === "ACRO") {
     activeLevel = null;
 
     const acroLevelLabel = lvl => lvl.replace(/^Level\s+(\d+)$/i, "L$1");
@@ -2092,147 +2136,103 @@ function buildLevelFilters() {
       const na = parseInt((a.match(/^Level\s+(\d+)$/i) || [])[1], 10);
       const nb = parseInt((b.match(/^Level\s+(\d+)$/i) || [])[1], 10);
       if (!isNaN(na) && !isNaN(nb)) return na - nb;
-      if (!isNaN(na)) return -1;
-      if (!isNaN(nb)) return 1;
-      return a.localeCompare(b);
+      return !isNaN(na) ? -1 : !isNaN(nb) ? 1 : a.localeCompare(b);
     };
 
     const levels = [...new Set(LEVEL_DIVS.map(ld => ld.level))].sort(acroLevelSort);
-    levelBars.forEach(bar => {
-      levels.forEach(lvl => {
-        const btn = document.createElement("button");
-        btn.className     = "filter-btn";
-        btn.dataset.level = lvl;
-        btn.textContent   = acroLevelLabel(lvl);
-        bar.appendChild(btn);
-        btn.addEventListener("click", () => {
-          activeLevel = btn.dataset.level;
-          document.querySelectorAll("#level-filter-bar .filter-btn, #athlete-level-filter-bar .filter-btn")
-            .forEach(b => b.classList.toggle("active", b.dataset.level === btn.dataset.level));
-          render();
-        });
-      });
-    });
+    const applyLevel = val => {
+      activeLevel = val;
+      _syncSel("sel-level", val);
+      _syncSel("sel-athlete-level", val);
+      render();
+    };
 
     const categories = [...new Set(LEVEL_DIVS.map(ld => ld.category).filter(Boolean))].sort();
-    divBars.forEach(bar => {
-      categories.forEach(cat => {
-        const btn = document.createElement("button");
-        btn.className        = "filter-btn";
-        btn.dataset.division = cat;
-        btn.textContent      = cat;
-        bar.appendChild(btn);
-        btn.addEventListener("click", () => {
-          activeDivision = btn.dataset.division === "all" ? null : btn.dataset.division;
-          document.querySelectorAll("#division-filter-bar .filter-btn, #athlete-division-filter-bar .filter-btn")
-            .forEach(b => b.classList.toggle("active", b.dataset.division === btn.dataset.division));
-          render();
-        });
-      });
-    });
+    const applyDiv = val => {
+      activeDivision = val === "all" ? null : val;
+      _syncSel("sel-division", val);
+      _syncSel("sel-athlete-division", val);
+      render();
+    };
 
-    // Show division bar, keep region bar hidden
-    divBars.forEach(b => b.style.display = "");
-    document.querySelectorAll("#region-filter-bar").forEach(b => b.style.display = "none");
+    ['sel-level','sel-athlete-level'].forEach(id => _fillLevelSel(id, levels, acroLevelLabel, applyLevel));
+    ['sel-division','sel-athlete-division'].forEach(id => _fillDivSel(id, categories, v => v, applyDiv));
+
+    ['division-filter-bar','athlete-division-filter-bar'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.style.display = '';
+    });
+    document.getElementById("region-filter-bar").style.display = "none";
 
     // Auto-select first level
-    const first = document.querySelector("#level-filter-bar .filter-btn[data-level]");
-    if (first) first.click();
+    const firstSel = document.getElementById("sel-level");
+    if (firstSel && firstSel.options.length) applyLevel(firstSel.options[0].value);
     return;
   }
 
-  const levels       = [...new Set(LEVEL_DIVS.map(ld => ld.level))].sort((a, b) => a - b);
+  // WAG / MAG
+  const levels = [...new Set(LEVEL_DIVS.map(ld => ld.level))].sort((a, b) => a - b);
   const athleteLevels = levels.filter(l => l > 4);
-  const levelBars    = document.querySelectorAll("#level-filter-bar, #athlete-level-filter-bar");
-
-  // Clear existing buttons before rebuilding (handles season changes)
-  levelBars.forEach(bar => {
-    bar.querySelectorAll(".filter-btn[data-level]").forEach(b => b.remove());
-  });
   activeLevel = null;
 
-  levelBars.forEach(bar => {
-    const barLevels = bar.id === "athlete-level-filter-bar" ? athleteLevels : levels;
-    barLevels.forEach(lvl => {
-      const btn = document.createElement("button");
-      btn.className    = "filter-btn";
-      btn.dataset.level = lvl;
-      btn.textContent  = INT_LEVEL_LABELS[lvl] || `L${lvl}`;
-      bar.appendChild(btn);
+  const applyLevel = val => {
+    const n = Number(val);
+    activeLevel = isNaN(n) ? null : n;
+    _syncSel("sel-level", val);
+    _syncSel("sel-athlete-level", val);
+    const isInt = activeLevel !== null && activeLevel >= 101;
+    if (isInt) {
+      activeDivision = null;
+      _syncSel("sel-division", "all");
+      _syncSel("sel-athlete-division", "all");
+    }
+    ['division-filter-bar','athlete-division-filter-bar'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.style.display = isInt ? "none" : "";
     });
-    bar.querySelectorAll(".filter-btn").forEach(btn => {
-      btn.addEventListener("click", () => {
-        activeLevel = btn.dataset.level === "all" ? null : Number(btn.dataset.level);
-        document.querySelectorAll("#level-filter-bar .filter-btn, #athlete-level-filter-bar .filter-btn")
-          .forEach(b => b.classList.toggle("active", b.dataset.level === btn.dataset.level));
-        const isIntLevel = activeLevel !== null && activeLevel >= 101;
-        if (isIntLevel) {
-          activeDivision = null;
-          document.querySelectorAll("#division-filter-bar .filter-btn, #athlete-division-filter-bar .filter-btn")
-            .forEach(b => b.classList.remove("active"));
-        }
-        document.querySelectorAll("#division-filter-bar, #athlete-division-filter-bar")
-          .forEach(b => b.style.display = isIntLevel ? "none" : "");
-        render();
-      });
-    });
-  });
+    render();
+  };
 
-  // Auto-select the first athlete-eligible level (L5+) after rebuilding
-  const firstBtn = document.querySelector("#athlete-level-filter-bar .filter-btn[data-level]")
-                || document.querySelector("#level-filter-bar .filter-btn[data-level]");
-  if (firstBtn) firstBtn.click();
+  _fillLevelSel("sel-level",         levels,        lvl => INT_LEVEL_LABELS[lvl] || `L${lvl}`, applyLevel);
+  _fillLevelSel("sel-athlete-level", athleteLevels, lvl => INT_LEVEL_LABELS[lvl] || `L${lvl}`, applyLevel);
 
-  const divBars = document.querySelectorAll("#division-filter-bar, #athlete-division-filter-bar");
+  // Auto-select first athlete-eligible level
+  const firstAthlSel = document.getElementById("sel-athlete-level");
+  if (firstAthlSel && firstAthlSel.options.length) {
+    applyLevel(firstAthlSel.options[0].value);
+  }
+
+  // Division options
+  const applyDiv = val => {
+    if (val === "all") {
+      activeDivision = null;
+    } else {
+      const n = Number(val);
+      activeDivision = isNaN(n) ? val : n;
+    }
+    _syncSel("sel-division", val);
+    _syncSel("sel-athlete-division", val);
+    render();
+  };
+
   if (currentSport === "MAG") {
-    const ageGroups = [...new Set(
-      LEVEL_DIVS.map(ld => ld.age_group).filter(Boolean)
-    )].sort();
+    const ageGroups = [...new Set(LEVEL_DIVS.map(ld => ld.age_group).filter(Boolean))];
     const ORDER = ["Open","U13","U14","U15","U18","Optional"];
     ageGroups.sort((a, b) => {
       const ai = ORDER.indexOf(a), bi = ORDER.indexOf(b);
       return (ai === -1 ? 99 : ai) - (bi === -1 ? 99 : bi);
     });
-    divBars.forEach(bar => {
-      ageGroups.forEach(ag => {
-        const btn = document.createElement("button");
-        btn.className = "filter-btn";
-        btn.dataset.division = ag;
-        btn.textContent = ag;
-        bar.appendChild(btn);
-      });
-      bar.querySelectorAll(".filter-btn").forEach(btn => {
-        btn.addEventListener("click", () => {
-          activeDivision = btn.dataset.division === "all" ? null : btn.dataset.division;
-          document.querySelectorAll("#division-filter-bar .filter-btn, #athlete-division-filter-bar .filter-btn")
-            .forEach(b => b.classList.toggle("active", b.dataset.division === btn.dataset.division));
-          render();
-        });
-      });
-    });
+    ['sel-division','sel-athlete-division'].forEach(id => _fillDivSel(id, ageGroups, v => v, applyDiv));
   } else {
     const divs = [...new Set(LEVEL_DIVS.map(ld => ld.division).filter(d => d != null))].sort((a, b) => a - b);
-    divBars.forEach(bar => {
-      divs.forEach(div => {
-        const btn = document.createElement("button");
-        btn.className      = "filter-btn";
-        btn.dataset.division = div;
-        btn.textContent    = `D${div}`;
-        bar.appendChild(btn);
-      });
-      bar.querySelectorAll(".filter-btn").forEach(btn => {
-        btn.addEventListener("click", () => {
-          activeDivision = btn.dataset.division === "all" ? null : Number(btn.dataset.division);
-          document.querySelectorAll("#division-filter-bar .filter-btn, #athlete-division-filter-bar .filter-btn")
-            .forEach(b => b.classList.toggle("active", b.dataset.division === btn.dataset.division));
-          render();
-        });
-      });
-    });
+    ['sel-division','sel-athlete-division'].forEach(id => _fillDivSel(id, divs, v => `D${v}`, applyDiv));
   }
-  // Hide division bars if an international level is already active (auto-click ran before this)
+
   if (activeLevel !== null && activeLevel >= 101) {
-    divBars.forEach(b => b.style.display = "none");
+    ['division-filter-bar','athlete-division-filter-bar'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.style.display = "none";
+    });
   }
 }
 
@@ -2257,9 +2257,9 @@ document.querySelectorAll("#app-nav button[data-view]").forEach(btn => {
     }
 
     if (activeLevel === null) {
-      const barId   = activeView === "athletes" ? "#athlete-level-filter-bar" : "#level-filter-bar";
-      const firstBtn = document.querySelector(`${barId} .filter-btn`);
-      if (firstBtn) { firstBtn.click(); return; }
+      const selId = activeView === "athletes" ? "sel-athlete-level" : "sel-level";
+      const sel = document.getElementById(selId);
+      if (sel && sel.options.length) { sel.dispatchEvent(new Event('change')); return; }
     }
     render();
   });
@@ -2454,6 +2454,29 @@ function render() {
 initClubDirectory();
 
 // ─────────────────────────────────────────────────────────────────────────────
+// Shared chart constants — used by GRAPHS and ATHLETE PROFILE
+// ─────────────────────────────────────────────────────────────────────────────
+const G_APP_KEYS = { WAG: ['VT','UB','BB','FX'], MAG: ['VT','FX','PH','SR','PB','HB'], ACRO: [] };
+const G_COL      = { VT:'vault', UB:'bars', BB:'beam', FX:'floor', PH:'pommel', SR:'rings', PB:'pbars', HB:'hbar' };
+const G_COLOR    = { VT:'#4e8ef7', UB:'#a855f7', BB:'#14b8a6', FX:'#f97316', PH:'#ef4444', SR:'#eab308', PB:'#8b5cf6', HB:'#22c55e' };
+const TICK = { color: '#8888aa', font: { size: 11 } };
+const GRID = { color: '#2e2e42' };
+const LEG  = { color: '#e8e8f0', padding: 12, font: { size: 12 } };
+function _xScale()  { return { ticks: { ...TICK, maxRotation: 45 }, grid: GRID }; }
+function _yScale(t) { return { title: { display: !!t, text: t || '', color: '#8888aa', font: { size: 11 } }, ticks: TICK, grid: GRID }; }
+function _baseLine(color, type) {
+  return {
+    borderColor: color,
+    backgroundColor: type === 'bar' ? color + '99' : color + '22',
+    borderWidth: type === 'bar' ? 0 : 2,
+    pointRadius: type === 'bar' ? 0 : 4,
+    pointHoverRadius: type === 'bar' ? 0 : 6,
+    tension: 0.35,
+    spanGaps: false,
+  };
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 // GRAPHS
 // ─────────────────────────────────────────────────────────────────────────────
 (function () {
@@ -2467,16 +2490,6 @@ initClubDirectory();
   let _gCompChart  = null;
   let _gDebounce   = null;
 
-  // Apparatus keys per sport (excludes AA)
-  const G_APP_KEYS = { WAG: ['VT','UB','BB','FX'], MAG: ['VT','FX','PH','SR','PB','HB'], ACRO: [] };
-  // Apparatus key → results row property name
-  const G_COL = { VT:'vault', UB:'bars', BB:'beam', FX:'floor', PH:'pommel', SR:'rings', PB:'pbars', HB:'hbar' };
-  // Fixed colour per apparatus
-  const G_COLOR = {
-    VT: '#4e8ef7', UB: '#a855f7', BB: '#14b8a6', FX: '#f97316',
-    PH: '#ef4444', SR: '#eab308', PB: '#8b5cf6', HB: '#22c55e',
-  };
-
   function _label(r) {
     const n = r.name;
     return n.length > 20 ? n.slice(0, 18) + '…' : n;
@@ -2487,30 +2500,12 @@ initClubDirectory();
     _gAppChart = _gAaChart = _gCompChart = null;
   }
 
-  const TICK  = { color: '#8888aa', font: { size: 11 } };
-  const GRID  = { color: '#2e2e42' };
-  const LEG   = { color: '#e8e8f0', padding: 12, font: { size: 12 } };
-
-  function _xScale()  { return { ticks: { ...TICK, maxRotation: 45 }, grid: GRID }; }
-  function _yScale(t) { return { title: { display: !!t, text: t || '', color: '#8888aa', font: { size: 11 } }, ticks: TICK, grid: GRID }; }
   function _tooltipTitle(items) {
     const r = _gFilteredRows[items[0].dataIndex];
     return r.name + (r.date ? ' · ' + r.date : ' · ' + r.season);
   }
   function _tooltipLabel(item) {
     return item.dataset.label + ': ' + (item.raw != null ? item.raw.toFixed(3) : '—');
-  }
-
-  function _baseLine(color, type) {
-    return {
-      borderColor: color,
-      backgroundColor: type === 'bar' ? color + '99' : color + '22',
-      borderWidth: type === 'bar' ? 0 : 2,
-      pointRadius: type === 'bar' ? 0 : 4,
-      pointHoverRadius: type === 'bar' ? 0 : 6,
-      tension: 0.35,
-      spanGaps: false,
-    };
   }
 
   // ── search ─────────────────────────────────────────────────────────────────
@@ -2814,6 +2809,409 @@ initClubDirectory();
 })();
 
 // ─────────────────────────────────────────────────────────────────────────────
+// ATHLETE PROFILE
+// ─────────────────────────────────────────────────────────────────────────────
+let _profGraphChart    = null;
+let _profStrengthChart = null;
+
+function _profDestroyCharts() {
+  [_profGraphChart, _profStrengthChart].forEach(c => { try { c && c.destroy(); } catch (_) {} });
+  _profGraphChart = _profStrengthChart = null;
+}
+
+// Byte offset into the stats query result row for each apparatus key
+const _STAT_OFFSET = { VT: 0, UB: 3, BB: 6, FX: 9, PH: 12, SR: 15, PB: 18, HB: 21 };
+
+function _profRepScore(statsRow, k) {
+  const base = _STAT_OFFSET[k];
+  if (base === undefined) return null;
+  const pb = statsRow[base], avg = statsRow[base + 1], ct = statsRow[base + 2];
+  return ct >= 2 ? avg : (ct === 1 ? pb : null);
+}
+
+function _profRenderTimeChart(canvasEl, type, rows, mode) {
+  if (_profGraphChart) { try { _profGraphChart.destroy(); } catch (_) {} _profGraphChart = null; }
+  if (!rows.length) return;
+  const appKeys  = G_APP_KEYS[currentSport] || [];
+  const appNames = appName();
+  const MON = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const fmtDate = iso => { const p = iso.split('-'); return `${parseInt(p[2])} ${MON[parseInt(p[1])-1]} '${p[0].slice(2)}`; };
+  const labels  = rows.map(r => fmtDate(r.sortDate));
+  const datasets = mode === 'aa'
+    ? [{ label: 'All-Around', data: rows.map(r => (r.total != null && r.total > 0) ? r.total : null), ..._baseLine('#f5c518', type), spanGaps: true }]
+    : appKeys.map(k => ({
+        label: appNames[k] || k,
+        data:  rows.map(r => { const v = r[G_COL[k]]; return (v != null && v > 0) ? v : null; }),
+        ..._baseLine(G_COLOR[k], type), spanGaps: true,
+      }));
+  _profGraphChart = new Chart(canvasEl.getContext('2d'), {
+    type,
+    data: { labels, datasets },
+    options: {
+      responsive: true, maintainAspectRatio: true, aspectRatio: 2.2,
+      interaction: { mode: 'index', intersect: false },
+      plugins: {
+        legend: { labels: LEG },
+        tooltip: {
+          callbacks: {
+            title: items => rows[items[0].dataIndex]?.name || '',
+            label: i => i.dataset.label + ': ' + (i.raw != null ? i.raw.toFixed(3) : '—'),
+          },
+        },
+      },
+      scales: { x: _xScale(), y: _yScale(mode === 'aa' ? 'AA Total' : 'Score') },
+    },
+  });
+}
+
+function _profRenderStrengthChart(canvasEl, type, statsRow) {
+  if (_profStrengthChart) { try { _profStrengthChart.destroy(); } catch (_) {} _profStrengthChart = null; }
+  const appKeys  = G_APP_KEYS[currentSport] || [];
+  if (!appKeys.length) return;
+  const appNames = appName();
+  const lbl    = appKeys.map(k => appNames[k] || k);
+  const colors = appKeys.map(k => G_COLOR[k]);
+  const vals   = appKeys.map(k => _profRepScore(statsRow, k) || 0);
+  const ctx    = canvasEl.getContext('2d');
+  if (type === 'radar') {
+    const valid  = vals.filter(v => v > 0);
+    const minVal = valid.length ? Math.max(0, Math.floor(Math.min(...valid) - 1)) : 0;
+    const top    = valid.length ? Math.ceil(Math.max(...valid) + 0.5) : 15;
+    const range  = top - minVal;
+    const step   = range <= 4 ? 0.5 : 1;
+    _profStrengthChart = new Chart(ctx, {
+      type: 'radar',
+      data: {
+        labels: lbl,
+        datasets: [{ label: 'Avg', data: vals, backgroundColor: 'rgba(124,109,250,0.15)', borderColor: 'rgba(124,109,250,0.85)', borderWidth: 2, pointBackgroundColor: colors, pointBorderColor: '#1a1a24', pointRadius: 5, pointHoverRadius: 7 }],
+      },
+      options: {
+        responsive: true, aspectRatio: 1.1,
+        plugins: {
+          legend: { labels: LEG },
+          tooltip: { callbacks: { label: i => i.label + ': ' + (i.raw != null ? i.raw.toFixed(3) : '—') } },
+        },
+        scales: {
+          r: { min: minVal, max: top, ticks: { color: '#8888aa', backdropColor: 'transparent', font: { size: 10 }, stepSize: step, callback: v => v.toFixed(1) }, grid: GRID, angleLines: GRID, pointLabels: { color: colors, font: { size: 12, weight: '700' } } },
+        },
+      },
+    });
+  } else {
+    _profStrengthChart = new Chart(ctx, {
+      type: 'pie',
+      data: {
+        labels: lbl,
+        datasets: [{ label: 'Avg', data: vals, backgroundColor: colors.map(c => c + 'bb'), borderColor: colors, borderWidth: 2, hoverOffset: 8 }],
+      },
+      options: {
+        responsive: true, aspectRatio: 1.1,
+        plugins: {
+          legend: { position: 'right', labels: LEG },
+          tooltip: { callbacks: { label: i => { const t = i.dataset.data.reduce((a, b) => a + b, 0); return i.label + ': ' + i.raw.toFixed(3) + ' (' + ((i.raw / t) * 100).toFixed(1) + '%)'; } } },
+        },
+      },
+    });
+  }
+}
+
+async function renderAthleteProfile(athleteName) {
+  _profDestroyCharts();
+  const el = document.getElementById("search-view-content");
+
+  // Metadata (nickname, image)
+  const metaRow = (_execRows(await DB.exec(
+    `SELECT nickname, image FROM athletes WHERE name = ?`, [athleteName]
+  ))[0]) || [];
+  const nickname = metaRow[0] || null;
+  const image    = metaRow[1] || null;
+
+  // Most recent club + level
+  const clubRow = (_execRows(await DB.exec(`
+    SELECT r.club, e.level, e.division, e.age_group
+    FROM results r
+    JOIN events e ON e.id = r.event_id
+    JOIN competitions c ON c.id = e.competition_id
+    WHERE r.athlete = ? AND c.sport = ? AND e.event_type != 'Team'
+    ORDER BY COALESCE(c.date, c.season || '-06-01') DESC, c.id DESC LIMIT 1
+  `, [athleteName, currentSport]))[0]) || [];
+  const currentClub = clubRow[0] || '';
+  const curLevel    = clubRow[1] != null ? clubRow[1] : null;
+  const curDivision = clubRow[2];
+  const curAgeGroup = clubRow[3];
+
+  // Club history (one row per club+season, chronological)
+  const histClubRows = _execRows(await DB.exec(`
+    SELECT r.club, c.season, MIN(COALESCE(c.date, c.season || '-06-01')) AS first_seen
+    FROM results r
+    JOIN events e ON e.id = r.event_id
+    JOIN competitions c ON c.id = e.competition_id
+    WHERE r.athlete = ? AND c.sport = ?
+    GROUP BY r.club, c.season
+    ORDER BY first_seen ASC
+  `, [athleteName, currentSport]));
+
+  // Aggregate stats (PBs + avgs per apparatus)
+  const statsRow = (_execRows(await DB.exec(`
+    SELECT
+      MAX(CASE WHEN vault  > 0 THEN vault  END), AVG(CASE WHEN vault  > 0 THEN vault  END), COUNT(CASE WHEN vault  > 0 THEN 1 END),
+      MAX(CASE WHEN bars   > 0 THEN bars   END), AVG(CASE WHEN bars   > 0 THEN bars   END), COUNT(CASE WHEN bars   > 0 THEN 1 END),
+      MAX(CASE WHEN beam   > 0 THEN beam   END), AVG(CASE WHEN beam   > 0 THEN beam   END), COUNT(CASE WHEN beam   > 0 THEN 1 END),
+      MAX(CASE WHEN floor  > 0 THEN floor  END), AVG(CASE WHEN floor  > 0 THEN floor  END), COUNT(CASE WHEN floor  > 0 THEN 1 END),
+      MAX(CASE WHEN pommel > 0 THEN pommel END), AVG(CASE WHEN pommel > 0 THEN pommel END), COUNT(CASE WHEN pommel > 0 THEN 1 END),
+      MAX(CASE WHEN rings  > 0 THEN rings  END), AVG(CASE WHEN rings  > 0 THEN rings  END), COUNT(CASE WHEN rings  > 0 THEN 1 END),
+      MAX(CASE WHEN pbars  > 0 THEN pbars  END), AVG(CASE WHEN pbars  > 0 THEN pbars  END), COUNT(CASE WHEN pbars  > 0 THEN 1 END),
+      MAX(CASE WHEN hbar   > 0 THEN hbar   END), AVG(CASE WHEN hbar   > 0 THEN hbar   END), COUNT(CASE WHEN hbar   > 0 THEN 1 END),
+      MAX(CASE WHEN total  > 0 THEN total  END)
+    FROM results r
+    JOIN events e ON e.id = r.event_id
+    WHERE r.athlete = ? AND e.event_type != 'Team'
+  `, [athleteName]))[0]) || Array(25).fill(null);
+
+  // Chart + history data (chronological for graphs, reversed for history table)
+  const rawRows = _execRows(await DB.exec(`
+    SELECT c.name, COALESCE(c.date, c.season || '-06-01') AS sort_date,
+           c.season, r.rank,
+           r.vault, r.bars, r.beam, r.floor,
+           r.pommel, r.rings, r.pbars, r.hbar, r.total,
+           e.level, e.division, e.age_group
+    FROM results r
+    JOIN events e ON r.event_id = e.id
+    JOIN competitions c ON e.competition_id = c.id
+    WHERE r.athlete = ? AND c.sport = ? AND e.event_type != 'Team'
+    ORDER BY sort_date ASC, c.name, e.level
+  `, [athleteName, currentSport]));
+
+  if (!rawRows.length) {
+    el.innerHTML = `<p style="color:var(--muted);padding:12px 0">No results found for "${esc(athleteName)}".</p>`;
+    return;
+  }
+
+  const profRows = rawRows.map(r => ({
+    name: r[0], sortDate: r[1], season: r[2], rank: r[3],
+    vault: r[4], bars: r[5], beam: r[6], floor: r[7],
+    pommel: r[8], rings: r[9], pbars: r[10], hbar: r[11], total: r[12],
+    level: r[13], division: r[14], ageGroup: r[15],
+  }));
+
+  // ── Derived values ────────────────────────────────────────────────────────
+  const appKeys  = G_APP_KEYS[currentSport] || [];
+  const appNames = appName();
+  const isMAG    = currentSport === 'MAG';
+  const fmt      = v => (v != null && v !== 0) ? v.toFixed(3) : '-';
+  const SILO     = 'assets/athletes/silhouette.svg';
+
+  // Spelled-out level label for profile display ("Level 7 · Div 2", "Junior Int", etc.)
+  const profLevelLabel = (() => {
+    if (curLevel == null) return null;
+    if (INT_LEVEL_FULL[curLevel]) return INT_LEVEL_FULL[curLevel];
+    let s = `Level ${curLevel}`;
+    if (curAgeGroup) s += ` · ${curAgeGroup}`;
+    else if (curDivision != null) s += ` · Div ${curDivision}`;
+    return s;
+  })();
+
+  // Best apparatus (avg if 2+ scores, single score if 1)
+  let bestKey = null, bestScore = 0;
+  for (const k of appKeys) {
+    const s = _profRepScore(statsRow, k);
+    if (s != null && s > bestScore) { bestScore = s; bestKey = k; }
+  }
+
+  // Distinct club codes + past affiliations (clubs ≠ current)
+  const distinctClubs = [...new Set(histClubRows.map(r => r[0]))];
+  const pastAffils    = histClubRows.filter(r => r[0] !== currentClub);
+
+  // Level filter availability
+  const hasCompulsory = profRows.some(r => r.level !== null && r.level <= 6);
+  const hasOptional   = profRows.some(r => r.level !== null && r.level > 6);
+  const showLevelFilter = hasCompulsory && hasOptional;
+
+  // ── Build HTML ────────────────────────────────────────────────────────────
+  const imgSrc     = image || SILO;
+  const imgTipAttr = image ? `data-tip="Image provided by gymnast or parent/guardian, displayed with permission"` : '';
+
+  const bestAppChip = bestKey
+    ? `<span class="profile-field-label">Best Apparatus</span> <strong style="color:${G_COLOR[bestKey]}">${esc(appNames[bestKey] || bestKey)}</strong>`
+    : '';
+
+  const PB_ICON = { VT:'VT', UB:'UB', BB:'BB', FX:'FL', PH:'PH', SR:'SR', PB:'PB', HB:'HB' };
+
+  const pbItems = appKeys.map(k => {
+    const pb      = statsRow[_STAT_OFFSET[k]];
+    const fullName = appNames[k] || k;
+    const icon = PB_ICON[k]
+      ? `<span class="profile-pb-icon" style="background-color:${G_COLOR[k]};-webkit-mask-image:url(assets/images/${PB_ICON[k]}.png);mask-image:url(assets/images/${PB_ICON[k]}.png)"></span>`
+      : `<span class="profile-pb-dot" style="background:${G_COLOR[k]}"></span>`;
+    return `<div class="profile-pb-item">
+      ${icon}
+      <span class="profile-pb-key"><span class="pb-name-full">${esc(fullName)}</span><span class="pb-name-short">${esc(k)}</span></span>
+      <span class="profile-pb-val">${pb != null ? pb.toFixed(3) : '-'}</span>
+    </div>`;
+  }).concat(`<div class="profile-pb-item profile-pb-aa">
+    <span class="profile-pb-dot" style="background:#f5c518"></span>
+    <span class="profile-pb-key"><span class="pb-name-full">All Around</span><span class="pb-name-short">AA</span></span>
+    <span class="profile-pb-val">${statsRow[24] != null ? statsRow[24].toFixed(3) : '-'}</span>
+  </div>`).join('');
+
+  const affilHtml = distinctClubs.length >= 2 && pastAffils.length
+    ? `<div class="profile-affil-section">
+         <div class="profile-field-label" style="margin-bottom:6px">Past Affiliations</div>
+         <div class="profile-affil-list">
+           ${pastAffils.map(r => `<span class="profile-affil-chip">${clubLogo(r[0], 'club-logo-sm', false)} ${esc(CLUBS[r[0]] || r[0])} <small style="color:var(--muted)">(${esc(r[1])})</small></span>`).join('')}
+         </div>
+       </div>`
+    : '';
+
+  const histApps = isMAG
+    ? [{key:'floor',h:'FX'},{key:'pommel',h:'PH'},{key:'rings',h:'SR'},{key:'vault',h:'VT'},{key:'pbars',h:'PB'},{key:'hbar',h:'HB'}]
+    : [{key:'vault',h:'VT'},{key:'bars',h:'UB'},{key:'beam',h:'BB'},{key:'floor',h:'FX'}];
+
+  const histTrows = [...profRows].reverse().map(r =>
+    `<tr>
+      <td class="ap-comp-name">${esc(r.name)}<small>${esc(r.season)}</small></td>
+      <td>${rankBadge(r.rank)}</td>
+      <td>${esc(levelDivDisplay(r.level, r.division, r.ageGroup))}</td>
+      ${histApps.map(a => `<td class="score">${fmt(r[a.key])}</td>`).join('')}
+      <td class="score"><strong>${fmt(r.total)}</strong></td>
+    </tr>`
+  ).join('');
+
+  el.innerHTML = `
+  <div class="profile-grid">
+    <div class="card profile-card">
+      <div class="profile-hero-row">
+        <img class="profile-img" src="${esc(imgSrc)}" alt="${esc(athleteName)}" ${imgTipAttr} onerror="this.src='${SILO}'">
+        <div style="flex:1;min-width:0">
+          <div class="profile-name">${esc(athleteName)}</div>
+          ${profLevelLabel ? `<div class="profile-club-level" style="margin-top:2px">${esc(profLevelLabel)}</div>` : ''}
+          <div class="profile-nickname">Nickname: ${nickname ? `"${esc(nickname)}"` : ''}</div>
+          ${bestAppChip ? `<div style="margin-top:6px;font-size:0.82rem">${bestAppChip}</div>` : ''}
+        </div>
+        <div class="profile-hero-club">
+          <div class="profile-field-label" style="margin-bottom:5px">Club</div>
+          ${clubLogo(currentClub, 'club-logo-md', false)}
+          <div style="font-size:1rem;font-weight:600;color:var(--text);margin-top:4px;white-space:nowrap">${clubName(currentClub)}</div>
+        </div>
+      </div>
+      ${affilHtml}
+    </div>
+
+    <div class="card profile-card">
+      <div class="profile-card-title">Personal Bests</div>
+      <div class="profile-pb-list">${pbItems}</div>
+    </div>
+
+    <div class="card profile-card">
+      <div class="profile-card-header">
+        <div class="profile-inner-tabs" id="prof-tab-mode">
+          <button class="filter-btn active" data-ptab="aa">AA</button>
+          <button class="filter-btn" data-ptab="apparatus">Apparatus</button>
+        </div>
+        ${showLevelFilter ? `<div class="profile-inner-tabs" id="prof-tab-level">
+          <button class="filter-btn" data-plevel="compulsory">Compulsory</button>
+          <button class="filter-btn active" data-plevel="optional">Optionals</button>
+        </div>` : ''}
+        <div class="profile-inner-tabs" id="prof-tab-type">
+          <button class="filter-btn active" data-ptype="line">Line</button>
+          <button class="filter-btn" data-ptype="bar">Bar</button>
+        </div>
+      </div>
+      <div class="profile-canvas-wrap"><canvas id="profile-graph-canvas"></canvas></div>
+    </div>
+
+    <div class="card profile-card profile-canvas-sq">
+      <div class="profile-card-header">
+        <div class="profile-inner-tabs" id="prof-tab-strength">
+          <button class="filter-btn active" data-stype="radar">Radar</button>
+          <button class="filter-btn" data-stype="pie">Pie</button>
+        </div>
+      </div>
+      <div class="profile-canvas-wrap"><canvas id="profile-strengths-canvas"></canvas></div>
+    </div>
+
+    <div class="card profile-card profile-history">
+      <table class="athlete-profile-table">
+        <thead><tr>
+          <th data-sort="str" style="text-align:left">Competition <span class="sort-icon">↕</span></th>
+          <th data-sort="num" style="text-align:left"># <span class="sort-icon">↕</span></th>
+          <th data-sort="str" style="text-align:left">Level <span class="sort-icon">↕</span></th>
+          ${histApps.map(a => `<th data-sort="num">${a.h} <span class="sort-icon">↕</span></th>`).join('')}
+          <th data-sort="num">Total <span class="sort-icon">↕</span></th>
+        </tr></thead>
+        <tbody>${histTrows}</tbody>
+      </table>
+    </div>
+  </div>`;
+
+  // Update URL for shareability
+  if (currentSport) {
+    history.replaceState(null, "", "#" + currentSport + "/athlete/" + encodeURIComponent(athleteName));
+  }
+
+  // ── Wire up controls ──────────────────────────────────────────────────────
+  let profGraphMode    = 'aa';
+  let profGraphType    = 'line';
+  let profLevelFilter  = hasOptional ? 'optional' : 'compulsory';
+  let profStrengthType = 'radar';
+
+  function profFilteredRows() {
+    return profLevelFilter === 'compulsory'
+      ? profRows.filter(r => r.level !== null && r.level <= 6)
+      : profRows.filter(r => r.level !== null && r.level > 6);
+  }
+  function profDrawGraph() {
+    const c = document.getElementById('profile-graph-canvas');
+    if (c) _profRenderTimeChart(c, profGraphType, profFilteredRows(), profGraphMode);
+  }
+  function profDrawStrength() {
+    const c = document.getElementById('profile-strengths-canvas');
+    if (c) _profRenderStrengthChart(c, profStrengthType, statsRow);
+  }
+
+  el.querySelector('#prof-tab-mode').addEventListener('click', e => {
+    const btn = e.target.closest('[data-ptab]');
+    if (!btn) return;
+    el.querySelectorAll('#prof-tab-mode button').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    profGraphMode = btn.dataset.ptab;
+    profDrawGraph();
+  });
+
+  if (showLevelFilter) {
+    el.querySelector('#prof-tab-level').addEventListener('click', e => {
+      const btn = e.target.closest('[data-plevel]');
+      if (!btn) return;
+      el.querySelectorAll('#prof-tab-level button').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      profLevelFilter = btn.dataset.plevel;
+      profDrawGraph();
+    });
+  }
+
+  el.querySelector('#prof-tab-type').addEventListener('click', e => {
+    const btn = e.target.closest('[data-ptype]');
+    if (!btn) return;
+    el.querySelectorAll('#prof-tab-type button').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    profGraphType = btn.dataset.ptype;
+    profDrawGraph();
+  });
+
+  el.querySelector('#prof-tab-strength').addEventListener('click', e => {
+    const btn = e.target.closest('[data-stype]');
+    if (!btn) return;
+    el.querySelectorAll('#prof-tab-strength button').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    profStrengthType = btn.dataset.stype;
+    profDrawStrength();
+  });
+
+  attachSort(el.querySelector('table.athlete-profile-table'));
+  profDrawGraph();
+  profDrawStrength();
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 // Tap-friendly tooltip (supplements native title= on desktop)
 // ─────────────────────────────────────────────────────────────────────────────
 (function () {
@@ -2943,7 +3341,16 @@ initClubDirectory();
     const view  = parts[1] || "";
     if (["WAG", "MAG", "ACRO"].includes(sport)) {
       enterSport(sport).then(() => {
-        if (view && view !== "clubs") switchToView(view);
+        if (view === "athlete" && parts[2]) {
+          const name = decodeURIComponent(parts[2]);
+          switchToView("search");
+          document.getElementById("search-view-title").textContent = "Athlete Profile";
+          document.getElementById("search-view-content").innerHTML =
+            `<p style="color:var(--muted);padding:12px 0">Loading…</p>`;
+          renderAthleteProfile(name);
+        } else if (view && view !== "clubs") {
+          switchToView(view);
+        }
       });
     }
   })();
