@@ -85,12 +85,20 @@ def create_schema(con: sqlite3.Connection) -> None:
             PRIMARY KEY (competition_name, file_path)
         );
 
+        CREATE TABLE IF NOT EXISTS athletes (
+            id        INTEGER PRIMARY KEY AUTOINCREMENT,
+            name      TEXT NOT NULL UNIQUE,
+            nickname  TEXT,
+            image     TEXT
+        );
+
         CREATE INDEX IF NOT EXISTS idx_results_event      ON results(event_id);
         CREATE INDEX IF NOT EXISTS idx_events_comp       ON events(competition_id);
         CREATE INDEX IF NOT EXISTS idx_events_level      ON events(level, division, event_type);
         CREATE INDEX IF NOT EXISTS idx_results_club      ON results(club);
         CREATE INDEX IF NOT EXISTS idx_results_athlete   ON results(athlete);
         CREATE INDEX IF NOT EXISTS idx_comp_sport_season ON competitions(sport, season);
+        CREATE INDEX IF NOT EXISTS idx_athletes_name     ON athletes(name);
     """)
     con.commit()
     # Idempotent migrations
@@ -110,6 +118,17 @@ def create_schema(con: sqlite3.Connection) -> None:
         con.execute("ALTER TABLE competitions ADD COLUMN date TEXT")
     except Exception:
         pass
+    con.commit()
+
+
+def sync_athletes(con: sqlite3.Connection) -> None:
+    """Upsert all distinct athlete names from results into the athletes table.
+    Uses INSERT OR IGNORE so manually set nickname/image values are never overwritten."""
+    con.execute("""
+        INSERT OR IGNORE INTO athletes(name)
+        SELECT DISTINCT athlete FROM results
+        WHERE athlete IS NOT NULL AND athlete != ''
+    """)
     con.commit()
 
 

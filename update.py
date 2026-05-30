@@ -711,6 +711,7 @@ def write_stats_json() -> None:
 
 def _finalize(con, dbconfig_file: Path, sport: str = "WAG") -> None:
     db.sync_clubs(con, CLUBS_FILE)
+    db.sync_athletes(con)
     db.vacuum(con)
     file_size = db.DB_PATH.stat().st_size
     prev_rev = 0
