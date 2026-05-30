@@ -1517,10 +1517,18 @@ def _se_parse_aa_results(lines, group_size=None):
             club = club_p[0].strip()
         else:
             # l1: a2+art, l2: club+exec, l3: pen line
+            # Some PDFs (ScoreExpress bug) put the athlete name on the exec row and
+            # the club on the pen row instead. Detect by checking if l3 has a non-bib
+            # alphabetic prefix before "pen".
             a2_p = re.split(r"\s+art\b", l1)
             athletes.append(a2_p[0].strip())
-            club_p = re.split(r"\s+exec\b", l2)
-            club = club_p[0].strip()
+            pen_p = re.split(r"\s+pen\b", l3, maxsplit=1)
+            pen_prefix = pen_p[0].strip() if pen_p else ""
+            if pen_prefix and not pen_prefix.isdigit():
+                club = pen_prefix
+            else:
+                club_p = re.split(r"\s+exec\b", l2)
+                club = club_p[0].strip()
         totals = [float(v) for v in FLOATS.findall(totals_line)]
         grand_total = totals[-1] if totals else None
         rt = totals[:-1]

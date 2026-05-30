@@ -602,7 +602,7 @@ async function initDB() {
 
   const cfgResp   = await fetch(new URL(`data/dbconfig_${currentSport}.json`, location.href).toString(), { cache: "no-cache" });
   const dbCfg     = await cfgResp.json();
-  const dbUrl     = new URL(`data/stick_${currentSport}.db?v=${dbCfg.fileLength}`, location.href).toString();
+  const dbUrl     = new URL(`data/stick_${currentSport}.db?v=${dbCfg.fileLength}.${dbCfg.rev || 0}`, location.href).toString();
   dbCfg.url       = dbUrl;
   const worker    = await createDbWorker(
     [{ from: "inline", config: dbCfg }],
@@ -1458,7 +1458,7 @@ async function openDrill(comp) {
         ? `<tr><th>#</th><th>Partnership</th><th>Club</th><th data-sort="num">Bal <span class="sort-icon">↕</span></th><th data-sort="num">Dyn <span class="sort-icon">↕</span></th><th data-sort="num">Com <span class="sort-icon">↕</span></th><th data-sort="num">Total <span class="sort-icon">↕</span></th></tr>`
         : `<tr><th>#</th><th>Partnership</th><th>Club</th><th data-sort="num">Diff <span class="sort-icon">↕</span></th><th data-sort="num">Exec <span class="sort-icon">↕</span></th><th data-sort="num">Art <span class="sort-icon">↕</span></th><th data-sort="num">Pen <span class="sort-icon">↕</span></th><th data-sort="num">Total <span class="sort-icon">↕</span></th></tr>`;
       const trows = ev.results.map(r => {
-        const names = (r.athletes || "").split("|").map(n => esc(n)).join(" / ");
+        const names = (r.athletes || "").split("|").map(n => esc(acroAthleteDisplay(n))).join(" / ");
         const scoreCells = isAA
           ? `<td class="score">${fmt(r.bal)}</td><td class="score">${fmt(r.dyn)}</td><td class="score">${fmt(r.com)}</td>`
           : `<td class="score">${fmt(r.diff)}</td><td class="score">${fmt(r.exec_score)}</td><td class="score">${fmt(r.art)}</td><td class="score">${fmt(r.pen)}</td>`;
@@ -1664,6 +1664,11 @@ async function ensureAthleteList() {
 }
 
 async function openSearchPanel() {
+  // ACRO has no individual athletes — switch to WAG before opening search
+  if (currentSport === "ACRO") {
+    DB = null; CLUBS = {}; CLUBS_LIST = []; CLUBS_BY_NAME = {};
+    await enterSport("WAG");
+  }
   await ensureAthleteList();
   document.getElementById("search-sport-select").value = currentSport || "WAG";
   document.getElementById("search-overlay").classList.add("open");
@@ -2315,6 +2320,22 @@ document.getElementById("cal-sport-filter").addEventListener("click", e => {
 // Render dispatcher
 // ─────────────────────────────────────────────────────────────────────────────
 // ─────────────────────────────────────────────────────────────────────────────
+// ACRO helpers
+// ─────────────────────────────────────────────────────────────────────────────
+function acroAthleteDisplay(name) {
+  return name.split(" ").map(word =>
+    word.split("-").map(part => part.charAt(0).toUpperCase() + part.slice(1).toLowerCase()).join("-")
+  ).join(" ");
+}
+
+function partnershipKey(athletes, club) {
+  const norm = athletes.split("|")
+    .map(n => n.toLowerCase().replace(/-/g, " ").trim().split(/\s+/).sort().join(" "))
+    .sort().join("|");
+  return `${norm}||${club}`;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 // ACRO render functions
 // ─────────────────────────────────────────────────────────────────────────────
 async function renderAcroClubs() {
@@ -2394,7 +2415,7 @@ async function renderAcroPartnerships() {
 
   const partnerships = {};
   for (const [rank, athletes, club, total, diff, exec_score, art, pen, bal, dyn, com, competition] of raw) {
-    const key = `${athletes}||${club}`;
+    const key = partnershipKey(athletes, club);
     if (!partnerships[key]) partnerships[key] = {
       athletes, club, bestScore: 0, bestComp: "", wins: 0, totalScore: 0, count: 0, comps: new Set(),
       bestBal: null, bestDyn: null, bestCom: null, bestDiff: null, bestExec: null, bestArt: null,
@@ -2441,7 +2462,7 @@ async function renderAcroPartnerships() {
   tbody.innerHTML = sorted.map((p, i) => {
     const rank = i + 1;
     const badge = rank <= 3 ? `<span class="rank-badge rank-${rank}">${rank}</span>` : `<span class="rank-badge rank-n">${rank}</span>`;
-    const names = (p.athletes || "").split("|").map(n => esc(n)).join(" / ");
+    const names = (p.athletes || "").split("|").map(n => esc(acroAthleteDisplay(n))).join(" / ");
     const scoreCells = isAA
       ? `<td class="score">${fmt(p.bestBal)}</td><td class="score">${fmt(p.bestDyn)}</td><td class="score">${fmt(p.bestCom)}</td>`
       : `<td class="score">${fmt(p.bestDiff)}</td><td class="score">${fmt(p.bestExec)}</td><td class="score">${fmt(p.bestArt)}</td>`;
