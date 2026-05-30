@@ -2851,7 +2851,7 @@ function _profRenderTimeChart(canvasEl, type, rows, mode) {
       responsive: true, maintainAspectRatio: true, aspectRatio: 2.2,
       interaction: { mode: 'index', intersect: false },
       plugins: {
-        legend: { labels: LEG },
+        legend: { display: false },
         tooltip: {
           callbacks: {
             title: items => rows[items[0].dataIndex]?.name || '',
@@ -2864,54 +2864,40 @@ function _profRenderTimeChart(canvasEl, type, rows, mode) {
   });
 }
 
-function _profRenderStrengthChart(canvasEl, type, statsRow) {
+function _profRenderStrengthChart(canvasEl, showPB, statsRow) {
   if (_profStrengthChart) { try { _profStrengthChart.destroy(); } catch (_) {} _profStrengthChart = null; }
   const appKeys  = G_APP_KEYS[currentSport] || [];
   if (!appKeys.length) return;
   const appNames = appName();
   const lbl    = appKeys.map(k => appNames[k] || k);
   const colors = appKeys.map(k => G_COLOR[k]);
-  const vals   = appKeys.map(k => _profRepScore(statsRow, k) || 0);
-  const ctx    = canvasEl.getContext('2d');
-  if (type === 'radar') {
-    const valid  = vals.filter(v => v > 0);
-    const minVal = valid.length ? Math.max(0, Math.floor(Math.min(...valid) - 1)) : 0;
-    const top    = valid.length ? Math.ceil(Math.max(...valid) + 0.5) : 15;
-    const range  = top - minVal;
-    const step   = range <= 4 ? 0.5 : 1;
-    _profStrengthChart = new Chart(ctx, {
-      type: 'radar',
-      data: {
-        labels: lbl,
-        datasets: [{ label: 'Avg', data: vals, backgroundColor: 'rgba(124,109,250,0.15)', borderColor: 'rgba(124,109,250,0.85)', borderWidth: 2, pointBackgroundColor: colors, pointBorderColor: '#1a1a24', pointRadius: 5, pointHoverRadius: 7 }],
-      },
-      options: {
-        responsive: true, aspectRatio: 1.1,
-        plugins: {
-          legend: { labels: LEG },
-          tooltip: { callbacks: { label: i => i.label + ': ' + (i.raw != null ? i.raw.toFixed(3) : '—') } },
-        },
-        scales: {
-          r: { min: minVal, max: top, ticks: { color: '#8888aa', backdropColor: 'transparent', font: { size: 10 }, stepSize: step, callback: v => v.toFixed(1) }, grid: GRID, angleLines: GRID, pointLabels: { color: colors, font: { size: 12, weight: '700' } } },
-        },
-      },
-    });
-  } else {
-    _profStrengthChart = new Chart(ctx, {
-      type: 'pie',
-      data: {
-        labels: lbl,
-        datasets: [{ label: 'Avg', data: vals, backgroundColor: colors.map(c => c + 'bb'), borderColor: colors, borderWidth: 2, hoverOffset: 8 }],
-      },
-      options: {
-        responsive: true, aspectRatio: 1.1,
-        plugins: {
-          legend: { position: 'right', labels: LEG },
-          tooltip: { callbacks: { label: i => { const t = i.dataset.data.reduce((a, b) => a + b, 0); return i.label + ': ' + i.raw.toFixed(3) + ' (' + ((i.raw / t) * 100).toFixed(1) + '%)'; } } },
-        },
-      },
-    });
+  const avgVals = appKeys.map(k => _profRepScore(statsRow, k) || 0);
+  const pbVals  = appKeys.map(k => { const b = _STAT_OFFSET[k]; return b !== undefined ? (statsRow[b] || 0) : 0; });
+  const datasets = [
+    { label: 'Avg', data: avgVals, backgroundColor: 'rgba(124,109,250,0.15)', borderColor: 'rgba(124,109,250,0.85)', borderWidth: 2, pointBackgroundColor: colors, pointBorderColor: '#1a1a24', pointRadius: 5, pointHoverRadius: 7 },
+  ];
+  if (showPB) {
+    datasets.push({ label: 'Best', data: pbVals, backgroundColor: 'rgba(245,197,24,0.08)', borderColor: 'rgba(245,197,24,0.8)', borderWidth: 2, pointBackgroundColor: colors, pointBorderColor: '#1a1a24', pointRadius: 4, pointHoverRadius: 6 });
   }
+  const allVals = [...avgVals, ...(showPB ? pbVals : [])].filter(v => v > 0);
+  const minVal = allVals.length ? Math.max(0, Math.floor(Math.min(...allVals) - 1)) : 0;
+  const top    = allVals.length ? Math.ceil(Math.max(...allVals) + 0.5) : 15;
+  const range  = top - minVal;
+  const step   = range <= 4 ? 0.5 : 1;
+  _profStrengthChart = new Chart(canvasEl.getContext('2d'), {
+    type: 'radar',
+    data: { labels: lbl, datasets },
+    options: {
+      responsive: true, aspectRatio: 1.1,
+      plugins: {
+        legend: { display: false },
+        tooltip: { callbacks: { label: i => i.dataset.label + ': ' + (i.raw != null ? i.raw.toFixed(3) : '—') } },
+      },
+      scales: {
+        r: { min: minVal, max: top, ticks: { color: '#8888aa', backdropColor: 'transparent', font: { size: 10 }, stepSize: step, callback: v => v.toFixed(1) }, grid: GRID, angleLines: GRID, pointLabels: { color: colors, font: { size: 12, weight: '700' } } },
+      },
+    },
+  });
 }
 
 async function renderAthleteProfile(athleteName) {
@@ -3104,27 +3090,22 @@ async function renderAthleteProfile(athleteName) {
     <div class="card profile-card">
       <div class="profile-card-header">
         <div class="profile-inner-tabs" id="prof-tab-mode">
-          <button class="filter-btn active" data-ptab="aa">AA</button>
-          <button class="filter-btn" data-ptab="apparatus">Apparatus</button>
+          <button class="filter-btn active" data-ptab="apparatus">Apparatus</button>
+          <button class="filter-btn" data-ptab="aa">All Around</button>
         </div>
         ${showLevelFilter ? `<div class="profile-inner-tabs" id="prof-tab-level">
           <button class="filter-btn" data-plevel="compulsory">Compulsory</button>
           <button class="filter-btn active" data-plevel="optional">Optionals</button>
         </div>` : ''}
-        <div class="profile-inner-tabs" id="prof-tab-type">
-          <button class="filter-btn active" data-ptype="line">Line</button>
-          <button class="filter-btn" data-ptype="bar">Bar</button>
-        </div>
       </div>
+      <div class="prof-series-toggles" id="prof-series-toggles" style="display:none"></div>
       <div class="profile-canvas-wrap"><canvas id="profile-graph-canvas"></canvas></div>
     </div>
 
     <div class="card profile-card profile-canvas-sq">
       <div class="profile-card-header">
-        <div class="profile-inner-tabs" id="prof-tab-strength">
-          <button class="filter-btn active" data-stype="radar">Radar</button>
-          <button class="filter-btn" data-stype="pie">Pie</button>
-        </div>
+        <span class="profile-card-title">Strength Radar</span>
+        <div class="prof-series-toggles" id="prof-radar-toggles" style="margin-left:auto;margin-bottom:0"></div>
       </div>
       <div class="profile-canvas-wrap"><canvas id="profile-strengths-canvas"></canvas></div>
     </div>
@@ -3149,23 +3130,60 @@ async function renderAthleteProfile(athleteName) {
   }
 
   // ── Wire up controls ──────────────────────────────────────────────────────
-  let profGraphMode    = 'aa';
-  let profGraphType    = 'line';
-  let profLevelFilter  = hasOptional ? 'optional' : 'compulsory';
-  let profStrengthType = 'radar';
+  let profGraphMode   = 'apparatus';
+  let profLevelFilter = hasOptional ? 'optional' : 'compulsory';
+  const profSeriesVis = {}; // dataset label → boolean visibility state
 
   function profFilteredRows() {
     return profLevelFilter === 'compulsory'
       ? profRows.filter(r => r.level !== null && r.level <= 6)
       : profRows.filter(r => r.level !== null && r.level > 6);
   }
+
+  function _buildSeriesToggle(containerId, chart) {
+    const container = el.querySelector('#' + containerId);
+    if (!container || !chart) return;
+    container.innerHTML = '';
+    chart.data.datasets.forEach((ds, i) => {
+      const raw = ds.borderColor;
+      const color = typeof raw === 'string' ? raw.replace(/,\s*[\d.]+\)$/, ',1)') : raw;
+      const visible = profSeriesVis[ds.label] !== false;
+      if (!visible) { chart.setDatasetVisibility(i, false); chart.update(); }
+      const lbl = document.createElement('label');
+      lbl.className = 'prof-switch';
+      lbl.style.setProperty('--sw-color', color);
+      lbl.innerHTML = `<input type="checkbox" ${visible ? 'checked' : ''}><span class="prof-sw-track"></span><span class="prof-sw-label" style="color:${color}">${ds.label}</span>`;
+      container.appendChild(lbl);
+      lbl.querySelector('input').addEventListener('change', e => {
+        profSeriesVis[ds.label] = e.target.checked;
+        chart.setDatasetVisibility(i, e.target.checked);
+        chart.update();
+      });
+    });
+  }
+
   function profDrawGraph() {
     const c = document.getElementById('profile-graph-canvas');
-    if (c) _profRenderTimeChart(c, profGraphType, profFilteredRows(), profGraphMode);
+    if (!c) return;
+    _profRenderTimeChart(c, 'line', profFilteredRows(), profGraphMode);
+    const togglesEl = el.querySelector('#prof-series-toggles');
+    if (togglesEl) {
+      if (profGraphMode === 'apparatus') {
+        togglesEl.style.display = '';
+        _buildSeriesToggle('prof-series-toggles', _profGraphChart);
+      } else {
+        togglesEl.style.display = 'none';
+        togglesEl.innerHTML = '';
+      }
+    }
   }
+
   function profDrawStrength() {
     const c = document.getElementById('profile-strengths-canvas');
-    if (c) _profRenderStrengthChart(c, profStrengthType, statsRow);
+    if (c) {
+      _profRenderStrengthChart(c, true, statsRow);
+      _buildSeriesToggle('prof-radar-toggles', _profStrengthChart);
+    }
   }
 
   el.querySelector('#prof-tab-mode').addEventListener('click', e => {
@@ -3188,23 +3206,6 @@ async function renderAthleteProfile(athleteName) {
     });
   }
 
-  el.querySelector('#prof-tab-type').addEventListener('click', e => {
-    const btn = e.target.closest('[data-ptype]');
-    if (!btn) return;
-    el.querySelectorAll('#prof-tab-type button').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-    profGraphType = btn.dataset.ptype;
-    profDrawGraph();
-  });
-
-  el.querySelector('#prof-tab-strength').addEventListener('click', e => {
-    const btn = e.target.closest('[data-stype]');
-    if (!btn) return;
-    el.querySelectorAll('#prof-tab-strength button').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-    profStrengthType = btn.dataset.stype;
-    profDrawStrength();
-  });
 
   attachSort(el.querySelector('table.athlete-profile-table'));
   profDrawGraph();
