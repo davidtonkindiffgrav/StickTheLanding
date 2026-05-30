@@ -212,6 +212,7 @@
     <!-- TEAM STANDINGS -->
     <section class="view active" id="view-clubs">
       <h2 id="team-title">Team Standings</h2>
+      <div class="table-context-header" id="team-context-header"></div>
       <div class="filter-bar" id="level-filter-bar"><label>Level:</label></div>
       <div class="filter-bar" id="division-filter-bar">
         <label>Division:</label>
@@ -244,6 +245,7 @@
     <!-- INDIVIDUAL RANKINGS -->
     <section class="view" id="view-athletes">
       <h2 id="athlete-title">Individual Rankings</h2>
+      <div class="table-context-header" id="athlete-context-header"></div>
       <div class="filter-bar" id="athlete-level-filter-bar"><label>Level:</label></div>
       <div class="filter-bar" id="athlete-division-filter-bar">
         <label>Division:</label>
@@ -887,6 +889,53 @@ function _execRows(resultSet) {
 }
 
 const INT_LEVEL_LABELS = {101:"Dev Int", 102:"Fut Int", 103:"Jun Int", 104:"Sen Int", 105:"Dev Int 16+"};
+const INT_LEVEL_FULL   = {101:"Developing Int", 102:"Future Int", 103:"Junior Int", 104:"Senior Int", 105:"Dev Int 16+"};
+
+function buildContextLabel() {
+  const parts = [];
+
+  // Level
+  if (activeLevel !== null) {
+    if (currentSport === "ACRO") {
+      parts.push(String(activeLevel).replace(/^Level\s+(\d+)$/i, "Level $1"));
+    } else if (typeof activeLevel === "number" && activeLevel >= 101) {
+      parts.push(INT_LEVEL_FULL[activeLevel] || `Level ${activeLevel}`);
+    } else {
+      parts.push(`Level ${activeLevel}`);
+    }
+  } else {
+    parts.push("All Levels");
+  }
+
+  // Division / Age Group / Category
+  const isIntLevel = typeof activeLevel === "number" && activeLevel >= 101;
+  const divBar = document.getElementById("division-filter-bar");
+  if (divBar && divBar.style.display !== "none" && !isIntLevel) {
+    if (activeDivision !== null) {
+      parts.push(currentSport === "WAG" ? `Division ${activeDivision}` : String(activeDivision));
+    } else {
+      parts.push(currentSport === "MAG" ? "All Age Groups" : "All Divisions");
+    }
+  }
+
+  // Region (WAG only)
+  const regionBar = document.getElementById("region-filter-bar");
+  if (regionBar && regionBar.style.display !== "none") {
+    parts.push(activeRegion || "All Regions");
+  }
+
+  // Apparatus
+  parts.push(appName()[activeApparatus] || activeApparatus);
+
+  const sep  = `<span class="ctx-sep"> · </span>`;
+  const body = parts.map(p => `<span class="ctx-part">${esc(p)}</span>`).join(sep);
+  return `<span class="ctx-season">${esc(currentSeason)}</span>${sep}${body}`;
+}
+
+function updateTableContextHeader() {
+  const html = buildContextLabel();
+  document.querySelectorAll(".table-context-header").forEach(el => { el.innerHTML = html; });
+}
 
 function levelDivDisplay(level, division, age_group) {
   if (level == null) return "-";
@@ -1001,7 +1050,8 @@ function buildTeamStandings(rows, apparatus = "AA") {
 }
 
 async function renderClubs() {
-  document.getElementById("team-title").textContent = `Team Standings · ${currentSeason} · ${appName()[activeApparatus] || activeApparatus}`;
+  document.getElementById("team-title").textContent = "Team Standings";
+  updateTableContextHeader();
   if (activeLevel === null) {
     document.getElementById("team-highscore-tbody").innerHTML =
       `<tr><td colspan="6" style="text-align:center;color:var(--muted);padding:36px 12px">
@@ -1099,7 +1149,8 @@ function buildAthleteStandings(rows, apparatus = "AA") {
 }
 
 async function renderAthletes() {
-  document.getElementById("athlete-title").textContent = `Individual Rankings · ${currentSeason} · ${appName()[activeApparatus] || activeApparatus}`;
+  document.getElementById("athlete-title").textContent = "Individual Rankings";
+  updateTableContextHeader();
   const tbody = document.getElementById("athlete-tbody");
   const thead = document.querySelector("#athlete-table thead tr");
 
@@ -2243,9 +2294,8 @@ async function renderAcroClubs() {
   const titleEl = document.getElementById("team-title");
   const tbody   = document.getElementById("team-highscore-tbody");
   const routineType = activeApparatus || "All-Around";
-  const levelLabel = [activeLevel, activeDivision].filter(Boolean).join(" ");
-  titleEl.textContent = `Club Standings · ${currentSeason}` +
-    (activeLevel ? ` · ${levelLabel} · ${routineType}` : "");
+  titleEl.textContent = "Club Standings";
+  updateTableContextHeader();
   if (activeLevel === null) {
     tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;color:var(--muted);padding:36px 12px">
       Select a Level above to see club standings.</td></tr>`;
@@ -2297,9 +2347,8 @@ async function renderAcroPartnerships() {
   const titleEl = document.getElementById("athlete-title");
   const tbody   = document.getElementById("athlete-tbody");
   const routineType = activeApparatus || "All-Around";
-  const levelLabelP = [activeLevel, activeDivision].filter(Boolean).join(" ");
-  titleEl.textContent = `Partnership Rankings · ${currentSeason}` +
-    (activeLevel ? ` · ${levelLabelP} · ${routineType}` : "");
+  titleEl.textContent = "Partnership Rankings";
+  updateTableContextHeader();
   if (activeLevel === null) {
     tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;color:var(--muted);padding:36px 12px">
       Select a Level above to see partnership rankings.</td></tr>`;

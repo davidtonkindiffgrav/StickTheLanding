@@ -154,8 +154,19 @@
     .view { display: none; }
     .view.active { display: block; }
 
-    h2 { font-size: 1.2rem; font-weight: 700; margin-bottom: 20px; }
+    h2 { font-size: 1.2rem; font-weight: 700; margin-bottom: 8px; }
     h3 { font-size: 1rem; font-weight: 600; margin-bottom: 12px; color: var(--muted); }
+
+    .table-context-header {
+      font-size: 1.6rem;
+      font-weight: 700;
+      line-height: 1.2;
+      margin-bottom: 20px;
+      letter-spacing: -0.3px;
+    }
+    .table-context-header .ctx-season { color: var(--accent); }
+    .table-context-header .ctx-sep    { color: var(--muted); font-weight: 400; }
+    .table-context-header .ctx-part   { color: var(--text); }
 
     .card {
       background: var(--surface);
@@ -1001,6 +1012,7 @@
       #drill-box { padding: 20px 16px; border-radius: 12px; }
       #coming-soon-box { padding: 28px 20px; }
       h2 { font-size: 1.1rem; }
+      .table-context-header { font-size: 1.15rem; }
       .comp-grid { grid-template-columns: 1fr; }
 
       /* Landing V3 mobile */
