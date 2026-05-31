@@ -1685,6 +1685,7 @@ async function openSearchPanel() {
 async function onSearchSportChange(sport) {
   if (sport === currentSport) return;
   closeSearchPanel();
+  DB = null; CLUBS = {}; CLUBS_LIST = []; CLUBS_BY_NAME = {};
   await enterSport(sport);
   await openSearchPanel();
 }
