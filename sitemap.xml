@@ -11,9 +11,29 @@
     <priority>0.8</priority>
   </url>
   <url>
+    <loc>https://stickthelanding.com.au/competitions/wag/</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://stickthelanding.com.au/competitions/mag/</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://stickthelanding.com.au/competitions/acro/</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
     <loc>https://stickthelanding.com.au/about/</loc>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
+  </url>
+  <url>
+    <loc>https://stickthelanding.com.au/contact/</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.4</priority>
   </url>
   <url>
     <loc>https://stickthelanding.com.au/privacy/</loc>
@@ -28,6 +48,12 @@
   <url>
     <loc>https://stickthelanding.com.au/news/posts/2026-05-28-Senior-Victorian-Championships/</loc>
     <lastmod>2026-05-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://stickthelanding.com.au/news/posts/2026-05-11-Waverley-Invite/</loc>
+    <lastmod>2026-05-20</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
@@ -56,21 +82,231 @@
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://stickthelanding.com.au/news/posts/2026-05-11-Waverley-Invite/</loc>
-    <lastmod>2026-05-11</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://stickthelanding.com.au/galleries/</loc>
-    <lastmod>2026-05-27</lastmod>
+    <loc>https://stickthelanding.com.au/results/wag/waverley-invite-2026/</loc>
+    <lastmod>2026-10-05</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://stickthelanding.com.au/galleries/senior-vic-champs-2026/</loc>
-    <lastmod>2026-05-26</lastmod>
+    <loc>https://stickthelanding.com.au/results/wag/senior-victorian-championships-2026/</loc>
+    <lastmod>2026-05-22</lastmod>
     <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://stickthelanding.com.au/results/wag/wag-trial-1-and-border-challenge-trial-1-2026/</loc>
+    <lastmod>2026-04-26</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://stickthelanding.com.au/results/wag/senior-judges-invitational-2026/</loc>
+    <lastmod>2026-04-19</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://stickthelanding.com.au/results/wag/btyc-mag-and-wag-senior-extravaganza-2026/</loc>
+    <lastmod>2026-03-21</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://stickthelanding.com.au/results/wag/knox-senior-wag-invitational-2026/</loc>
+    <lastmod>2026-03-15</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://stickthelanding.com.au/results/wag/wag-trial-2-and-border-challenge-trial-2-2026/</loc>
+    <lastmod>2026-03-05</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://stickthelanding.com.au/results/wag/warrnambool-invite-2025/</loc>
+    <lastmod>2025-12-07</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://stickthelanding.com.au/results/wag/natimuk-district-gymnastic-club-annual-invitational-competition-and-wag-lat-2025/</loc>
+    <lastmod>2025-11-11</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://stickthelanding.com.au/results/wag/flyaway-invitational-2025/</loc>
+    <lastmod>2025-11-06</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://stickthelanding.com.au/results/wag/southern-cross-classic-2025/</loc>
+    <lastmod>2025-10-18</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://stickthelanding.com.au/results/wag/junior-victorian-championships-2025/</loc>
+    <lastmod>2025-10-17</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://stickthelanding.com.au/results/wag/metro-east-regional-championships-2025/</loc>
+    <lastmod>2025-09-20</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://stickthelanding.com.au/results/wag/metro-north-central-regional-championships-2025/</loc>
+    <lastmod>2025-09-14</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://stickthelanding.com.au/results/wag/metro-south-regional-championships-2025/</loc>
+    <lastmod>2025-09-13</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://stickthelanding.com.au/results/wag/metro-west-regional-championships-2025/</loc>
+    <lastmod>2025-09-13</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://stickthelanding.com.au/results/wag/south-east-regional-championships-2025/</loc>
+    <lastmod>2025-09-13</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://stickthelanding.com.au/results/wag/eclipse-invitational-2025/</loc>
+    <lastmod>2025-08-30</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://stickthelanding.com.au/results/wag/waverley-classic-2025/</loc>
+    <lastmod>2025-08-15</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://stickthelanding.com.au/results/wag/knox-junior-invitational-2025/</loc>
+    <lastmod>2025-07-26</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://stickthelanding.com.au/results/wag/geelong-ymca-invite-2025/</loc>
+    <lastmod>2025-07-19</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://stickthelanding.com.au/results/wag/mlc-junior-star-classic-2025/</loc>
+    <lastmod>2025-07-19</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://stickthelanding.com.au/results/wag/casey-cup-2025/</loc>
+    <lastmod>2025-06-22</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://stickthelanding.com.au/results/wag/aerodynamix-invitational-2025/</loc>
+    <lastmod>2025-06-21</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://stickthelanding.com.au/results/wag/melton-invitational-2025/</loc>
+    <lastmod>2025-06-10</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://stickthelanding.com.au/results/wag/btyc-junior-invite-2025/</loc>
+    <lastmod>2025-06-09</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://stickthelanding.com.au/results/wag/mlc-senior-star-classic-2025/</loc>
+    <lastmod>2025-06-04</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://stickthelanding.com.au/results/wag/waverley-invite-2025/</loc>
+    <lastmod>2025-05-25</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://stickthelanding.com.au/results/wag/senior-vic-championships-2025/</loc>
+    <lastmod>2025-05-16</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://stickthelanding.com.au/results/wag/casey-classic-2025/</loc>
+    <lastmod>2025-05-08</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://stickthelanding.com.au/results/wag/senior-judges-invitational-2025/</loc>
+    <lastmod>2025-04-26</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://stickthelanding.com.au/results/wag/state-trial-1-2025/</loc>
+    <lastmod>2025-04-13</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://stickthelanding.com.au/results/wag/state-trial-2-2025/</loc>
+    <lastmod>2025-04-05</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://stickthelanding.com.au/results/wag/knox-wag-senior-invite-2025/</loc>
+    <lastmod>2025-03-23</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://stickthelanding.com.au/results/wag/btyc-wag-extravaganza-2025/</loc>
+    <lastmod>2025-03-15</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://stickthelanding.com.au/results/wag/niddrie-invitational-2025/</loc>
+    <lastmod>2025-02-08</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://stickthelanding.com.au/results/wag/border-challenge-trial-1-2025/</loc>
+    <lastmod>2025-01-06</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://stickthelanding.com.au/results/wag/border-challenge-trial-2-2025/</loc>
+    <lastmod>2025-01-06</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
   </url>
 </urlset>

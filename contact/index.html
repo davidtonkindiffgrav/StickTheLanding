@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Contact — Stick The Landing</title>
+  <meta name="description" content="Get in touch with the Stick The Landing team. Report results errors, suggest corrections, or just say hello." />
+  <meta property="og:type"        content="website" />
+  <meta property="og:site_name"   content="Stick The Landing" />
+  <meta property="og:title"       content="Contact — Stick The Landing" />
+  <meta property="og:description" content="Get in touch with the Stick The Landing team. Report results errors, suggest corrections, or just say hello." />
+  <meta property="og:url"         content="https://stickthelanding.com.au/contact/" />
+  <link rel="canonical"           href="https://stickthelanding.com.au/contact/" />
+  <link rel="apple-touch-icon" sizes="180x180" href="/assets/favicons/apple-touch-icon.png" />
+  <link rel="icon" type="image/png" sizes="32x32" href="/assets/favicons/favicon-32x32.png" />
+  <link rel="icon" type="image/png" sizes="16x16" href="/assets/favicons/favicon-16x16.png" />
+  <link rel="manifest" href="/assets/favicons/site.webmanifest" />
+  <link rel="shortcut icon" href="/assets/favicons/favicon.ico" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
+  <link rel="stylesheet" href="/assets/style.css" />
+  <link rel="stylesheet" href="/assets/nav.css" />
+  <style>
+    body { background: var(--bg); color: var(--text); font-family: 'Space Grotesk', system-ui, sans-serif; margin: 0; }
+    .contact-page-main {
+      max-width: 640px;
+      margin: 0 auto;
+      padding: 48px 32px 80px;
+    }
+    .contact-page-main h1 {
+      font-size: 1.8rem;
+      font-weight: 800;
+      margin: 0 0 8px;
+      letter-spacing: -0.02em;
+    }
+    .contact-page-footer {
+      background: #0d0e1a;
+      color: #5a5e7a;
+      text-align: center;
+      padding: 20px 32px;
+      font-size: 0.78rem;
+      border-top: 1px solid #1a1d2e;
+    }
+    .contact-page-footer a { color: #7a7e9a; text-decoration: none; }
+    .contact-page-footer a:hover { color: #fff; }
+    @media (max-width: 600px) {
+      .contact-page-main { padding: 28px 16px 60px; }
+    }
+  </style>
+</head>
+<body>
+
+<main class="contact-page-main">
+  <h1>Contact Us</h1>
+  <p class="contact-intro">
+    Found a results error? Know of a club name change? Just want to say hi?
+    We welcome all feedback from the Victorian gymnastics community.
+  </p>
+
+  <form class="contact-form" action="https://formspree.io/f/mrerjrgn" method="POST">
+    <div class="form-group">
+      <label for="f-name">Your Name</label>
+      <input type="text" id="f-name" name="name" placeholder="Jane Smith" required />
+    </div>
+    <div class="form-group">
+      <label for="f-email">Email Address</label>
+      <input type="email" id="f-email" name="email" placeholder="jane@example.com" required />
+    </div>
+    <div class="form-group">
+      <label for="f-subject">Subject</label>
+      <select id="f-subject" name="subject" required>
+        <option value="" disabled selected>Choose a topic…</option>
+        <option value="General Enquiry">General Enquiry</option>
+        <option value="Results Error">Results Error</option>
+        <option value="Athlete Name Correction">Athlete Name Correction</option>
+        <option value="Club Info Update">Club Info Update</option>
+        <option value="Other">Other</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label for="f-message">Message</label>
+      <textarea id="f-message" name="message" placeholder="Tell us what you found…" required></textarea>
+    </div>
+    <button type="submit" class="form-submit">Send Message</button>
+    <p class="form-note">We'll get back to you as soon as we can. Thank you for helping make this resource better for the Victorian gymnastics community.</p>
+  </form>
+</main>
+
+<footer class="contact-page-footer">
+  <span>© 2026 Stick The Landing</span>
+  &nbsp;·&nbsp;<a href="/about/">About</a>
+  &nbsp;·&nbsp;<a href="/privacy/">Privacy Policy</a>
+</footer>
+
+<script src="/assets/nav.js" defer></script>
+</body>
+</html>

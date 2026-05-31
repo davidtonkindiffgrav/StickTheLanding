@@ -1,0 +1,230 @@
+[
+  {
+    "sport": "wag",
+    "comp_id": "waverley-invite-2026",
+    "name": "Waverley Invite",
+    "date": "2026-10-05"
+  },
+  {
+    "sport": "wag",
+    "comp_id": "senior-victorian-championships-2026",
+    "name": "Senior Victorian Championships",
+    "date": "2026-05-22"
+  },
+  {
+    "sport": "wag",
+    "comp_id": "wag-trial-1-and-border-challenge-trial-1-2026",
+    "name": "WAG Trial 1 and Border Challenge Trial 1",
+    "date": "2026-04-26"
+  },
+  {
+    "sport": "wag",
+    "comp_id": "senior-judges-invitational-2026",
+    "name": "Senior Judges Invitational",
+    "date": "2026-04-19"
+  },
+  {
+    "sport": "wag",
+    "comp_id": "btyc-mag-and-wag-senior-extravaganza-2026",
+    "name": "BTYC MAG and WAG Senior Extravaganza",
+    "date": "2026-03-21"
+  },
+  {
+    "sport": "wag",
+    "comp_id": "knox-senior-wag-invitational-2026",
+    "name": "Knox Senior WAG Invitational",
+    "date": "2026-03-15"
+  },
+  {
+    "sport": "wag",
+    "comp_id": "wag-trial-2-and-border-challenge-trial-2-2026",
+    "name": "WAG Trial 2 and Border Challenge Trial 2",
+    "date": "2026-03-05"
+  },
+  {
+    "sport": "wag",
+    "comp_id": "warrnambool-invite-2025",
+    "name": "Warrnambool Invite",
+    "date": "2025-12-07"
+  },
+  {
+    "sport": "wag",
+    "comp_id": "natimuk-district-gymnastic-club-annual-invitational-competition-and-wag-lat-2025",
+    "name": "Natimuk & District Gymnastic Club Annual Invitational Competition and WAG LAT",
+    "date": "2025-11-11"
+  },
+  {
+    "sport": "wag",
+    "comp_id": "flyaway-invitational-2025",
+    "name": "Flyaway Invitational",
+    "date": "2025-11-06"
+  },
+  {
+    "sport": "wag",
+    "comp_id": "southern-cross-classic-2025",
+    "name": "Southern Cross Classic",
+    "date": "2025-10-18"
+  },
+  {
+    "sport": "wag",
+    "comp_id": "junior-victorian-championships-2025",
+    "name": "Junior Victorian Championships",
+    "date": "2025-10-17"
+  },
+  {
+    "sport": "wag",
+    "comp_id": "metro-east-regional-championships-2025",
+    "name": "Metro East Regional Championships",
+    "date": "2025-09-20"
+  },
+  {
+    "sport": "wag",
+    "comp_id": "metro-north-central-regional-championships-2025",
+    "name": "Metro North Central Regional Championships",
+    "date": "2025-09-14"
+  },
+  {
+    "sport": "wag",
+    "comp_id": "metro-south-regional-championships-2025",
+    "name": "Metro South Regional Championships",
+    "date": "2025-09-13"
+  },
+  {
+    "sport": "wag",
+    "comp_id": "metro-west-regional-championships-2025",
+    "name": "Metro West Regional Championships",
+    "date": "2025-09-13"
+  },
+  {
+    "sport": "wag",
+    "comp_id": "south-east-regional-championships-2025",
+    "name": "South East Regional Championships",
+    "date": "2025-09-13"
+  },
+  {
+    "sport": "wag",
+    "comp_id": "eclipse-invitational-2025",
+    "name": "Eclipse Invitational",
+    "date": "2025-08-30"
+  },
+  {
+    "sport": "wag",
+    "comp_id": "waverley-classic-2025",
+    "name": "Waverley Classic",
+    "date": "2025-08-15"
+  },
+  {
+    "sport": "wag",
+    "comp_id": "knox-junior-invitational-2025",
+    "name": "Knox Junior Invitational",
+    "date": "2025-07-26"
+  },
+  {
+    "sport": "wag",
+    "comp_id": "geelong-ymca-invite-2025",
+    "name": "Geelong YMCA Invite",
+    "date": "2025-07-19"
+  },
+  {
+    "sport": "wag",
+    "comp_id": "mlc-junior-star-classic-2025",
+    "name": "MLC Junior Star Classic",
+    "date": "2025-07-19"
+  },
+  {
+    "sport": "wag",
+    "comp_id": "casey-cup-2025",
+    "name": "Casey Cup",
+    "date": "2025-06-22"
+  },
+  {
+    "sport": "wag",
+    "comp_id": "aerodynamix-invitational-2025",
+    "name": "Aerodynamix Invitational",
+    "date": "2025-06-21"
+  },
+  {
+    "sport": "wag",
+    "comp_id": "melton-invitational-2025",
+    "name": "Melton Invitational",
+    "date": "2025-06-10"
+  },
+  {
+    "sport": "wag",
+    "comp_id": "btyc-junior-invite-2025",
+    "name": "BTYC Junior Invite",
+    "date": "2025-06-09"
+  },
+  {
+    "sport": "wag",
+    "comp_id": "mlc-senior-star-classic-2025",
+    "name": "MLC Senior Star Classic",
+    "date": "2025-06-04"
+  },
+  {
+    "sport": "wag",
+    "comp_id": "waverley-invite-2025",
+    "name": "Waverley Invite",
+    "date": "2025-05-25"
+  },
+  {
+    "sport": "wag",
+    "comp_id": "senior-vic-championships-2025",
+    "name": "Senior VIC Championships",
+    "date": "2025-05-16"
+  },
+  {
+    "sport": "wag",
+    "comp_id": "casey-classic-2025",
+    "name": "Casey Classic",
+    "date": "2025-05-08"
+  },
+  {
+    "sport": "wag",
+    "comp_id": "senior-judges-invitational-2025",
+    "name": "Senior Judges Invitational",
+    "date": "2025-04-26"
+  },
+  {
+    "sport": "wag",
+    "comp_id": "state-trial-1-2025",
+    "name": "State Trial 1",
+    "date": "2025-04-13"
+  },
+  {
+    "sport": "wag",
+    "comp_id": "state-trial-2-2025",
+    "name": "State Trial 2",
+    "date": "2025-04-05"
+  },
+  {
+    "sport": "wag",
+    "comp_id": "knox-wag-senior-invite-2025",
+    "name": "Knox WAG Senior Invite",
+    "date": "2025-03-23"
+  },
+  {
+    "sport": "wag",
+    "comp_id": "btyc-wag-extravaganza-2025",
+    "name": "BTYC WAG Extravaganza",
+    "date": "2025-03-15"
+  },
+  {
+    "sport": "wag",
+    "comp_id": "niddrie-invitational-2025",
+    "name": "Niddrie Invitational",
+    "date": "2025-02-08"
+  },
+  {
+    "sport": "wag",
+    "comp_id": "border-challenge-trial-1-2025",
+    "name": "Border Challenge Trial 1",
+    "date": "2025-01-06"
+  },
+  {
+    "sport": "wag",
+    "comp_id": "border-challenge-trial-2-2025",
+    "name": "Border Challenge Trial 2",
+    "date": "2025-01-06"
+  }
+]

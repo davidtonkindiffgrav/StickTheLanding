@@ -596,6 +596,7 @@ def main():
     new_comps = group_into_competitions(new_entries, sport=sport)
     normalise_clubs(new_comps, aliases, overrides)
     merge_to_db(con, new_comps)
+    ingested_comp_ids = [c["id"] for c in new_comps]
 
     # Resolve competition dates from PDF content or calendar
     missing_dates = []
@@ -634,6 +635,11 @@ def main():
         print("\nCould not find dates for the following competitions — please enter manually:")
         for name in missing_dates:
             print(f"  - {name}")
+
+    if ingested_comp_ids:
+        for cid in ingested_comp_ids:
+            print(f"\nTo build the results page, run:")
+            print(f"  python build_results.py --sport {sport} --comp {cid}")
 
 
 def _cmd_resolve_urls(con) -> None:

@@ -1,0 +1,356 @@
+/* ── RESULTS PAGE ──────────────────────────────────────────────────────────── */
+
+body.results-page {
+  background: #0a0b10;
+  color: #f2f3fa;
+  font-family: 'Space Grotesk', system-ui, sans-serif;
+  font-size: 15px;
+  line-height: 1.45;
+  margin: 0;
+  min-height: 100vh;
+}
+
+/* ── COMPETITION HEADER ─────────────────────────────────────────────────────── */
+
+.comp-header {
+  background: #13141f;
+  border-bottom: 1px solid #232944;
+  padding: 14px 24px;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.comp-back {
+  color: #8d92ac;
+  text-decoration: none;
+  font: 600 0.8rem 'Space Grotesk', system-ui, sans-serif;
+  white-space: nowrap;
+  flex-shrink: 0;
+  transition: color 0.12s;
+}
+.comp-back:hover { color: #f2f3fa; }
+
+.comp-header-inner {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  min-width: 0;
+}
+
+.comp-sport-badge {
+  font: 700 10px/1 'JetBrains Mono', monospace;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  border: 1px solid;
+  padding: 4px 8px;
+  border-radius: 4px;
+  flex-shrink: 0;
+}
+
+.comp-name {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: #f2f3fa;
+  margin: 0;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+}
+
+.comp-date {
+  font: 600 10px/1 'JetBrains Mono', monospace;
+  color: #8d92ac;
+  letter-spacing: 0.06em;
+  white-space: nowrap;
+}
+
+/* ── LEVEL TABS ─────────────────────────────────────────────────────────────── */
+
+.tabs-bar {
+  margin-bottom: 24px;
+  background: #13141f;
+  border: 1px solid #232944;
+  border-radius: 10px;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+.tabs-bar::-webkit-scrollbar { display: none; }
+
+.tabs-inner {
+  display: flex;
+  gap: 4px;
+  padding: 8px;
+  min-width: max-content;
+}
+
+.rtab {
+  background: none;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  color: #8d92ac;
+  font: 600 0.78rem 'Space Grotesk', system-ui, sans-serif;
+  padding: 7px 16px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: color 0.12s, background 0.12s;
+}
+.rtab:hover {
+  color: #f2f3fa;
+  background: rgba(255,255,255,0.06);
+}
+.rtab.active {
+  color: #c9a4ff;
+  background: rgba(201,164,255,0.1);
+  border-color: rgba(201,164,255,0.3);
+}
+
+/* ── MAIN CONTENT ───────────────────────────────────────────────────────────── */
+
+.results-main {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 28px 24px 64px;
+}
+
+.level-panel         { display: none; }
+.level-panel.active  { display: block; }
+
+.div-section { margin-bottom: 44px; }
+
+.div-heading {
+  font: 700 0.7rem/1 'JetBrains Mono', monospace;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #5d6285;
+  margin: 0 0 14px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #1e2135;
+}
+
+.event-block { margin-bottom: 32px; }
+
+.event-heading {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #f2f3fa;
+  margin: 0 0 10px;
+  letter-spacing: -0.01em;
+}
+
+/* ── RESULTS TABLE ──────────────────────────────────────────────────────────── */
+
+.table-wrap {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  border-radius: 10px;
+  border: 1px solid #232944;
+}
+
+.results-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+  white-space: nowrap;
+}
+
+.results-table thead th {
+  background: #161927;
+  color: #5d6285;
+  font: 700 0.68rem/1 'JetBrains Mono', monospace;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 10px 12px;
+  text-align: left;
+  border-bottom: 1px solid #232944;
+}
+.results-table thead th.h-score { text-align: right; }
+.results-table thead th.sortable { cursor: pointer; user-select: none; white-space: nowrap; }
+.results-table thead th.sortable:hover { color: #9da3c8; }
+.results-table thead th.sortable[data-dir="asc"],
+.results-table thead th.sortable[data-dir="desc"] { color: #c9a4ff; }
+.sort-arrow { font-size: 0.65rem; opacity: 0.45; margin-left: 3px; }
+.sortable[data-dir] .sort-arrow { opacity: 1; }
+
+.results-table tbody tr {
+  border-bottom: 1px solid #13141f;
+  transition: background 0.1s;
+}
+.results-table tbody tr:last-child { border-bottom: none; }
+.results-table tbody tr:hover      { background: rgba(255,255,255,0.025); }
+
+.results-table td {
+  padding: 8px 12px;
+  background: #0d0e1a;
+  color: #c5c9e0;
+}
+
+.results-table td.rank {
+  font: 700 0.78rem/1 'JetBrains Mono', monospace;
+  color: #3a3f5c;
+  width: 36px;
+  text-align: center;
+}
+.results-table td.rank.gold   { color: #ffd24a; }
+.results-table td.rank.silver { color: #b0bec5; }
+.results-table td.rank.bronze { color: #cd7f32; }
+
+.results-table td.name {
+  font-weight: 600;
+  color: #f2f3fa;
+  min-width: 160px;
+}
+
+.results-table td.club {
+  color: #8d92ac;
+  font-size: 0.82rem;
+  min-width: 80px;
+}
+
+.results-table td.score {
+  font: 500 0.875rem/1 'JetBrains Mono', monospace;
+  text-align: right;
+  min-width: 64px;
+  color: #5a6080;
+}
+.results-table td.score:last-child {
+  font-weight: 700;
+  color: #f2f3fa;
+}
+.results-table td.score.gold   { color: #ffd24a; font-weight: 700; }
+.results-table td.score.silver { color: #dce8f5; font-weight: 700; }
+.results-table td.score.bronze { color: #cd7f32; font-weight: 700; }
+
+/* ── COMPETITIONS INDEX ─────────────────────────────────────────────────────── */
+
+.ci-main {
+  max-width: 860px;
+  margin: 0 auto;
+  padding: 32px 24px 64px;
+}
+
+.ci-season {
+  font: 700 0.85rem/1 'JetBrains Mono', monospace;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #c5c9e0;
+  margin: 36px 0 10px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #1e2135;
+}
+.ci-season:first-child { margin-top: 0; }
+
+.ci-list { display: flex; flex-direction: column; gap: 4px; }
+
+.ci-row {
+  background: #0d0e1a;
+  border: 1px solid #1e2135;
+  border-radius: 8px;
+  overflow: hidden;
+  transition: border-color 0.12s;
+}
+.ci-row:hover { border-color: #3a3f5c; }
+
+.ci-result-link {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 13px 16px;
+  text-decoration: none;
+  color: inherit;
+  transition: background 0.12s;
+}
+.ci-result-link:hover { background: #111425; }
+
+.ci-no-page { opacity: 0.45; }
+.ci-no-page > .ci-result-link { pointer-events: none; }
+
+.ci-name {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #f2f3fa;
+}
+
+.ci-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-shrink: 0;
+}
+
+.ci-date {
+  font: 500 0.72rem/1 'JetBrains Mono', monospace;
+  color: #5d6285;
+}
+
+.ci-arrow { color: #3a3f5c; font-size: 0.78rem; transition: color 0.12s; }
+.ci-result-link:hover .ci-arrow { color: #c9a4ff; }
+
+.ci-pdfs {
+  margin: 8px 0 2px;
+  padding: 0 16px;
+}
+.ci-pdfs summary {
+  font: 600 0.72rem/1 'JetBrains Mono', monospace;
+  color: #5d6285;
+  cursor: pointer;
+  user-select: none;
+  list-style: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 0;
+}
+.ci-pdfs summary::-webkit-details-marker { display: none; }
+.ci-pdfs summary::before {
+  content: '▸';
+  font-size: 0.6rem;
+  transition: transform 0.15s;
+}
+.ci-pdfs[open] summary::before { transform: rotate(90deg); }
+.ci-pdfs summary:hover { color: #8d92ac; }
+.ci-pdf-list {
+  margin: 6px 0 4px 12px;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.ci-pdf-list a {
+  font: 500 0.75rem/1.4 'JetBrains Mono', monospace;
+  color: #8d92ac;
+  text-decoration: none;
+  word-break: break-all;
+}
+.ci-pdf-list a:hover { color: #c9a4ff; text-decoration: underline; }
+
+@media (max-width: 600px) {
+  .ci-main { padding: 20px 12px 48px; }
+  .ci-name  { font-size: 0.83rem; }
+}
+
+/* ── FOOTER ─────────────────────────────────────────────────────────────────── */
+
+.results-footer {
+  background: #0d0e1a;
+  color: #5a5e7a;
+  text-align: center;
+  padding: 20px 24px;
+  font-size: 0.78rem;
+  border-top: 1px solid #1a1d2e;
+}
+.results-footer a { color: #7a7e9a; text-decoration: none; }
+.results-footer a:hover { color: #f2f3fa; }
+
+/* ── MOBILE ─────────────────────────────────────────────────────────────────── */
+
+@media (max-width: 600px) {
+  .comp-header       { padding: 12px 16px; gap: 12px; }
+  .comp-name         { font-size: 0.95rem; }
+  .results-main      { padding: 16px 12px 48px; }
+  .div-section       { margin-bottom: 28px; }
+  .event-block       { margin-bottom: 24px; }
+}

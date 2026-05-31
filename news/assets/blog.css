@@ -51,6 +51,7 @@ body.news-post {
   font-size: 1.8rem;
   font-weight: 800;
   color: #1a1a2a;
+  margin-top: 0;
   margin-bottom: 8px;
 }
 .blog-listing-main .blog-tagline {
@@ -278,7 +279,8 @@ body.news-post {
 /* ── MOBILE ───────────────────────────────────────────────────────────────── */
 @media (max-width: 600px) {
   .blog-header { padding: 14px 16px; }
-  .blog-listing-main { padding: 24px 16px; }
+  .news-listing-top-ad { display: none; }
+  .blog-listing-main { padding: 16px 16px 24px; }
   .post-main { padding: 24px 16px 48px; }
   .post-main h1 { font-size: 1.5rem; }
   .post-grid { grid-template-columns: 1fr; gap: 16px; }

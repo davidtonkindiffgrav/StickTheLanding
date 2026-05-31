@@ -1,0 +1,233 @@
+/* ── NAV SHELL ─────────────────────────────────────────────────────────────── */
+
+.stl-nav {
+  position: sticky;
+  top: 0;
+  z-index: 200;
+  background: #13141f;
+  border-bottom: 1px solid #232944;
+  display: flex;
+  align-items: center;
+  padding: 0 20px;
+  height: 56px;
+  box-sizing: border-box;
+}
+
+/* ── LEFT: brand ───────────────────────────────────────────────────────────── */
+
+.stl-nav-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  text-decoration: none;
+  color: #f2f3fa;
+  flex-shrink: 0;
+}
+
+.stl-nav-brand img {
+  width: 36px;
+  height: 36px;
+  border-radius: 6px;
+  flex-shrink: 0;
+}
+
+.stl-nav-brand-text {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+
+.stl-nav-brand-title {
+  font: 700 0.95rem/1 'Space Grotesk', system-ui, sans-serif;
+  letter-spacing: -0.01em;
+  color: #f2f3fa;
+  white-space: nowrap;
+}
+
+.stl-nav-brand-title strong {
+  color: #c9a4ff;
+}
+
+.stl-nav-brand-sub {
+  font: 600 0.6rem/1 'Space Grotesk', system-ui, sans-serif;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: #8d92ac;
+  white-space: nowrap;
+}
+
+/* ── LEFT-ADJACENT: date + live badge ─────────────────────────────────────── */
+
+.stl-nav-center {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-left: 16px;
+  flex-shrink: 0;
+  overflow: hidden;
+}
+
+.stl-nav-date {
+  font: 600 10px/1 'JetBrains Mono', monospace;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #8d92ac;
+  white-space: nowrap;
+}
+
+.stl-nav-date:empty { display: none; }
+
+.stl-nav-live {
+  display: block;
+  font: 600 10px/1 'JetBrains Mono', monospace;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #5ee6a8;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.stl-nav-live:empty { display: none; }
+
+.stl-nav-live.is-live {
+  color: #ff6b6b;
+  animation: stl-live-pulse 3s ease-in-out infinite;
+}
+
+@keyframes stl-live-pulse {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.35; }
+}
+
+/* ── RIGHT: links + find athlete ───────────────────────────────────────────── */
+
+.stl-nav-end {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 0;
+}
+
+.stl-nav-links {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.stl-nav-link {
+  color: #8d92ac;
+  font-size: 0.75rem;
+  font-weight: 600;
+  font-family: 'Space Grotesk', system-ui, sans-serif;
+  padding: 5px 7px;
+  border-radius: 6px;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: color 0.12s, background 0.12s;
+  cursor: pointer;
+  background: none;
+  border: none;
+}
+
+.stl-nav-link:hover {
+  color: #f2f3fa;
+  background: rgba(255, 255, 255, 0.07);
+}
+
+.stl-nav-link.active { color: #c9a4ff; }
+
+.stl-nav-link.wag:hover  { color: #c9a4ff; }
+.stl-nav-link.mag:hover  { color: #5ee6a8; }
+.stl-nav-link.acro:hover { color: #fb923c; }
+
+.stl-nav-divider {
+  width: 1px;
+  height: 18px;
+  background: #232944;
+  margin: 0 6px;
+  flex-shrink: 0;
+}
+
+.stl-nav-search {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid #2a2d45;
+  border-radius: 8px;
+  color: #8d92ac;
+  font: 600 0.75rem 'Space Grotesk', system-ui, sans-serif;
+  padding: 5px 10px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: border-color 0.12s, color 0.12s;
+  flex-shrink: 0;
+}
+
+.stl-nav-search:hover {
+  border-color: #7c6dfa;
+  color: #f2f3fa;
+}
+
+.stl-nav-search i { font-size: 0.75rem; }
+
+/* ── HAMBURGER (mobile only) ───────────────────────────────────────────────── */
+
+.stl-nav-hamburger {
+  display: none;
+  background: none;
+  border: none;
+  color: #8d92ac;
+  font-size: 1.1rem;
+  cursor: pointer;
+  padding: 8px;
+  line-height: 1;
+  flex-shrink: 0;
+  margin-left: 4px;
+}
+
+/* ── HIDE LIVE BADGE ON NARROWER VIEWPORTS ─────────────────────────────────── */
+
+@media (max-width: 900px) {
+  .stl-nav-center { display: none; }
+}
+
+/* ── MOBILE ────────────────────────────────────────────────────────────────── */
+
+@media (max-width: 720px) {
+  .stl-nav-hamburger { display: block; }
+
+  .stl-nav-links {
+    display: none;
+    position: fixed;
+    top: 56px;
+    left: 0;
+    right: 0;
+    background: #13141f;
+    border-bottom: 1px solid #232944;
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 12px 20px 20px;
+    z-index: 500;
+    gap: 2px;
+  }
+
+  .stl-nav-links.open { display: flex; }
+
+  .stl-nav-link {
+    width: 100%;
+    padding: 8px 10px;
+  }
+
+  .stl-nav-divider { display: none; }
+
+  .stl-nav-search-text { display: none; }
+
+  .stl-nav-search { padding: 6px 8px; }
+
+  .stl-nav-end > .stl-nav-divider { display: none; }
+}
+
+body.stl-nav-open { overflow: hidden; }

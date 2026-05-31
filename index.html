@@ -17,7 +17,7 @@
   <meta name="twitter:title" content="Stick The Landing - Victorian Gymnastics Leaderboards" />
   <meta name="twitter:description" content="Season leaderboards for Victorian artistic gymnastics. Track WAG and MAG competition scores across every level, apparatus, and round of the Victorian season." />
   <script type="application/ld+json">
-  {"@context":"https://schema.org","@type":"WebSite","name":"Stick The Landing","url":"https://stickthelanding.com.au","description":"Season leaderboards for Victorian artistic gymnastics — WAG and MAG competition scores across every level, apparatus, and round of the Victorian season."}
+  {"@context":"https://schema.org","@type":"WebSite","name":"Stick The Landing","url":"https://stickthelanding.com.au","description":"Season leaderboards for Victorian artistic gymnastics - WAG and MAG competition scores across every level, apparatus, and round of the Victorian season."}
   </script>
   <script src="sql/sql-httpvfs.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
@@ -31,6 +31,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
   <link rel="stylesheet" href="assets/style.css" />
+  <link rel="stylesheet" href="/assets/nav.css" />
   <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-8302214774959598" crossorigin="anonymous"></script>
   <script async src="https://tally.so/widgets/embed.js"></script>
 </head>
@@ -38,33 +39,6 @@
 
 <!-- ═══════════════════════════════════════════════════════ LANDING ══════ -->
 <div id="landing-view">
-
-  <div class="v3-ticker">
-    <span class="pulse">Live</span>
-    <span id="ticker-items">
-      <span class="ticker-item"><span class="dot"> ● </span> WAG Season 2026 · in progress</span>
-      <span class="ticker-item"><span class="dot"> ● </span> MAG Season 2026 · in progress</span>
-      <span class="ticker-item"><span class="dot"> ● </span> Season leaderboards updated after every comp</span>
-    </span>
-  </div>
-
-  <header class="v3-header">
-    <div class="v3-logo">
-      <img class="glyph" src="/assets/favicons/android-chrome-512x512.png" alt="">
-      <div>
-        <h1>Stick The <span class="accent">Landing</span></h1>
-        <div class="sub">Victorian Gymnastics · 2026 Season</div>
-      </div>
-    </div>
-    <div class="right">
-      <button onclick="openSearchFromLanding()" style="background:#161927;border:1px solid #232944;border-radius:10px;padding:10px 14px 8px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:4px;transition:border-color 0.15s" onmouseover="this.style.borderColor='#7c6dfa'" onmouseout="this.style.borderColor='#232944'">
-        <i class="fas fa-search" style="font-size:16px;color:#c9a4ff"></i>
-        <span style="font:600 9px/1 'JetBrains Mono',monospace;text-transform:uppercase;letter-spacing:0.1em;color:#8d92ac">Find Athlete</span>
-      </button>
-      <span id="v3-date"></span>
-      <span style="color:#ffd24a">Season 2026</span>
-    </div>
-  </header>
 
   <section class="v3-hero">
     <div class="copy">
@@ -74,7 +48,7 @@
         <span class="stack">Every <span class="acc2">score.</span></span>
       <!--  <span class="stack">One season <span class="slash">/</span> one table.</span> -->
       </h2>
-      <p>Your hub for Victorian Gymnastics results, standings, and athlete profiles. Explore season histories, apparatus graphs, and personal bests — every score, every competition, all in one place.</p>
+      <p>Your hub for Victorian Gymnastics results, standings, and athlete profiles. Explore season histories, apparatus graphs, and personal bests - every score, every competition, all in one place.</p>
     </div>
     <div class="v3-stats">
       <div class="v3-stat a"><div class="n">2k</div><div class="l">Gymnasts</div></div>
@@ -172,35 +146,17 @@
 
 <!-- ════════════════════════════════════════════════════════ APP SHELL ═══ -->
 <div id="app-shell" style="display:none">
-  <header class="site-header">
-    <div class="header-inner">
-      <div style="display:flex;align-items:center;gap:14px">
-        <div class="header-logo-group">
-          <img class="site-logo" src="/assets/favicons/android-chrome-512x512.png" alt="">
-          <div>
-            <h1 style="cursor:pointer" onclick="exitToLanding()" title="Back to Sports">Stick The <span>Landing</span></h1>
-            <p id="header-subtitle">Victorian WAG · Season Leaderboards</p>
-          </div>
-        </div>
-        <button id="search-btn" onclick="openSearchPanel()" title="Search athletes or browse results"><i class="fas fa-search"></i> Search</button>
-        <a href="/stickit/" class="stickit-nav-link" title="Play Stick It"><i class="fas fa-gamepad"></i> Stick It</a>
-      </div>
-      <div id="sport-bar">
-        <button id="back-btn" onclick="exitToLanding()"><i class="fas fa-arrow-left"></i> Sports</button>
-        <span id="sport-label-pill" class="badge">WAG</span>
-        <div id="season-selector"></div>
-      </div>
-    </div>
-  </header>
 
   <nav id="app-nav">
     <button class="active" data-view="clubs">Team Standings</button>
     <button data-view="athletes">Individual Rankings</button>
-    <button data-view="competitions">Competitions</button>
+    <button onclick="window.location.href='/competitions/'+currentSport.toLowerCase()+'/'">Competitions</button>
     <button data-view="club-directory">Clubs</button>
     <button onclick="showCalendar('app')">Events</button>
     <button data-view="graphs">Graphs</button>
-    <button onclick="showContact('app')" style="margin-left:auto">Contact</button>
+    <button onclick="showContact('app')">Contact</button>
+    <div id="season-selector"></div>
+    <button id="search-btn" onclick="openSearchPanel()" title="Search athletes or browse results"><i class="fas fa-search"></i></button>
   </nav>
   <nav id="apparatus-nav">
     <button class="active" data-apparatus="AA">AA</button>
@@ -287,11 +243,6 @@
       <div id="ad-slot-athletes" class="ad-unit"></div>
     </section>
 
-    <!-- COMPETITIONS -->
-    <section class="view" id="view-competitions">
-      <h2 id="comp-title">Competitions</h2>
-      <div class="comp-grid" id="comp-grid"></div>
-    </section>
 
     <!-- CLUB DIRECTORY -->
     <section class="view" id="view-club-directory">
@@ -572,6 +523,7 @@ function appDCol() { return currentSport === "MAG" ? MAG_APPARATUS_COL_D : APPAR
 function appECol() { return currentSport === "MAG" ? MAG_APPARATUS_COL_E : APPARATUS_E_COL; }
 function appName() { if (currentSport === "ACRO") return ACRO_APPARATUS_NAME; return currentSport === "MAG" ? MAG_APPARATUS_NAME  : APPARATUS_NAME; }
 let _compList      = [];
+let _resultsIndex  = new Set(); // "sport/comp_id" keys for built static pages
 let _contactFrom   = "landing";
 let _calendarFrom   = "landing";
 let _calendarData   = null;
@@ -661,8 +613,6 @@ async function enterSport(sport) {
   shell.style.display = "block";
 
   // Update header and tab labels
-  document.getElementById("sport-label-pill").textContent = sport;
-  document.getElementById("header-subtitle").textContent  = `Victorian ${sport} · Season Leaderboards`;
   document.querySelector('[data-view="clubs"]').textContent    = sport === "ACRO" ? "Club Standings"      : "Team Standings";
   document.querySelector('[data-view="athletes"]').textContent = sport === "ACRO" ? "Partnerships"        : "Individual Rankings";
 
@@ -1317,16 +1267,24 @@ async function renderCompetitions() {
     return;
   }
 
-  grid.innerHTML = _compList.map((c, i) => `
+  grid.innerHTML = _compList.map((c, i) => {
+    const staticUrl = _resultsIndex.has(`${currentSport.toLowerCase()}/${c.id}`)
+      ? `/results/${currentSport.toLowerCase()}/${c.id}/`
+      : null;
+    const resultsBtn = staticUrl
+      ? `<a class="comp-btn btn-results" href="${staticUrl}">Results</a>`
+      : `<button class="comp-btn btn-results" data-idx="${i}">Results</button>`;
+    return `
     <div class="comp-card">
       <h3>${esc(c.name)}</h3>
       <p class="comp-meta">${c.date ? `<i class="fas fa-calendar-alt"></i> ${fmtCompDate(c.date)} &bull; ` : ''}${c.event_count} event(s) &bull; ${c.athlete_count} athlete result(s)</p>
       <span class="comp-pill">${esc(currentSport)} · ${esc(currentSeason)}</span>
       <div class="comp-actions">
-        <button class="comp-btn btn-results" data-idx="${i}">Results</button>
+        ${resultsBtn}
         <button class="comp-btn btn-pdfs" data-idx="${i}">Raw PDFs</button>
       </div>
-    </div>`).join("");
+    </div>`;
+  }).join("");
 
   grid.querySelectorAll(".btn-results").forEach(btn =>
     btn.addEventListener("click", e => { e.stopPropagation(); openDrill(_compList[+btn.dataset.idx]); })
@@ -1664,7 +1622,7 @@ async function ensureAthleteList() {
 }
 
 async function openSearchPanel() {
-  // ACRO has no individual athletes — switch to WAG before opening search
+  // ACRO has no individual athletes - switch to WAG before opening search
   if (currentSport === "ACRO") {
     DB = null; CLUBS = {}; CLUBS_LIST = []; CLUBS_BY_NAME = {};
     await enterSport("WAG");
@@ -1769,6 +1727,10 @@ async function executeSearch() {
 }
 
 function switchToView(view) {
+  if (view === "competitions") {
+    window.location.href = "/competitions/" + currentSport.toLowerCase() + "/";
+    return;
+  }
   activeView = view;
   document.querySelectorAll("#app-nav button[data-view]").forEach(b =>
     b.classList.toggle("active", b.dataset.view === view)
@@ -2487,13 +2449,11 @@ function render() {
   if (currentSport === "ACRO") {
     if      (activeView === "clubs")          renderAcroClubs();
     else if (activeView === "athletes")       renderAcroPartnerships();
-    else if (activeView === "competitions")   renderCompetitions();
     else if (activeView === "club-directory") renderClubDirectory();
     return;
   }
   if (activeView === "clubs")          renderClubs();
   else if (activeView === "athletes")  renderAthletes();
-  else if (activeView === "competitions") renderCompetitions();
   else if (activeView === "club-directory") renderClubDirectory();
 }
 
@@ -2503,7 +2463,7 @@ function render() {
 initClubDirectory();
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Shared chart constants — used by GRAPHS and ATHLETE PROFILE
+// Shared chart constants - used by GRAPHS and ATHLETE PROFILE
 // ─────────────────────────────────────────────────────────────────────────────
 const G_APP_KEYS = { WAG: ['VT','UB','BB','FX'], MAG: ['VT','FX','PH','SR','PB','HB'], ACRO: [] };
 const G_COL      = { VT:'vault', UB:'bars', BB:'beam', FX:'floor', PH:'pommel', SR:'rings', PB:'pbars', HB:'hbar' };
@@ -2554,7 +2514,7 @@ function _baseLine(color, type) {
     return r.name + (r.date ? ' · ' + r.date : ' · ' + r.season);
   }
   function _tooltipLabel(item) {
-    return item.dataset.label + ': ' + (item.raw != null ? item.raw.toFixed(3) : '—');
+    return item.dataset.label + ': ' + (item.raw != null ? item.raw.toFixed(3) : '-');
   }
 
   // ── search ─────────────────────────────────────────────────────────────────
@@ -2904,7 +2864,7 @@ function _profRenderTimeChart(canvasEl, type, rows, mode) {
         tooltip: {
           callbacks: {
             title: items => rows[items[0].dataIndex]?.name || '',
-            label: i => i.dataset.label + ': ' + (i.raw != null ? i.raw.toFixed(3) : '—'),
+            label: i => i.dataset.label + ': ' + (i.raw != null ? i.raw.toFixed(3) : '-'),
           },
         },
       },
@@ -2940,7 +2900,7 @@ function _profRenderStrengthChart(canvasEl, showPB, statsRow) {
       responsive: true, aspectRatio: 1.1,
       plugins: {
         legend: { display: false },
-        tooltip: { callbacks: { label: i => i.dataset.label + ': ' + (i.raw != null ? i.raw.toFixed(3) : '—') } },
+        tooltip: { callbacks: { label: i => i.dataset.label + ': ' + (i.raw != null ? i.raw.toFixed(3) : '-') } },
       },
       scales: {
         r: { min: minVal, max: top, ticks: { color: '#8888aa', backdropColor: 'transparent', font: { size: 10 }, stepSize: step, callback: v => v.toFixed(1) }, grid: GRID, angleLines: GRID, pointLabels: { color: colors, font: { size: 12, weight: '700' } } },
@@ -3336,45 +3296,36 @@ async function renderAthleteProfile(athleteName) {
     el.textContent = days[d.getDay()] + " " + d.getDate() + " " + months[d.getMonth()];
   })();
 
-  // Populate ticker from data/calendar.json — shows LIVE and upcoming competitions
-  (function loadTicker() {
+  // Update live badge from data/calendar.json - shows LIVE NOW or upcoming comp within 7 days
+  (function loadLiveBadge() {
     fetch("data/calendar.json").then(r => r.json()).then(data => {
+      const badge = document.getElementById("v3-live-badge");
+      if (!badge) return;
       const events = data.events || [];
       const today = new Date(); today.setHours(0,0,0,0);
       const toDate = s => { const [y,m,d] = s.split("-"); return new Date(+y, +m-1, +d); };
-      const fmtDate = d => {
-        const days   = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
-        const months = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
-        return days[d.getDay()] + " " + d.getDate() + " " + months[d.getMonth()];
-      };
       const daysUntil = d => Math.round((d - today) / 86400000);
+      const shortLoc = l => l ? ` · ${l.split(",").slice(0,2).join(",").trim()}` : "";
 
-      const live     = events.filter(e => toDate(e.date_start) <= today && today <= toDate(e.date_end));
-      const upcoming = events.filter(e => toDate(e.date_start) > today)
-                             .sort((a,b) => a.date_start.localeCompare(b.date_start))
-                             .slice(0, Math.max(0, 2 - live.length));
-
-      if (!live.length && !upcoming.length) return;
-
-      const shortLoc = l => l ? ` · ${l.split(",").slice(0, 2).join(",").trim()}` : "";
-      const items = [];
-      for (const e of live) {
-        const loc = shortLoc(e.location);
-        items.push(`<span class="ticker-item"><span class="dot live-dot"> ● </span> LIVE NOW · ${e.name}${loc}</span>`);
+      const live = events.filter(e => toDate(e.date_start) <= today && today <= toDate(e.date_end));
+      if (live.length) {
+        badge.textContent = "● LIVE NOW · " + live[0].name;
+        badge.classList.add("is-live");
+        return;
       }
-      for (const e of upcoming) {
-        const loc  = shortLoc(e.location);
-        const d    = toDate(e.date_start);
-        const n    = daysUntil(d);
-        const when = n <= 1 ? "Tomorrow" : n <= 7 ? `in ${n} days` : fmtDate(d);
-        items.push(`<span class="ticker-item"><span class="dot"> ● </span> Next: ${e.name}${loc} · ${when}</span>`);
+      const next = events.filter(e => toDate(e.date_start) > today)
+                         .sort((a,b) => a.date_start.localeCompare(b.date_start))[0];
+      if (next) {
+        const n = daysUntil(toDate(next.date_start));
+        if (n <= 7) badge.textContent = "● Next: " + next.name + (n <= 1 ? " · Tomorrow" : " · in " + n + " days");
       }
-      items.push(`<span class="ticker-item"><span class="dot"> ● </span> Season leaderboards updated after every comp</span>`);
-
-      const el = document.getElementById("ticker-items");
-      if (el) el.innerHTML = items.join("");
     }).catch(() => {});
   })();
+
+  // Load results index so comp cards can link to static result pages
+  fetch("data/results_index.json").then(r => r.json()).then(entries => {
+    entries.forEach(e => _resultsIndex.add(`${e.sport}/${e.comp_id}`));
+  }).catch(() => {});
 
   // Populate landing stats pills from data/stats.json (covers both WAG + MAG DBs)
   fetch("data/stats.json").then(r => r.json()).then(s => {
@@ -3411,7 +3362,7 @@ async function renderAthleteProfile(athleteName) {
   (function loadNewsCards() {
     fetch("news/posts/index.json").then(r => r.json()).then(posts => {
       if (!posts || !posts.length) return;
-      const sorted = [...posts].sort((a, b) => b.date.localeCompare(a.date)).slice(0, 3);
+      const sorted = [...posts].sort((a, b) => b.date.localeCompare(a.date)).slice(0, 5);
       const fmtDate = iso => { const [y,m,d] = iso.split("-"); return `${d}.${m}.${y.slice(2)}`; };
       const tagCls  = tags => { const t = (tags && tags[0] || "").toLowerCase(); if (t === "report") return "wag"; if (t === "analysis") return "mag"; return "neutral"; };
       const tagLbl  = tags => (tags && tags[0]) || "NEWS";
@@ -3441,5 +3392,7 @@ async function renderAthleteProfile(athleteName) {
 })();
 </script>
 
+<script>window.addEventListener('load', function () { if (location.hash === '#contact') showContact('nav'); });</script>
+<script src="/assets/nav.js" defer></script>
 </body>
 </html>
