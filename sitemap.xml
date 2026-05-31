@@ -94,6 +94,24 @@
     <priority>0.6</priority>
   </url>
   <url>
+    <loc>https://stickthelanding.com.au/results/mag/senior-victorian-championships-2026/</loc>
+    <lastmod>2026-05-22</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://stickthelanding.com.au/results/mag/senior-victorian-championships-apparatus-2026/</loc>
+    <lastmod>2026-05-22</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://stickthelanding.com.au/results/acro/state-trial-2-2026/</loc>
+    <lastmod>2026-05-03</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
     <loc>https://stickthelanding.com.au/results/wag/wag-trial-1-and-border-challenge-trial-1-2026/</loc>
     <lastmod>2026-04-26</lastmod>
     <changefreq>monthly</changefreq>
@@ -106,7 +124,43 @@
     <priority>0.6</priority>
   </url>
   <url>
+    <loc>https://stickthelanding.com.au/results/mag/state-trial-1-2026/</loc>
+    <lastmod>2026-04-18</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://stickthelanding.com.au/results/acro/state-trial-1-2026/</loc>
+    <lastmod>2026-04-16</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://stickthelanding.com.au/results/mag/sgc-mag-level-5-senior-invitational-2026/</loc>
+    <lastmod>2026-04-12</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://stickthelanding.com.au/results/mag/state-trial-2-level-5-8u-2026/</loc>
+    <lastmod>2026-04-05</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://stickthelanding.com.au/results/mag/knox-mag-senior-invitational-2026/</loc>
+    <lastmod>2026-03-29</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
     <loc>https://stickthelanding.com.au/results/wag/btyc-mag-and-wag-senior-extravaganza-2026/</loc>
+    <lastmod>2026-03-21</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://stickthelanding.com.au/results/mag/btyc-mag-senior-extravaganza-2026/</loc>
     <lastmod>2026-03-21</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
@@ -118,14 +172,32 @@
     <priority>0.6</priority>
   </url>
   <url>
+    <loc>https://stickthelanding.com.au/results/mag/myc-senior-invitational-2026/</loc>
+    <lastmod>2026-03-15</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
     <loc>https://stickthelanding.com.au/results/wag/wag-trial-2-and-border-challenge-trial-2-2026/</loc>
     <lastmod>2026-03-05</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
+    <loc>https://stickthelanding.com.au/results/mag/state-trial-2-level-8o-senior-2026/</loc>
+    <lastmod>2026-02-05</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
     <loc>https://stickthelanding.com.au/results/wag/warrnambool-invite-2025/</loc>
     <lastmod>2025-12-07</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://stickthelanding.com.au/results/mag/state-trial-1-2025/</loc>
+    <lastmod>2025-12-04</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
@@ -148,7 +220,19 @@
     <priority>0.6</priority>
   </url>
   <url>
+    <loc>https://stickthelanding.com.au/results/mag/junior-victorian-championships-men-s-gymnastics-2025/</loc>
+    <lastmod>2025-10-18</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
     <loc>https://stickthelanding.com.au/results/wag/junior-victorian-championships-2025/</loc>
+    <lastmod>2025-10-17</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://stickthelanding.com.au/results/acro/junior-victorian-championships-2025/</loc>
     <lastmod>2025-10-17</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
@@ -161,6 +245,12 @@
   </url>
   <url>
     <loc>https://stickthelanding.com.au/results/wag/metro-north-central-regional-championships-2025/</loc>
+    <lastmod>2025-09-14</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://stickthelanding.com.au/results/mag/mag-junior-qualifier-team-championships-2025/</loc>
     <lastmod>2025-09-14</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
@@ -184,8 +274,26 @@
     <priority>0.6</priority>
   </url>
   <url>
+    <loc>https://stickthelanding.com.au/results/mag/pit-invitational-2025/</loc>
+    <lastmod>2025-09-02</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
     <loc>https://stickthelanding.com.au/results/wag/eclipse-invitational-2025/</loc>
     <lastmod>2025-08-30</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://stickthelanding.com.au/results/mag/sgc-junior-invite-2025/</loc>
+    <lastmod>2025-08-24</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://stickthelanding.com.au/results/mag/knox-junior-mag-1-4-invitational-2025/</loc>
+    <lastmod>2025-08-17</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
@@ -256,6 +364,18 @@
     <priority>0.6</priority>
   </url>
   <url>
+    <loc>https://stickthelanding.com.au/results/mag/senior-victorian-championships-2025/</loc>
+    <lastmod>2025-05-16</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://stickthelanding.com.au/results/acro/senior-victorian-championships-2025/</loc>
+    <lastmod>2025-05-16</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
     <loc>https://stickthelanding.com.au/results/wag/casey-classic-2025/</loc>
     <lastmod>2025-05-08</lastmod>
     <changefreq>monthly</changefreq>
@@ -280,7 +400,31 @@
     <priority>0.6</priority>
   </url>
   <url>
+    <loc>https://stickthelanding.com.au/results/mag/sgc-invite-2025/</loc>
+    <lastmod>2025-03-30</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://stickthelanding.com.au/results/acro/trial-1-2025/</loc>
+    <lastmod>2025-03-27</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://stickthelanding.com.au/results/acro/trial-2-2025/</loc>
+    <lastmod>2025-03-27</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
     <loc>https://stickthelanding.com.au/results/wag/knox-wag-senior-invite-2025/</loc>
+    <lastmod>2025-03-23</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://stickthelanding.com.au/results/mag/myc-mag-senior-invitational-2025/</loc>
     <lastmod>2025-03-23</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
@@ -292,8 +436,26 @@
     <priority>0.6</priority>
   </url>
   <url>
+    <loc>https://stickthelanding.com.au/results/mag/btyc-senior-invite-2025/</loc>
+    <lastmod>2025-03-15</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://stickthelanding.com.au/results/mag/state-trial-2-2025/</loc>
+    <lastmod>2025-03-05</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
     <loc>https://stickthelanding.com.au/results/wag/niddrie-invitational-2025/</loc>
     <lastmod>2025-02-08</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://stickthelanding.com.au/results/mag/knox-mag-5-10-invitational-2025/</loc>
+    <lastmod>2025-02-03</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>

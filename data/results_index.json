@@ -12,6 +12,24 @@
     "date": "2026-05-22"
   },
   {
+    "sport": "mag",
+    "comp_id": "senior-victorian-championships-2026",
+    "name": "Senior Victorian Championships",
+    "date": "2026-05-22"
+  },
+  {
+    "sport": "mag",
+    "comp_id": "senior-victorian-championships-apparatus-2026",
+    "name": "Senior Victorian Championships - Apparatus",
+    "date": "2026-05-22"
+  },
+  {
+    "sport": "acro",
+    "comp_id": "state-trial-2-2026",
+    "name": "State Trial 2",
+    "date": "2026-05-03"
+  },
+  {
     "sport": "wag",
     "comp_id": "wag-trial-1-and-border-challenge-trial-1-2026",
     "name": "WAG Trial 1 and Border Challenge Trial 1",
@@ -24,9 +42,45 @@
     "date": "2026-04-19"
   },
   {
+    "sport": "mag",
+    "comp_id": "state-trial-1-2026",
+    "name": "State Trial 1",
+    "date": "2026-04-18"
+  },
+  {
+    "sport": "acro",
+    "comp_id": "state-trial-1-2026",
+    "name": "State Trial 1",
+    "date": "2026-04-16"
+  },
+  {
+    "sport": "mag",
+    "comp_id": "sgc-mag-level-5-senior-invitational-2026",
+    "name": "SGC MAG Level 5-Senior Invitational",
+    "date": "2026-04-12"
+  },
+  {
+    "sport": "mag",
+    "comp_id": "state-trial-2-level-5-8u-2026",
+    "name": "State Trial 2 - Level 5-8U",
+    "date": "2026-04-05"
+  },
+  {
+    "sport": "mag",
+    "comp_id": "knox-mag-senior-invitational-2026",
+    "name": "Knox MAG Senior Invitational",
+    "date": "2026-03-29"
+  },
+  {
     "sport": "wag",
     "comp_id": "btyc-mag-and-wag-senior-extravaganza-2026",
     "name": "BTYC MAG and WAG Senior Extravaganza",
+    "date": "2026-03-21"
+  },
+  {
+    "sport": "mag",
+    "comp_id": "btyc-mag-senior-extravaganza-2026",
+    "name": "BTYC MAG Senior Extravaganza",
     "date": "2026-03-21"
   },
   {
@@ -36,16 +90,34 @@
     "date": "2026-03-15"
   },
   {
+    "sport": "mag",
+    "comp_id": "myc-senior-invitational-2026",
+    "name": "MYC Senior Invitational",
+    "date": "2026-03-15"
+  },
+  {
     "sport": "wag",
     "comp_id": "wag-trial-2-and-border-challenge-trial-2-2026",
     "name": "WAG Trial 2 and Border Challenge Trial 2",
     "date": "2026-03-05"
   },
   {
+    "sport": "mag",
+    "comp_id": "state-trial-2-level-8o-senior-2026",
+    "name": "State Trial 2 - Level 8O - Senior",
+    "date": "2026-02-05"
+  },
+  {
     "sport": "wag",
     "comp_id": "warrnambool-invite-2025",
     "name": "Warrnambool Invite",
     "date": "2025-12-07"
+  },
+  {
+    "sport": "mag",
+    "comp_id": "state-trial-1-2025",
+    "name": "State Trial 1",
+    "date": "2025-12-04"
   },
   {
     "sport": "wag",
@@ -66,7 +138,19 @@
     "date": "2025-10-18"
   },
   {
+    "sport": "mag",
+    "comp_id": "junior-victorian-championships-men-s-gymnastics-2025",
+    "name": "Junior Victorian Championships Men's Gymnastics",
+    "date": "2025-10-18"
+  },
+  {
     "sport": "wag",
+    "comp_id": "junior-victorian-championships-2025",
+    "name": "Junior Victorian Championships",
+    "date": "2025-10-17"
+  },
+  {
+    "sport": "acro",
     "comp_id": "junior-victorian-championships-2025",
     "name": "Junior Victorian Championships",
     "date": "2025-10-17"
@@ -81,6 +165,12 @@
     "sport": "wag",
     "comp_id": "metro-north-central-regional-championships-2025",
     "name": "Metro North Central Regional Championships",
+    "date": "2025-09-14"
+  },
+  {
+    "sport": "mag",
+    "comp_id": "mag-junior-qualifier-team-championships-2025",
+    "name": "MAG Junior Qualifier & Team Championships",
     "date": "2025-09-14"
   },
   {
@@ -102,10 +192,28 @@
     "date": "2025-09-13"
   },
   {
+    "sport": "mag",
+    "comp_id": "pit-invitational-2025",
+    "name": "PIT Invitational",
+    "date": "2025-09-02"
+  },
+  {
     "sport": "wag",
     "comp_id": "eclipse-invitational-2025",
     "name": "Eclipse Invitational",
     "date": "2025-08-30"
+  },
+  {
+    "sport": "mag",
+    "comp_id": "sgc-junior-invite-2025",
+    "name": "SGC Junior Invite",
+    "date": "2025-08-24"
+  },
+  {
+    "sport": "mag",
+    "comp_id": "knox-junior-mag-1-4-invitational-2025",
+    "name": "Knox Junior MAG 1-4 Invitational",
+    "date": "2025-08-17"
   },
   {
     "sport": "wag",
@@ -174,6 +282,18 @@
     "date": "2025-05-16"
   },
   {
+    "sport": "mag",
+    "comp_id": "senior-victorian-championships-2025",
+    "name": "Senior Victorian Championships",
+    "date": "2025-05-16"
+  },
+  {
+    "sport": "acro",
+    "comp_id": "senior-victorian-championships-2025",
+    "name": "Senior Victorian Championships",
+    "date": "2025-05-16"
+  },
+  {
     "sport": "wag",
     "comp_id": "casey-classic-2025",
     "name": "Casey Classic",
@@ -198,9 +318,33 @@
     "date": "2025-04-05"
   },
   {
+    "sport": "mag",
+    "comp_id": "sgc-invite-2025",
+    "name": "SGC Invite",
+    "date": "2025-03-30"
+  },
+  {
+    "sport": "acro",
+    "comp_id": "trial-1-2025",
+    "name": "Trial 1",
+    "date": "2025-03-27"
+  },
+  {
+    "sport": "acro",
+    "comp_id": "trial-2-2025",
+    "name": "Trial 2",
+    "date": "2025-03-27"
+  },
+  {
     "sport": "wag",
     "comp_id": "knox-wag-senior-invite-2025",
     "name": "Knox WAG Senior Invite",
+    "date": "2025-03-23"
+  },
+  {
+    "sport": "mag",
+    "comp_id": "myc-mag-senior-invitational-2025",
+    "name": "MYC MAG Senior Invitational",
     "date": "2025-03-23"
   },
   {
@@ -210,10 +354,28 @@
     "date": "2025-03-15"
   },
   {
+    "sport": "mag",
+    "comp_id": "btyc-senior-invite-2025",
+    "name": "BTYC Senior Invite",
+    "date": "2025-03-15"
+  },
+  {
+    "sport": "mag",
+    "comp_id": "state-trial-2-2025",
+    "name": "State Trial 2",
+    "date": "2025-03-05"
+  },
+  {
     "sport": "wag",
     "comp_id": "niddrie-invitational-2025",
     "name": "Niddrie Invitational",
     "date": "2025-02-08"
+  },
+  {
+    "sport": "mag",
+    "comp_id": "knox-mag-5-10-invitational-2025",
+    "name": "Knox MAG 5-10 Invitational",
+    "date": "2025-02-03"
   },
   {
     "sport": "wag",
