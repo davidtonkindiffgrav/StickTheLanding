@@ -120,7 +120,55 @@
     <a href="/news/">All articles →</a>
   </div>
 
-  <div class="v3-news" id="v3-news-grid"></div>
+  <div class="v3-news" id="v3-news-grid">
+
+    <a class="v3-card big" href="news/posts/2026-06-01-Victorian-State-Teams/">
+      <div class="thumb" style="background-image:url('news/posts/2026-06-01-Victorian-State-Teams/hero.jpg');background-size:cover;background-position:center"></div>
+      <div class="row-thumb" style="background-image:url('news/posts/2026-06-01-Victorian-State-Teams/hero.jpg');background-size:cover;background-position:center"></div>
+      <div class="body">
+        <div class="head"><span class="cat neutral">WAG</span><span class="date">01.06.26</span></div>
+        <h4>Inside the Numbers: the stats behind Victoria's 2026 team selections</h4>
+        <p>Using trial and championship data, we break down how Victoria's 2026 WAG State Team and Border Challenge Team were selected, with three clubs (MAGA, Waverley, and YMCA Geelong) each landing seven athletes across the two squads.</p>
+      </div>
+    </a>
+
+    <a class="v3-card" href="news/posts/2026-05-28-Senior-Victorian-Championships/">
+      <div class="row-thumb" style="background-image:url('news/posts/2026-05-28-Senior-Victorian-Championships/hero.jpg');background-size:cover;background-position:center"></div>
+      <div class="body">
+        <div class="head"><span class="cat wag">REPORT</span><span class="date">28.05.26</span></div>
+        <h4>A weekend to remember: highlights of the 2026 Senior Victorian Championships</h4>
+        <p>Maddie Smith claimed Level 10 by just 0.033 points, Estelle Warnes capped an unbeaten 2026 campaign at Level 9, and Cerano Tosone swept five of six Level 7 apparatus events.</p>
+      </div>
+    </a>
+
+    <a class="v3-card" href="news/posts/2026-05-11-Waverley-Invite/">
+      <div class="row-thumb" style="background-image:url('news/posts/2026-05-11-Waverley-Invite/hero.jpg');background-size:cover;background-position:center"></div>
+      <div class="body">
+        <div class="head"><span class="cat neutral">WAG</span><span class="date">20.05.26</span></div>
+        <h4>Waverley Invite 2026: Eclipse Gymnastics claims Level 10 double as Wawolangi shines on home floor</h4>
+        <p>Eclipse Gymnastics Ringwood's Indianna Gilson and Isobel Myles claimed both Level 10 titles, with both team competitions settled by under a point.</p>
+      </div>
+    </a>
+
+    <a class="v3-card" href="news/posts/2026-05-16-Maria-Paseka-Did-Not-Quit/">
+      <div class="row-thumb" style="background-image:url('news/posts/2026-05-16-Maria-Paseka-Did-Not-Quit/hero.jpg');background-size:cover;background-position:center"></div>
+      <div class="body">
+        <div class="head"><span class="cat neutral">WAG</span><span class="date">16.05.26</span></div>
+        <h4>No, Maria Paseka didn't quit at the Olympics</h4>
+        <p>A widely-shared YouTube Shorts clip claims Maria Paseka 'quit' at the 2012 Olympics, but what you're actually seeing is a deliberate team strategy called a 'scratch', and it was entirely intentional.</p>
+      </div>
+    </a>
+
+    <a class="v3-card" href="news/posts/2026-05-03-WAG-Trial-2-Border-Challenge-Trial-2/">
+      <div class="row-thumb" style="background-image:url('news/posts/2026-05-03-WAG-Trial-2-Border-Challenge-Trial-2/hero.jpg');background-size:cover;background-position:center"></div>
+      <div class="body">
+        <div class="head"><span class="cat wag">REPORT</span><span class="date">03.05.26</span></div>
+        <h4>Nadiu edges Cross by 0.034 at WAG Trial 2</h4>
+        <p>Arianna Nadiu (MAG Academy) won Level 7 by just 0.034 points, while Sophie Strano (Jets) led L8 Division 1 with 47.332 and Emma Hale posted a 13.033 on bars.</p>
+      </div>
+    </a>
+
+  </div>
 
 
   <div class="v3-about">
@@ -3359,36 +3407,6 @@ async function renderAthleteProfile(athleteName) {
     }
   })();
 
-  (function loadNewsCards() {
-    fetch("news/posts/index.json").then(r => r.json()).then(posts => {
-      if (!posts || !posts.length) return;
-      const sorted = [...posts].sort((a, b) => b.date.localeCompare(a.date)).slice(0, 5);
-      const fmtDate = iso => { const [y,m,d] = iso.split("-"); return `${d}.${m}.${y.slice(2)}`; };
-      const tagCls  = tags => { const t = (tags && tags[0] || "").toLowerCase(); if (t === "report") return "wag"; if (t === "analysis") return "mag"; return "neutral"; };
-      const tagLbl  = tags => (tags && tags[0]) || "NEWS";
-      const grid = document.getElementById("v3-news-grid");
-      if (!grid) return;
-      grid.innerHTML = sorted.map((p, i) => {
-        const isBig    = i === 0;
-        const thumbUrl = p.thumbnail ? `news/${p.thumbnail}` : null;
-        const bigThumb = isBig
-          ? `<div class="thumb"${thumbUrl ? ` style="background-image:url('${thumbUrl}');background-size:cover;background-position:center"` : ""}></div>`
-          : "";
-        return `<a class="v3-card${isBig ? " big" : ""}" href="news/posts/${p.slug}/">
-          ${bigThumb}
-          <div class="row-thumb"${thumbUrl ? ` style="background-image:url('${thumbUrl}');background-size:cover;background-position:center"` : ""}></div>
-          <div class="body">
-            <div class="head">
-              <span class="cat ${tagCls(p.tags)}">${tagLbl(p.tags)}</span>
-              <span class="date">${fmtDate(p.date)}</span>
-            </div>
-            <h4>${p.title}</h4>
-            <p>${p.tldr || p.subtitle || ""}</p>
-          </div>
-        </a>`;
-      }).join("");
-    }).catch(() => {});
-  })();
 })();
 </script>
 
