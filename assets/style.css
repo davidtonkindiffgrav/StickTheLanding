@@ -854,6 +854,9 @@
     #landing-view .v3-about strong { color: #f2f3fa; }
     #landing-view .v3-about .link-btn { color: #ffd24a; }
     #landing-view .v3-about .link-btn:hover { color: #ffe07a; }
+    #landing-view .v3-about a { color: #ffd24a; }
+    #landing-view .v3-about a:visited { color: #ffd24a; }
+    #landing-view .v3-about a:hover { color: #ffe07a; }
 
     /* AD + FOOTER */
     #landing-view .v3-ad { margin: 16px 36px 0; }
