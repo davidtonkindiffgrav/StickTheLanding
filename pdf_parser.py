@@ -481,8 +481,10 @@ def parse_new_proscore(text_pages, pdf_path, sport="WAG"):
 
         if rank is not None and name and club and total is not None:
             n_app = 6 if sport == "MAG" else 4
-            d = (d_scores + [None] * n_app)[:n_app] if d_scores else [None] * n_app
-            e = (e_scores + [None] * n_app)[:n_app] if e_scores else [None] * n_app
+            _level = meta.get("level")
+            _has_de = not (sport == "WAG" and _level is not None and _level < 7)
+            d = (d_scores + [None] * n_app)[:n_app] if (d_scores and _has_de) else [None] * n_app
+            e = (e_scores + [None] * n_app)[:n_app] if (e_scores and _has_de) else [None] * n_app
             app_totals = [(scores[i] if i < len(scores) else None) for i in range(n_app)]
             # Extrapolate missing D or E component from apparatus total
             for idx in range(n_app):
