@@ -215,13 +215,13 @@ body.news-post {
 .post-body figure img { width: 100%; border-radius: 10px; display: block; }
 .post-body figcaption { font-size: 0.78rem; color: #888; text-align: center; margin-top: 8px; }
 
-/* Float small inline photos at natural size — never upscaled */
-.post-body figure.fig-float { float: right; margin: 4px 0 20px 24px; max-width: 180px; }
-.post-body figure.fig-float img { width: auto; max-width: 100%; height: auto; border-radius: 8px; display: block; }
+/* Float inline photos — width is responsive, capped at 300px */
+.post-body figure.fig-float { float: right; margin: 4px 0 20px 28px; width: 44%; max-width: 340px; min-width: 180px; }
+.post-body figure.fig-float img { width: 100%; height: auto; border-radius: 8px; display: block; }
 .post-body figure.fig-float figcaption { font-size: 0.7rem; color: #aaa; text-align: center; margin-top: 5px; line-height: 1.3; }
 .post-body h3 { clear: both; }
 @media (max-width: 500px) {
-  .post-body figure.fig-float { float: none; max-width: 100%; margin: 20px auto; text-align: center; }
+  .post-body figure.fig-float { float: none; width: 100%; max-width: 100%; margin: 20px auto; text-align: center; }
 }
 .post-body blockquote.coach-quote {
   border-left: 4px solid var(--accent);
