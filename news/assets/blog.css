@@ -223,6 +223,35 @@ body.news-post {
 @media (max-width: 500px) {
   .post-body figure.fig-float { float: none; max-width: 100%; margin: 20px auto; text-align: center; }
 }
+.post-body blockquote.coach-quote {
+  border-left: 4px solid var(--accent);
+  margin: 24px 0;
+  padding: 14px 20px;
+  background: rgba(255,255,255,0.04);
+  border-radius: 0 8px 8px 0;
+}
+.post-body blockquote.coach-quote p {
+  margin: 0 0 10px;
+  font-style: italic;
+  font-size: 0.97rem;
+  line-height: 1.7;
+}
+.post-body blockquote.coach-quote p:last-child {
+  margin: 0;
+}
+.post-body blockquote.coach-quote cite {
+  font-size: 0.82rem;
+  color: #888;
+  font-style: normal;
+}
+
+.post-body .post-footnote {
+  font-size: 0.8rem;
+  color: #888;
+  margin-top: -12px;
+  margin-bottom: 24px;
+}
+
 .post-body .pull-quote {
   font-size: 1.2rem;
   font-weight: 700;
