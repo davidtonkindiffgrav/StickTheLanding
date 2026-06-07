@@ -1384,6 +1384,18 @@
   html:not([data-theme="dark"]) #landing-view .v3-foot a:hover { color: var(--text); }
   html:not([data-theme="dark"]) #landing-view .v3-foot .link-btn { color: var(--muted); }
   html:not([data-theme="dark"]) #landing-view .v3-foot .link-btn:hover { color: var(--text); }
+  html:not([data-theme="dark"]) #landing-view .v3-hero .copy .kicker { color: #c47d00; }
+  html:not([data-theme="dark"]) #landing-view .v3-hero h2 .acc1 { color: #c47d00; }
+  html:not([data-theme="dark"]) #landing-view .v3-hero h2 .acc2 { color: #1a8e63; }
+  html:not([data-theme="dark"]) #landing-view .v3-hero h2 .slash { color: #c47d00; }
+  html:not([data-theme="dark"]) #landing-view .v3-stat.b .n { color: #1a8e63; }
+  html:not([data-theme="dark"]) #landing-view .v3-stat.c .n { color: #c47d00; }
+  html:not([data-theme="dark"]) #landing-view .v3-section-head a { color: #c47d00; }
+  html:not([data-theme="dark"]) #landing-view .v3-card .cat.mag { color: #1a8e63; border-color: #1a8e63; }
+  html:not([data-theme="dark"]) #landing-view .v3-card:hover { border-color: #c47d00; }
+  html:not([data-theme="dark"]) #landing-view .v3-about a,
+  html:not([data-theme="dark"]) #landing-view .v3-about a:visited,
+  html:not([data-theme="dark"]) #landing-view .v3-about .link-btn { color: #c47d00; }
 }
 
 html[data-theme="light"] #landing-view { background: var(--bg); color: var(--text); }
@@ -1418,3 +1430,16 @@ html[data-theme="light"] #landing-view .v3-foot a { color: var(--muted); }
 html[data-theme="light"] #landing-view .v3-foot a:hover { color: var(--text); }
 html[data-theme="light"] #landing-view .v3-foot .link-btn { color: var(--muted); }
 html[data-theme="light"] #landing-view .v3-foot .link-btn:hover { color: var(--text); }
+/* yellow/green accent legibility on light backgrounds */
+html[data-theme="light"] #landing-view .v3-hero .copy .kicker { color: #c47d00; }
+html[data-theme="light"] #landing-view .v3-hero h2 .acc1 { color: #c47d00; }
+html[data-theme="light"] #landing-view .v3-hero h2 .acc2 { color: #1a8e63; }
+html[data-theme="light"] #landing-view .v3-hero h2 .slash { color: #c47d00; }
+html[data-theme="light"] #landing-view .v3-stat.b .n { color: #1a8e63; }
+html[data-theme="light"] #landing-view .v3-stat.c .n { color: #c47d00; }
+html[data-theme="light"] #landing-view .v3-section-head a { color: #c47d00; }
+html[data-theme="light"] #landing-view .v3-card .cat.mag { color: #1a8e63; border-color: #1a8e63; }
+html[data-theme="light"] #landing-view .v3-card:hover { border-color: #c47d00; }
+html[data-theme="light"] #landing-view .v3-about a,
+html[data-theme="light"] #landing-view .v3-about a:visited,
+html[data-theme="light"] #landing-view .v3-about .link-btn { color: #c47d00; }

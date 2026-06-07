@@ -252,6 +252,7 @@ body.stl-nav-open { overflow: hidden; }
   html:not([data-theme="dark"]) .stl-nav-search:hover { border-color: #7c6dfa; color: #1a1a2a; }
   html:not([data-theme="dark"]) .stl-nav-hamburger { color: #5a5a78; }
   html:not([data-theme="dark"]) .stl-nav-links { background: #ffffff; border-bottom-color: #d4d4e8; }
+  html:not([data-theme="dark"]) .stl-nav-live { color: #1a8e63; }
 }
 
 html[data-theme="light"] .stl-nav { background: #ffffff; border-bottom-color: #d4d4e8; }
@@ -273,6 +274,7 @@ html[data-theme="light"] .stl-nav-hamburger { color: #5a5a78; }
 html[data-theme="light"] .stl-nav-links { background: #ffffff; border-bottom-color: #d4d4e8; }
 html[data-theme="light"] .stl-theme-btn { color: #5a5a78; }
 html[data-theme="light"] .stl-theme-btn:hover { color: #1a1a2a; background: rgba(0,0,0,0.05); }
+html[data-theme="light"] .stl-nav-live { color: #1a8e63; }
 
 /* ── THEME BUTTON ──────────────────────────────────────────────────────────── */
 
