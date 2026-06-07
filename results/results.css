@@ -354,3 +354,95 @@ body.results-page {
   .div-section       { margin-bottom: 28px; }
   .event-block       { margin-bottom: 24px; }
 }
+
+/* ── LIGHT THEME ─────────────────────────────────────────────────────────────── */
+
+html[data-theme="light"] body.results-page { background: #f4f4f8; color: #1a1a2a; }
+html[data-theme="light"] .comp-header { background: #ffffff; border-bottom-color: #d4d4e8; }
+html[data-theme="light"] .comp-back { color: #5a5a78; }
+html[data-theme="light"] .comp-back:hover { color: #1a1a2a; }
+html[data-theme="light"] .comp-name { color: #1a1a2a; }
+html[data-theme="light"] .comp-date { color: #5a5a78; }
+html[data-theme="light"] .tabs-bar { background: #ffffff; border-color: #d4d4e8; }
+html[data-theme="light"] .rtab { color: #5a5a78; }
+html[data-theme="light"] .rtab:hover { color: #1a1a2a; background: rgba(0,0,0,0.05); }
+html[data-theme="light"] .rtab.active { color: #6b5ce7; background: rgba(107,92,231,0.08); border-color: rgba(107,92,231,0.25); }
+html[data-theme="light"] .div-heading { color: #8888a8; border-bottom-color: #d4d4e8; }
+html[data-theme="light"] .event-heading { color: #1a1a2a; }
+html[data-theme="light"] .table-wrap { border-color: #d4d4e8; }
+html[data-theme="light"] .results-table thead th { background: #f0f0f6; color: #7878a0; border-bottom-color: #d4d4e8; }
+html[data-theme="light"] .results-table thead th.sortable:hover { color: #5a5a78; }
+html[data-theme="light"] .results-table thead th.sortable[data-dir="asc"],
+html[data-theme="light"] .results-table thead th.sortable[data-dir="desc"] { color: #6b5ce7; }
+html[data-theme="light"] .results-table tbody tr { border-bottom-color: #eeeef4; }
+html[data-theme="light"] .results-table tbody tr:hover { background: rgba(0,0,0,0.025); }
+html[data-theme="light"] .results-table td { background: #ffffff; color: #2a2a3a; }
+html[data-theme="light"] .results-table td.rank { color: #b0b0c8; }
+html[data-theme="light"] .results-table td.name { color: #1a1a2a; }
+html[data-theme="light"] .results-table td.club { color: #5a5a78; }
+html[data-theme="light"] .results-table td.score { color: #8080a0; }
+html[data-theme="light"] .results-table td.score:last-child { color: #1a1a2a; }
+html[data-theme="light"] .ci-season { color: #1a1a2a; border-bottom-color: #d4d4e8; }
+html[data-theme="light"] .ci-row { background: #ffffff; border-color: #d4d4e8; }
+html[data-theme="light"] .ci-row:hover { border-color: #9090b8; }
+html[data-theme="light"] .ci-result-link:hover { background: #f4f4fc; }
+html[data-theme="light"] .ci-name { color: #1a1a2a; }
+html[data-theme="light"] .ci-date { color: #7878a0; }
+html[data-theme="light"] .ci-arrow { color: #b0b0c8; }
+html[data-theme="light"] .ci-result-link:hover .ci-arrow { color: #6b5ce7; }
+html[data-theme="light"] .ci-pdfs summary { color: #7878a0; }
+html[data-theme="light"] .ci-pdfs summary:hover { color: #5a5a78; }
+html[data-theme="light"] .ci-pdf-list a { color: #5a5a78; }
+html[data-theme="light"] .ci-pdf-list a:hover { color: #6b5ce7; }
+html[data-theme="light"] .results-footer { background: #eeeef4; color: #7878a0; border-top-color: #d4d4e8; }
+html[data-theme="light"] .results-footer a { color: #9090b8; }
+html[data-theme="light"] .results-footer a:hover { color: #1a1a2a; }
+
+@media (prefers-color-scheme: light) {
+  body.results-page { background: #f4f4f8; color: #1a1a2a; }
+
+  .comp-header { background: #ffffff; border-bottom-color: #d4d4e8; }
+  .comp-back { color: #5a5a78; }
+  .comp-back:hover { color: #1a1a2a; }
+  .comp-name { color: #1a1a2a; }
+  .comp-date { color: #5a5a78; }
+
+  .tabs-bar { background: #ffffff; border-color: #d4d4e8; }
+  .rtab { color: #5a5a78; }
+  .rtab:hover { color: #1a1a2a; background: rgba(0,0,0,0.05); }
+  .rtab.active { color: #6b5ce7; background: rgba(107,92,231,0.08); border-color: rgba(107,92,231,0.25); }
+
+  .div-heading { color: #8888a8; border-bottom-color: #d4d4e8; }
+  .event-heading { color: #1a1a2a; }
+
+  .table-wrap { border-color: #d4d4e8; }
+  .results-table thead th { background: #f0f0f6; color: #7878a0; border-bottom-color: #d4d4e8; }
+  .results-table thead th.sortable:hover { color: #5a5a78; }
+  .results-table thead th.sortable[data-dir="asc"],
+  .results-table thead th.sortable[data-dir="desc"] { color: #6b5ce7; }
+  .results-table tbody tr { border-bottom-color: #eeeef4; }
+  .results-table tbody tr:hover { background: rgba(0,0,0,0.025); }
+  .results-table td { background: #ffffff; color: #2a2a3a; }
+  .results-table td.rank { color: #b0b0c8; }
+  .results-table td.name { color: #1a1a2a; }
+  .results-table td.club { color: #5a5a78; }
+  .results-table td.score { color: #8080a0; }
+  .results-table td.score:last-child { color: #1a1a2a; }
+
+  .ci-season { color: #1a1a2a; border-bottom-color: #d4d4e8; }
+  .ci-row { background: #ffffff; border-color: #d4d4e8; }
+  .ci-row:hover { border-color: #9090b8; }
+  .ci-result-link:hover { background: #f4f4fc; }
+  .ci-name { color: #1a1a2a; }
+  .ci-date { color: #7878a0; }
+  .ci-arrow { color: #b0b0c8; }
+  .ci-result-link:hover .ci-arrow { color: #6b5ce7; }
+  .ci-pdfs summary { color: #7878a0; }
+  .ci-pdfs summary:hover { color: #5a5a78; }
+  .ci-pdf-list a { color: #5a5a78; }
+  .ci-pdf-list a:hover { color: #6b5ce7; }
+
+  .results-footer { background: #eeeef4; color: #7878a0; border-top-color: #d4d4e8; }
+  .results-footer a { color: #9090b8; }
+  .results-footer a:hover { color: #1a1a2a; }
+}

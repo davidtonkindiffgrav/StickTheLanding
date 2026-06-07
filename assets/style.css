@@ -44,6 +44,56 @@
       --header-bg: linear-gradient(135deg, #1a130f 0%, #2e1a0a 50%, #4a2a06 100%);
     }
 
+    /* system preference fallback (no-JS); guarded so explicit dark selection wins */
+    @media (prefers-color-scheme: light) {
+      html:not([data-theme="dark"]) {
+        --bg: #f4f4f8;
+        --surface: #ffffff;
+        --surface2: #eeeef4;
+        --border: #d4d4e8;
+        --text: #1a1a2a;
+        --muted: #5a5a78;
+        --accent-glow: rgba(124, 109, 250, 0.10);
+        --header-bg: linear-gradient(135deg, #ede9ff 0%, #dde5f8 50%, #c8d8f8 100%);
+      }
+      html:not([data-theme="dark"])[data-sport="MAG"] {
+        --accent-glow: rgba(52, 211, 153, 0.10);
+        --header-bg: linear-gradient(135deg, #e4f5ee 0%, #cff0e0 50%, #b8e8d0 100%);
+      }
+      html:not([data-theme="dark"])[data-sport="ACRO"] {
+        --accent-glow: rgba(251, 146, 60, 0.10);
+        --header-bg: linear-gradient(135deg, #fff3e8 0%, #ffe8cc 50%, #ffd5aa 100%);
+      }
+      html:not([data-theme="dark"]) .ad-unit { background: rgba(0,0,0,0.03); }
+      html:not([data-theme="dark"]) .header-logo-group h1 { color: #1a1a2a; }
+      html:not([data-theme="dark"]) .header-logo-group h1 span { color: #6b5ce7; }
+      html:not([data-theme="dark"]) .header-logo-group p { color: #5a5a78; }
+    }
+
+    /* JS-driven explicit light theme */
+    html[data-theme="light"] {
+      --bg: #f4f4f8;
+      --surface: #ffffff;
+      --surface2: #eeeef4;
+      --border: #d4d4e8;
+      --text: #1a1a2a;
+      --muted: #5a5a78;
+      --accent-glow: rgba(124, 109, 250, 0.10);
+      --header-bg: linear-gradient(135deg, #ede9ff 0%, #dde5f8 50%, #c8d8f8 100%);
+    }
+    html[data-theme="light"][data-sport="MAG"] {
+      --accent-glow: rgba(52, 211, 153, 0.10);
+      --header-bg: linear-gradient(135deg, #e4f5ee 0%, #cff0e0 50%, #b8e8d0 100%);
+    }
+    html[data-theme="light"][data-sport="ACRO"] {
+      --accent-glow: rgba(251, 146, 60, 0.10);
+      --header-bg: linear-gradient(135deg, #fff3e8 0%, #ffe8cc 50%, #ffd5aa 100%);
+    }
+    html[data-theme="light"] .ad-unit { background: rgba(0,0,0,0.03); }
+    html[data-theme="light"] .header-logo-group h1 { color: #1a1a2a; }
+    html[data-theme="light"] .header-logo-group h1 span { color: #6b5ce7; }
+    html[data-theme="light"] .header-logo-group p { color: #5a5a78; }
+
     body {
       background: var(--bg);
       color: var(--text);
@@ -1299,3 +1349,72 @@
   .profile-pb-aa { margin-top: 0; padding-top: 0; border-top: none; }
   .profile-pb-aa .profile-pb-val { font-size: 0.9rem; }
 }
+
+/* ── LIGHT THEME: LANDING PAGE (must come after #landing-view dark rules) ── */
+@media (prefers-color-scheme: light) {
+  html:not([data-theme="dark"]) #landing-view { background: var(--bg); color: var(--text); }
+  html:not([data-theme="dark"]) #landing-view .v3-logo h1 { color: var(--text); }
+  html:not([data-theme="dark"]) #landing-view .v3-logo h1 + .sub { color: var(--muted); }
+  html:not([data-theme="dark"]) #landing-view .v3-header .right { color: var(--muted); }
+  html:not([data-theme="dark"]) #landing-view .v3-hero h2 { color: var(--text); }
+  html:not([data-theme="dark"]) #landing-view .v3-hero p { color: var(--muted); }
+  html:not([data-theme="dark"]) #landing-view .v3-stat { background: var(--surface); border-color: var(--border); }
+  html:not([data-theme="dark"]) #landing-view .v3-stat .l { color: var(--muted); }
+  html:not([data-theme="dark"]) #landing-view .v3-sport { border-color: var(--border); }
+  html:not([data-theme="dark"]) #landing-view .v3-section-head h3 { color: var(--text) !important; }
+  html:not([data-theme="dark"]) #landing-view .v3-section-head .bar { background: linear-gradient(90deg, var(--border), transparent); }
+  html:not([data-theme="dark"]) #landing-view .v3-card { background: var(--surface); border-color: var(--border); color: var(--text); }
+  html:not([data-theme="dark"]) #landing-view .v3-card h4 { color: var(--text); }
+  html:not([data-theme="dark"]) #landing-view .v3-card p { color: var(--muted); }
+  html:not([data-theme="dark"]) #landing-view .v3-card .date { color: var(--muted); }
+  html:not([data-theme="dark"]) #landing-view .v3-card .cat.neutral { color: var(--muted); border-color: var(--border); }
+  html:not([data-theme="dark"]) #landing-view .v3-card.big .thumb {
+    background: linear-gradient(135deg, rgba(106,61,240,0.12), rgba(11,139,90,0.12)),
+                repeating-linear-gradient(45deg, #e8e8f0, #e8e8f0 8px, #d8d8ea 8px, #d8d8ea 9px);
+  }
+  html:not([data-theme="dark"]) #landing-view .v3-card:not(.big) .row-thumb {
+    background-color: #e8e8f0;
+    background-image: linear-gradient(135deg, rgba(106,61,240,0.12), rgba(11,139,90,0.12)),
+                      repeating-linear-gradient(45deg, #e8e8f0, #e8e8f0 8px, #d8d8ea 8px, #d8d8ea 9px);
+  }
+  html:not([data-theme="dark"]) #landing-view .v3-about { background: var(--surface); border-color: var(--border); color: var(--muted); }
+  html:not([data-theme="dark"]) #landing-view .v3-about strong { color: var(--text); }
+  html:not([data-theme="dark"]) #landing-view .v3-foot { border-top-color: var(--border); color: var(--muted); }
+  html:not([data-theme="dark"]) #landing-view .v3-foot a { color: var(--muted); }
+  html:not([data-theme="dark"]) #landing-view .v3-foot a:hover { color: var(--text); }
+  html:not([data-theme="dark"]) #landing-view .v3-foot .link-btn { color: var(--muted); }
+  html:not([data-theme="dark"]) #landing-view .v3-foot .link-btn:hover { color: var(--text); }
+}
+
+html[data-theme="light"] #landing-view { background: var(--bg); color: var(--text); }
+html[data-theme="light"] #landing-view .v3-logo h1 { color: var(--text); }
+html[data-theme="light"] #landing-view .v3-logo h1 + .sub { color: var(--muted); }
+html[data-theme="light"] #landing-view .v3-header .right { color: var(--muted); }
+html[data-theme="light"] #landing-view .v3-hero h2 { color: var(--text); }
+html[data-theme="light"] #landing-view .v3-hero p { color: var(--muted); }
+html[data-theme="light"] #landing-view .v3-stat { background: var(--surface); border-color: var(--border); }
+html[data-theme="light"] #landing-view .v3-stat .l { color: var(--muted); }
+html[data-theme="light"] #landing-view .v3-sport { border-color: var(--border); }
+html[data-theme="light"] #landing-view .v3-section-head h3 { color: var(--text) !important; }
+html[data-theme="light"] #landing-view .v3-section-head .bar { background: linear-gradient(90deg, var(--border), transparent); }
+html[data-theme="light"] #landing-view .v3-card { background: var(--surface); border-color: var(--border); color: var(--text); }
+html[data-theme="light"] #landing-view .v3-card h4 { color: var(--text); }
+html[data-theme="light"] #landing-view .v3-card p { color: var(--muted); }
+html[data-theme="light"] #landing-view .v3-card .date { color: var(--muted); }
+html[data-theme="light"] #landing-view .v3-card .cat.neutral { color: var(--muted); border-color: var(--border); }
+html[data-theme="light"] #landing-view .v3-card.big .thumb {
+  background: linear-gradient(135deg, rgba(106,61,240,0.12), rgba(11,139,90,0.12)),
+              repeating-linear-gradient(45deg, #e8e8f0, #e8e8f0 8px, #d8d8ea 8px, #d8d8ea 9px);
+}
+html[data-theme="light"] #landing-view .v3-card:not(.big) .row-thumb {
+  background-color: #e8e8f0;
+  background-image: linear-gradient(135deg, rgba(106,61,240,0.12), rgba(11,139,90,0.12)),
+                    repeating-linear-gradient(45deg, #e8e8f0, #e8e8f0 8px, #d8d8ea 8px, #d8d8ea 9px);
+}
+html[data-theme="light"] #landing-view .v3-about { background: var(--surface); border-color: var(--border); color: var(--muted); }
+html[data-theme="light"] #landing-view .v3-about strong { color: var(--text); }
+html[data-theme="light"] #landing-view .v3-foot { border-top-color: var(--border); color: var(--muted); }
+html[data-theme="light"] #landing-view .v3-foot a { color: var(--muted); }
+html[data-theme="light"] #landing-view .v3-foot a:hover { color: var(--text); }
+html[data-theme="light"] #landing-view .v3-foot .link-btn { color: var(--muted); }
+html[data-theme="light"] #landing-view .v3-foot .link-btn:hover { color: var(--text); }

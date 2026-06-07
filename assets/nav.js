@@ -9,6 +9,32 @@
     return '<a class="stl-nav-link' + (extraCls || '') + active(href) + '" href="' + href + '">' + label + '</a>';
   }
 
+  // ── THEME ──────────────────────────────────────────────────────────────────
+
+  function stlPreferred() {
+    return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  }
+
+  function stlApply(theme) {
+    document.documentElement.dataset.theme = theme;
+    var icon = document.getElementById('stl-theme-icon');
+    if (icon) icon.className = theme === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
+    var btn = document.getElementById('stl-theme-btn');
+    if (btn) btn.title = theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode';
+  }
+
+  function stlInit() {
+    var saved = localStorage.getItem('stl-theme');
+    stlApply(saved || stlPreferred());
+    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', function (e) {
+      if (!localStorage.getItem('stl-theme')) {
+        stlApply(e.matches ? 'dark' : 'light');
+      }
+    });
+  }
+
+  // ── NAV HTML ───────────────────────────────────────────────────────────────
+
   document.body.insertAdjacentHTML('afterbegin',
     '<nav class="stl-nav" id="stl-global-nav" aria-label="Site navigation">' +
       // LEFT: brand
@@ -24,7 +50,7 @@
         '<span id="v3-date" class="stl-nav-date"></span>' +
         '<span class="stl-nav-live" id="v3-live-badge"></span>' +
       '</div>' +
-      // RIGHT: nav links + find athlete + hamburger
+      // RIGHT: nav links + theme toggle + find athlete + hamburger
       '<div class="stl-nav-end">' +
         '<div class="stl-nav-links" id="stl-links">' +
           a('/', 'Home') +
@@ -39,6 +65,10 @@
           a('/privacy/', 'Privacy') +
         '</div>' +
         '<div class="stl-nav-divider"></div>' +
+        '<button class="stl-theme-btn" id="stl-theme-btn" aria-label="Toggle theme" title="Toggle dark/light mode">' +
+          '<i id="stl-theme-icon" class="fas fa-moon"></i>' +
+        '</button>' +
+        '<div class="stl-nav-divider"></div>' +
         '<button class="stl-nav-search" id="stl-search-btn" aria-label="Find Athlete">' +
           '<i class="fas fa-search"></i>' +
           '<span class="stl-nav-search-text">Find Athlete</span>' +
@@ -49,6 +79,8 @@
       '</div>' +
     '</nav>'
   );
+
+  // ── EVENT LISTENERS ────────────────────────────────────────────────────────
 
   var ham = document.getElementById('stl-ham');
   var linksEl = document.getElementById('stl-links');
@@ -78,6 +110,16 @@
     });
   }
 
+  var themeBtn = document.getElementById('stl-theme-btn');
+  if (themeBtn) {
+    themeBtn.addEventListener('click', function () {
+      var current = document.documentElement.dataset.theme || stlPreferred();
+      var next = current === 'dark' ? 'light' : 'dark';
+      localStorage.setItem('stl-theme', next);
+      stlApply(next);
+    });
+  }
+
   if (PATH === '/') {
     ['wag', 'mag', 'acro'].forEach(function (s) {
       var el = document.getElementById('stl-' + s);
@@ -90,6 +132,7 @@
         });
       }
     });
-
   }
+
+  stlInit();
 })();
