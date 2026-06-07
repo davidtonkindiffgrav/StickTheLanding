@@ -53,6 +53,8 @@
         --border: #d4d4e8;
         --text: #1a1a2a;
         --muted: #5a5a78;
+        --green: #16a34a;
+        --gold: #a16207;
         --accent-glow: rgba(124, 109, 250, 0.10);
         --header-bg: linear-gradient(135deg, #ede9ff 0%, #dde5f8 50%, #c8d8f8 100%);
       }
@@ -78,6 +80,8 @@
       --border: #d4d4e8;
       --text: #1a1a2a;
       --muted: #5a5a78;
+      --green: #16a34a;
+      --gold: #a16207;
       --accent-glow: rgba(124, 109, 250, 0.10);
       --header-bg: linear-gradient(135deg, #ede9ff 0%, #dde5f8 50%, #c8d8f8 100%);
     }
