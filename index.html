@@ -53,9 +53,9 @@
       <p>Your hub for Victorian Gymnastics results, standings, and athlete profiles. Explore season histories, apparatus graphs, and personal bests - every score, every competition, all in one place.</p>
     </div>
     <div class="v3-stats">
-      <div class="v3-stat a"><div class="n">2k</div><div class="l">Gymnasts</div></div>
-      <div class="v3-stat b"><div class="n">55</div><div class="l">Comps tracked</div></div>
-      <div class="v3-stat c"><div class="n">8.5k</div><div class="l">Scores</div></div>
+      <div class="v3-stat a"><div class="n">2.3k</div><div class="l">Gymnasts</div></div>
+      <div class="v3-stat b"><div class="n">100</div><div class="l">Comps tracked</div></div>
+      <div class="v3-stat c"><div class="n">15k</div><div class="l">Scores</div></div>
     </div>
   </section>
 
@@ -981,7 +981,7 @@ function rankBadge(rank) {
 }
 
 function isMixed(code, competition = null) {
-  if (code.includes("/") || /^MX\d/i.test(code)) return true;
+  if (code.includes("/") || /^MX\d/i.test(code) || /^MIX$/i.test(code)) return true;
   if (competition && MIXED_OVERRIDES.get(competition)?.has(code)) return true;
   return false;
 }
@@ -1111,11 +1111,14 @@ async function renderClubs() {
        pommel, rings, pbars, hbar,
        competition, level, division, age_group }));
 
-  let standings = buildTeamStandings(rows.filter(r => !isMixed(r.club || "", r.competition)), activeApparatus);
+  let standings = buildTeamStandings(rows.filter(r => !isMixed(r.club || "", r.competition) && !([3,4,5].includes(r.level) && (r.total || 0) < 40)), activeApparatus);
   if (activeRegion) {
     const clubRegion = {};
     for (const c of CLUBS_LIST) clubRegion[c.code] = c.region;
-    standings = standings.filter(s => clubRegion[s.club] === activeRegion);
+    const VIC_REGIONS = new Set(["Metro East","Metro North","Metro South","Metro West","Regional NE","Regional SE","Regional West","North East","Multi-Region"]);
+    standings = standings.filter(s => activeRegion === "Victoria"
+      ? VIC_REGIONS.has(clubRegion[s.club])
+      : clubRegion[s.club] === activeRegion);
   }
 
   const byHighScore = [...standings].sort((a, b) => b.highScore - a.highScore);
@@ -2103,11 +2106,11 @@ function buildRegionFilters() {
   const sel = document.getElementById("sel-region");
   if (!sel) return;
   const regions = [...new Set(
-    CLUBS_LIST.filter(c => c.region && c.region !== "Multi-Region" && c.region !== "Interstate")
+    CLUBS_LIST.filter(c => c.region && c.region !== "Multi-Region")
               .map(c => c.region)
   )].sort((a, b) => (REGION_ORDER[a] || 99) - (REGION_ORDER[b] || 99));
 
-  sel.innerHTML = '<option value="all">All</option>';
+  sel.innerHTML = '<option value="all">All</option><option value="Victoria">Victoria</option>';
   regions.forEach(region => {
     const opt = document.createElement("option");
     opt.value = region;

@@ -282,8 +282,63 @@ def _build_app_scores(totals, d_scores, e_scores, sport):
 # Old ProScore parser (one-line athlete records)
 # ---------------------------------------------------------------------------
 
-def parse_proscore_text(text_pages):
-    events = []
+_PROSCORE_SKIP = ("ND:", "Final:", "Place:", "D/E:", "Diff:", "DN/DE:", "Exec:")
+
+
+def _parse_new_proscore_page(lines, page_results, sport="WAG"):
+    """Parse one page of new ProScore format (multi-line records anchored on 'Final:')."""
+    n_app = 6 if sport == "MAG" else 4
+    for i, line in enumerate(lines):
+        if not line.startswith("Final:"):
+            continue
+        scores, total = _parse_final_line(line)
+        if total is None:
+            continue
+
+        rank = bib = name = club = None
+        d_scores = []
+        e_scores = []
+
+        for offset in range(1, 7):
+            j = i - offset
+            if j < 0:
+                break
+            l = lines[j]
+
+            if not d_scores:
+                diff_m = re.search(r"\bDiff:\s+([\d.]+(?:\s+[\d.]+)*)", l)
+                if diff_m:
+                    d_scores = [_parse_score(x) for x in diff_m.group(1).split()][:n_app]
+
+            if not e_scores:
+                exec_m = re.search(r"\bExec:\s+([\d.]+(?:\s+[\d.]+)*)", l)
+                if exec_m:
+                    e_scores = [_parse_score(x) for x in exec_m.group(1).split()][:n_app]
+
+            if club is None and not l.startswith(_PROSCORE_SKIP):
+                m_c = re.match(r"^(?:[A-Za-z]{2,6}\s*/\s*)?([A-Za-z]{2,12})(?:\s+.*)?$", l)
+                if m_c:
+                    club = m_c.group(1).upper()
+
+            if rank is None:
+                left = re.split(r"\s+(?:Diff:|D/E:|DN/DE::?)", l)[0].strip()
+                m_r = re.match(r"^(\d+[T]?)\s+(\d+)\s+(.+)$", left)
+                if m_r:
+                    rank = _parse_rank(m_r.group(1))
+                    bib = m_r.group(2)
+                    name = _clean_name(m_r.group(3))
+
+        if rank is not None and name and club and total is not None:
+            d = (d_scores + [None] * n_app)[:n_app] if d_scores else [None] * n_app
+            e = (e_scores + [None] * n_app)[:n_app] if e_scores else [None] * n_app
+            app_totals = (scores + [None] * n_app)[:n_app]
+            row = {"rank": rank, "bib": bib, "athlete": name, "club": club, "total": total}
+            row.update(_build_app_scores(app_totals, d, e, sport))
+            page_results.append(row)
+
+
+def parse_proscore_text(text_pages, sport="WAG"):
+    events_by_key = {}  # (level, div, event_type) -> results list
     for text in text_pages:
         if not text or TEAM_RESULTS_RE.search(text):
             continue
@@ -304,7 +359,14 @@ def parse_proscore_text(text_pages):
         if level is None:
             continue
 
-        results = []
+        key = (level, div, event_type)
+        page_results = events_by_key.setdefault(key, [])
+
+        # New ProScore format: multi-line records anchored on "Final:"
+        if "Final:" in text:
+            _parse_new_proscore_page(lines, page_results, sport=sport)
+            continue
+
         prev_athlete = None
         for line in lines:
             m = ATHLETE_LINE_AA.match(line)
@@ -321,7 +383,7 @@ def parse_proscore_text(text_pages):
                     "floor": _parse_score(fx),
                     "total": _parse_score(total),
                 }
-                results.append(prev_athlete)
+                page_results.append(prev_athlete)
                 continue
 
             m = ATHLETE_LINE_APP.match(line)
@@ -342,7 +404,7 @@ def parse_proscore_text(text_pages):
                     rec["beam"] = _parse_score(score)
                 elif event_type == "FX":
                     rec["floor"] = _parse_score(score)
-                results.append(rec)
+                page_results.append(rec)
                 prev_athlete = rec
                 continue
 
@@ -350,10 +412,11 @@ def parse_proscore_text(text_pages):
                 prev_athlete["club"] = line.split()[0].upper()
                 prev_athlete = None
 
-        if results:
-            events.append({"level": level, "division": div, "event_type": event_type, "results": results})
-
-    return events
+    return [
+        {"level": lvl, "division": div, "event_type": et, "results": results}
+        for (lvl, div, et), results in events_by_key.items()
+        if results
+    ]
 
 
 # ---------------------------------------------------------------------------
@@ -828,14 +891,17 @@ def _mag_team_club(raw):
 _COMBINED_HDR_RE = re.compile(
     r"T\s*e\s*a\s*m\s+R\s*e\s*s\s*u\s*l\s*t\s*s"  # "Team Results"
     r"[^\n/]*"                                       # gender/category (no slash, no newline)
-    r"/\s*([\d][\d\s]{0,3})\s*/",                   # "/ 31 /"
-    re.IGNORECASE,
+    r"/\s*(\d+(?:D\d+)?(?:[\d\s]{0,3})?)\s*(?:/|$)",  # "/ 31 /", "/ 32", "/ 3D1"
+    re.IGNORECASE | re.MULTILINE,
 )
 
 
 def _split_combined_level_div(code):
-    """'31' → (3, 1), '101' → (10, 1), '10' → (10, None)."""
-    code = re.sub(r"\s+", "", str(code))
+    """'31' → (3, 1), '101' → (10, 1), '10' → (10, None), '3D1' → (3, 1)."""
+    code = re.sub(r"\s+", "", str(code)).upper()
+    m = re.match(r"^(\d+)D(\d+)$", code)
+    if m:
+        return int(m.group(1)), int(m.group(2))
     if len(code) == 1:
         return int(code), None
     if len(code) == 2:
@@ -858,8 +924,15 @@ def parse_team_results(text_pages, pdf_path, sport="WAG"):
     file_meta = parse_filename_meta(pdf_path)
     events_by_ld = {}
 
+    has_team_header_anywhere = any(t and TEAM_RESULTS_RE.search(t) for t in text_pages)
+
     for text in text_pages:
         if not text:
+            continue
+        # In mixed AA+Team PDFs, only process pages that are team results pages.
+        # Pure team-only PDFs always have TEAM_RESULTS_RE on every page, so this
+        # filter is safe for both cases.
+        if has_team_header_anywhere and not TEAM_RESULTS_RE.search(text):
             continue
 
         page_level = file_meta.get("level")
@@ -1369,12 +1442,15 @@ def parse_proscore_simple(text_pages, pdf_path, sport="WAG"):
         page_div = file_meta.get("division")
         hdr_m = PROSCORE_SIMPLE_HDR.search(text)
         if hdr_m:
-            pl = int(hdr_m.group(1))
+            raw_num = hdr_m.group(1)
             suffix = hdr_m.group(2).upper()
             if suffix.startswith("D") and len(suffix) > 1:
-                pd = int(suffix[1:])       # "D1" → 1, "D2" → 2
+                pl, pd = int(raw_num), int(suffix[1:])   # "D1" → 1, "D2" → 2
+            elif suffix and not suffix.isdigit():
+                pl, pd = int(raw_num), _div_from_letter(suffix)  # "A" → 1, "B" → 2
             else:
-                pd = _div_from_letter(suffix)  # "A" → 1, "B" → 2, "" → None
+                # No letter suffix — numeric code may encode level+div (e.g. "51" = L5 D1)
+                pl, pd = _split_combined_level_div(raw_num)
             page_level = pl
             if pd is not None:
                 page_div = pd
@@ -1992,6 +2068,32 @@ def parse_pdf(pdf_path, sport="WAG"):
         events = parse_gymp(text_pages, pdf_path)
         return (_inject_age_group(events, age_group), "gymp") if events else ([], "gymp-empty")
 
+    # ProScore AA parsers — check BEFORE team routing because mixed AA+Team PDFs must not
+    # be swallowed by the team-only gate.  Each parser already skips team pages internally;
+    # we then merge team results from the same file afterward.
+
+    # Old ProScore format (Meet Results - Level X Division Y)
+    has_proscore_meet = any(t and PROSCORE_MEET_HDR.search(t) for t in text_pages)
+    if has_proscore_meet:
+        events = parse_proscore_text(text_pages, sport=sport)
+        if events:
+            if TEAM_RESULTS_RE.search(full_text):
+                team_events = parse_team_results(text_pages, pdf_path, sport=sport)
+                if team_events:
+                    events = events + team_events
+            return _inject_age_group(events, age_group), "proscore"
+
+    # Simple ProScore format (Meet Results Women / 5A / ...) — also handles spaced characters
+    has_proscore_simple = any(t and PROSCORE_SIMPLE_HDR.search(t) for t in text_pages)
+    if has_proscore_simple:
+        events = parse_proscore_simple(text_pages, pdf_path, sport=sport)
+        if events:
+            if TEAM_RESULTS_RE.search(full_text):
+                team_events = parse_team_results(text_pages, pdf_path, sport=sport)
+                if team_events:
+                    events = events + team_events
+            return _inject_age_group(events, age_group), "proscore-simple"
+
     # Route Team Results to dedicated parser (level may come from page headers, not filename)
     if TEAM_RESULTS_RE.search(full_text) or meta.get("event_type") == "Team":
         events = parse_team_results(text_pages, pdf_path, sport=sport)
@@ -2005,12 +2107,6 @@ def parse_pdf(pdf_path, sport="WAG"):
         events = parse_new_proscore(text_pages, pdf_path, sport=sport)
         if events:
             return _inject_age_group(events, age_group), "proscore-v2"
-
-    # Old ProScore format (Meet Results - Level X Division Y)
-    if any(t and PROSCORE_MEET_HDR.search(t) for t in text_pages):
-        events = parse_proscore_text(text_pages)
-        if events:
-            return _inject_age_group(events, age_group), "proscore"
 
     # Multi-round ProScore (Prelims + Finals + Combined Total) — skip entirely;
     # combined totals are not valid single-session scores for the leaderboard.

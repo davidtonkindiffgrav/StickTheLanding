@@ -126,6 +126,11 @@ def sorted_etypes(div_tree: dict) -> list:
 
 # ── Formatting ─────────────────────────────────────────────────────────────────
 
+def _is_mixed_club(code: str) -> bool:
+    import re
+    return "/" in code or bool(re.match(r"^MX\d", code, re.I)) or bool(re.match(r"^MIX$", code, re.I))
+
+
 def fmt(v) -> str:
     if v is None:
         return "-"
@@ -283,7 +288,13 @@ def render_page(comp: sqlite3.Row, tree: dict, sport: str) -> str:
             for etype in etypes:
                 block_id = f"{panel_id}-{safe_id(div_key or 'x')}-{safe_id(etype)}"
                 lbl      = EVENT_LABEL.get(etype, etype)
-                tbl      = render_table(div_tree[etype], etype, sport)
+                rows_to_render = div_tree[etype]
+                if etype == "Team":
+                    rows_to_render = [r for r in rows_to_render
+                                      if not _is_mixed_club(r.get("club") or "")]
+                if etype == "Team" and isinstance(lvl, int) and lvl in (3, 4, 5):
+                    rows_to_render = [r for r in rows_to_render if (r.get("total") or 0) >= 40]
+                tbl      = render_table(rows_to_render, etype, sport)
                 blocks.append(
                     f'<div class="event-block" id="{block_id}">'
                     f'<h3 class="event-heading">{lbl}</h3>{tbl}</div>'

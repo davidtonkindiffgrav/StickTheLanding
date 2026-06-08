@@ -55,6 +55,13 @@
       "logo": null
     },
     {
+      "code": "BEN",
+      "name": "Benalla Gymnastics Club",
+      "region": "Regional NE",
+      "aliases": ["BENELLA"],
+      "logo": null
+    },
+    {
       "code": "BAY",
       "name": "Bayside Gymnastics Club",
       "region": "Metro South",
@@ -68,8 +75,19 @@
       "name": "Ballarat Gymsports",
       "region": "Regional West",
       "aliases": [
-        "BALLARAT GYMSPORTS"
+        "BALLARAT GYMSPORTS",
+        "BGS Blue",
+        "BGS Green",
+        "BGS Red",
+        "BGS White"
       ],
+      "logo": null
+    },
+    {
+      "code": "BGS/POR",
+      "name": "Ballarat Gymsports / Portland (Joint)",
+      "region": "Regional West",
+      "aliases": ["BGS Portland"],
       "logo": null
     },
     {
@@ -86,7 +104,7 @@
       "code": "BMK",
       "name": "Bentleigh McKinnon Gymnastics Club",
       "region": "Metro South",
-      "aliases": [],
+      "aliases": ["BMGC"],
       "logo": null
     },
     {
@@ -151,7 +169,11 @@
         "CASEY CRANBOURNE",
         "CASEY ENDEAVOUR HILLS",
         "CASEY STADIUM",
-        "CASEY"
+        "CASEY",
+        "CASEY GYMNASTICS",
+        "CASEY GYMNASTICS BLUE",
+        "CASEY GYMNASTICS RED",
+        "CASEY GYMNASTICS INDIVIDUAL"
       ],
       "_venues": [
         "Casey Stadium",
@@ -184,7 +206,21 @@
       "code": "CYC",
       "name": "Cheltenham Youth Club",
       "region": "Metro South",
-      "aliases": [],
+      "aliases": ["CYC GREEN", "CYC BLUE", "CYC INDIVIDUAL"],
+      "logo": null
+    },
+    {
+      "code": "DEL",
+      "name": "Delta Gymnastics",
+      "region": "Interstate",
+      "aliases": ["DELTA", "DELTA GYMNASTICS"],
+      "logo": null
+    },
+    {
+      "code": "DYN",
+      "name": "Dynamic Gymnastics Club",
+      "region": "Interstate",
+      "aliases": ["DYNAMIC", "DYNAMIC GYMNASTICS"],
       "logo": null
     },
     {
@@ -192,7 +228,9 @@
       "name": "Diamond Gymnastics Club",
       "region": "Metro South",
       "aliases": [
-        "DIAMOND"
+        "DIAMOND",
+        "DIAMOND GYMNASTICS",
+        "DIAMOND GYMNASTICS CLUB"
       ],
       "logo": null
     },
@@ -228,7 +266,11 @@
       "name": "Edge Gymnastics",
       "region": "Metro South",
       "aliases": [
-        "EDGE"
+        "EDGE",
+        "EDGE GYMNASTICS",
+        "EDGE GYMNASTICS INDIVIDUAL",
+        "EDGE GYMNASTICS LIME",
+        "EDGE GYMNASTICS SILVER"
       ],
       "logo": null
     },
@@ -268,7 +310,7 @@
       "code": "EGG",
       "name": "East Gippsland Gym Club",
       "region": "Regional SE",
-      "aliases": [],
+      "aliases": ["EGI"],
       "logo": null
     },
     {
@@ -277,6 +319,7 @@
       "region": "Metro West",
       "aliases": [
         "EKGA",
+        "EK",
         "EKB",
         "EKS",
         "EK1",
@@ -299,8 +342,16 @@
         "EUREKA",
         "EUREKA 2",
         "EUREKA GYMNASTICS CLUB",
-        "EUREKA GYMNASTICS"
+        "EUREKA GYMNASTICS",
+        "EUR 1"
       ],
+      "logo": null
+    },
+    {
+      "code": "EUR/STA",
+      "name": "Eureka / Stawell (Joint)",
+      "region": "Regional West",
+      "aliases": ["Eureka & Stawell Mixed Team"],
       "logo": null
     },
     {
@@ -356,6 +407,7 @@
       "region": "Metro East",
       "aliases": [
         "GLITZ",
+        "GLI",
         "GGA"
       ],
       "logo": null
@@ -462,7 +514,11 @@
         "JETSSHE",
         "JET BEN",
         "JETS GYMNASTICS BENDIGO",
-        "JETS BENDIGO"
+        "JETS BENDIGO",
+        "JETSDC",
+        "JETS DC",
+        "JETSB",
+        "JETSG"
       ],
       "_venues": [
         "Diamond Creek",
@@ -524,7 +580,7 @@
       "code": "LFK",
       "name": "LFK Dance and Gym",
       "region": "Metro West",
-      "aliases": [],
+      "aliases": ["LFK BLUE", "LFK YELLOW"],
       "logo": null
     },
     {
@@ -552,7 +608,10 @@
       "aliases": [
         "MAFFRA",
         "MAFFRA GYMNASTICS CLUB",
-        "MAFFRA GYMNATICS CLUB"
+        "MAFFRA GYMNATICS CLUB",
+        "MAFFRA GYMNASTIC CLUB",
+        "MAFFRA GYMNASTIC CLUB NAVY",
+        "MAFFRA GYMNASTIC CLUB JADE"
       ],
       "logo": null
     },
@@ -577,6 +636,8 @@
       "aliases": [
         "MELTON",
         "MGA",
+        "MGA KITTENS",
+        "MGA SPRINGERS",
         "ME1",
         "ME2",
         "ME3",
@@ -586,7 +647,8 @@
         "ME7",
         "ME8",
         "ME9",
-        "MELTON GYMNASTICS ACADEMY"
+        "MELTON GYMNASTICS ACADEMY",
+        "Melton Div 3"
       ],
       "logo": null
     },
@@ -596,7 +658,9 @@
       "region": "Metro South",
       "aliases": [
         "MG1",
-        "MG2"
+        "MG2",
+        "MELBOURNE GYMNASTICS CENTRE BLUE",
+        "MELBOURNE GYMNASTICS CENTRE PURPLE"
       ],
       "logo": null
     },
@@ -607,6 +671,7 @@
       "aliases": [
         "MI1",
         "MI2",
+        "MI3",
         "MILDURA"
       ],
       "logo": null
@@ -655,7 +720,9 @@
       "name": "Mordialloc Gymnastics",
       "region": "Metro South",
       "aliases": [
-        "MCC"
+        "MCC",
+        "MORDIALLOC",
+        "MORDIALLOC GYMNASTICS"
       ],
       "logo": null
     },
@@ -744,7 +811,10 @@
         "PI7",
         "PI8",
         "PI9",
-        "PIT GYMNASTICS"
+        "PIT GYMNASTICS",
+        "PIT INDIVIDUAL",
+        "PIT WHITE",
+        "PIT BLUE"
       ],
       "logo": null
     },
@@ -806,17 +876,18 @@
     },
     {
       "code": "RIV",
-      "name": "RIV (Unknown Club Data)",
-      "region": "Unknown",
-      "aliases": [],
-      "logo": null
+      "name": "Riverside City Gymnastics",
+      "region": "Interstate",
+      "aliases": ["RIT", "RIN"],
+      "logo": "assets/logos/RIV.png"
     },
     {
       "code": "SBY",
       "name": "Sunbury Gymnastics Club",
       "region": "Metro West",
       "aliases": [
-        "SUNBURY"
+        "SUNBURY",
+        "SUNBU"
       ],
       "logo": null
     },
@@ -878,7 +949,13 @@
         "STRV",
         "STR",
         "STRSTR",
-        "STRIVE GYMNASTICS"
+        "STRIVE GYMNASTICS",
+        "STRI",
+        "Strive 1",
+        "Strive 3",
+        "Strive D1",
+        "Strive D2",
+        "Strive D3"
       ],
       "logo": null
     },
@@ -899,6 +976,13 @@
       "aliases": [
         "SYDNEY"
       ],
+      "logo": null
+    },
+    {
+      "code": "UNK",
+      "name": "Unknown Club",
+      "region": "Unknown",
+      "aliases": [],
       "logo": null
     },
     {
@@ -943,7 +1027,8 @@
       "region": "Metro West",
       "aliases": [
         "WERR",
-        "WERRIBEE"
+        "WERRIBEE",
+        "WGC"
       ],
       "logo": null
     },
@@ -971,7 +1056,15 @@
         "WYNDHAM CITY GYMNASTICS",
         "WYND",
         "WYD",
-        "WYNDHAM GYMNASTICS"
+        "WYNDHAM GYMNASTICS",
+        "WCG",
+        "WIL",
+        "WILDCATS",
+        "WYNDHAM CITY GYMNASTICS CLUB",
+        "WYNDHAM CITY",
+        "Wyndham Gem",
+        "Wyndham Nic 1",
+        "Wyndham Nic 2"
       ],
       "logo": null
     },

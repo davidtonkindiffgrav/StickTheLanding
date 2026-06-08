@@ -175,12 +175,6 @@
   },
   {
     "sport": "wag",
-    "comp_id": "metro-south-regional-championships-2025",
-    "name": "Metro South Regional Championships",
-    "date": "2025-09-13"
-  },
-  {
-    "sport": "wag",
     "comp_id": "metro-west-regional-championships-2025",
     "name": "Metro West Regional Championships",
     "date": "2025-09-13"
@@ -189,6 +183,12 @@
     "sport": "wag",
     "comp_id": "south-east-regional-championships-2025",
     "name": "South East Regional Championships",
+    "date": "2025-09-13"
+  },
+  {
+    "sport": "wag",
+    "comp_id": "metro-south-regional-championships-2025",
+    "name": "Metro South Regional Championships",
     "date": "2025-09-13"
   },
   {
@@ -391,6 +391,48 @@
   },
   {
     "sport": "wag",
+    "comp_id": "natimuk-district-gymnastics-club-annual-invitational-2024",
+    "name": "Natimuk & District Gymnastics Club Annual Invitational",
+    "date": "2024-11-11"
+  },
+  {
+    "sport": "wag",
+    "comp_id": "mlc-junior-star-classic-2024-2024",
+    "name": "MLC Junior Star Classic 2024",
+    "date": "2024-09-21"
+  },
+  {
+    "sport": "wag",
+    "comp_id": "junior-wag-judges-invitational-2024",
+    "name": "Junior WAG Judges Invitational",
+    "date": "2024-09-14"
+  },
+  {
+    "sport": "wag",
+    "comp_id": "metro-east-regional-championships-2024",
+    "name": "Metro East Regional Championships",
+    "date": "2024-09-01"
+  },
+  {
+    "sport": "wag",
+    "comp_id": "waverley-novoactive-classic-2024",
+    "name": "Waverley Novoactive Classic",
+    "date": "2024-08-23"
+  },
+  {
+    "sport": "wag",
+    "comp_id": "wag-judges-invitational-2024",
+    "name": "WAG Judges Invitational",
+    "date": "2024-08-17"
+  },
+  {
+    "sport": "wag",
+    "comp_id": "senior-wag-judges-invitational-2024",
+    "name": "Senior WAG Judges Invitational",
+    "date": "2024-08-17"
+  },
+  {
+    "sport": "wag",
     "comp_id": "eureka-invitational-2024",
     "name": "Eureka Invitational",
     "date": "2024-08-12"
@@ -430,6 +472,18 @@
     "comp_id": "ymca-geelong-invitational-2024",
     "name": "YMCA Geelong Invitational",
     "date": "2024-07-13"
+  },
+  {
+    "sport": "wag",
+    "comp_id": "metro-south-regional-championships-2024",
+    "name": "Metro South Regional Championships",
+    "date": "2024-07-09"
+  },
+  {
+    "sport": "wag",
+    "comp_id": "metro-west-regional-championships-2024",
+    "name": "Metro West Regional Championships",
+    "date": "2024-07-09"
   },
   {
     "sport": "wag",
@@ -534,9 +588,21 @@
     "date": "2024-02-17"
   },
   {
+    "sport": "wag",
+    "comp_id": "north-east-regional-championships-2024",
+    "name": "North East Regional Championships",
+    "date": "2024-02-09"
+  },
+  {
     "sport": "mag",
     "comp_id": "mag-state-team-trial-1-2024",
     "name": "MAG State Team Trial 1",
     "date": "2024-02-03"
+  },
+  {
+    "sport": "wag",
+    "comp_id": "north-central-regional-championships-2024",
+    "name": "North Central Regional Championships",
+    "date": "2024-01-09"
   }
 ]
