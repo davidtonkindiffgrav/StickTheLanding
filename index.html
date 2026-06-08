@@ -913,6 +913,13 @@ function _execRows(resultSet) {
 
 const INT_LEVEL_LABELS = {101:"Dev Int", 102:"Fut Int", 103:"Jun Int", 104:"Sen Int", 105:"Dev Int 16+"};
 const INT_LEVEL_FULL   = {101:"Developing Int", 102:"Future Int", 103:"Junior Int", 104:"Senior Int", 105:"Dev Int 16+"};
+const MAG_LEVEL_LABELS = {104:"Senior"};
+const MAG_LEVEL_FULL   = {104:"Senior"};
+function intLevelLabel(level, full) {
+  const map = currentSport === "MAG" ? (full ? MAG_LEVEL_FULL : MAG_LEVEL_LABELS)
+                                     : (full ? INT_LEVEL_FULL  : INT_LEVEL_LABELS);
+  return map[level] ?? null;
+}
 
 function buildContextLabel() {
   const parts = [];
@@ -922,7 +929,7 @@ function buildContextLabel() {
     if (currentSport === "ACRO") {
       parts.push(String(activeLevel).replace(/^Level\s+(\d+)$/i, "Level $1"));
     } else if (typeof activeLevel === "number" && activeLevel >= 101) {
-      parts.push(INT_LEVEL_FULL[activeLevel] || `Level ${activeLevel}`);
+      parts.push(intLevelLabel(activeLevel, true) || `Level ${activeLevel}`);
     } else {
       parts.push(`Level ${activeLevel}`);
     }
@@ -962,7 +969,7 @@ function updateTableContextHeader() {
 
 function levelDivDisplay(level, division, age_group) {
   if (level == null) return "-";
-  if (INT_LEVEL_LABELS[level]) return INT_LEVEL_LABELS[level];
+  const il = intLevelLabel(level, false); if (il) return il;
   if (age_group) return `L${level} ${age_group}`;
   if (division != null) return `L${level} D${division}`;
   return `L${level}`;
@@ -1525,7 +1532,7 @@ async function openDrill(comp) {
   document.getElementById("drill-meta").textContent = `${events.length} event(s) · ${currentSport} · ${currentSeason}`;
   document.getElementById("drill-events").innerHTML = events.map(ev => {
     const title = [
-      ev.level ? (INT_LEVEL_LABELS[ev.level] || `Level ${ev.level}`) : "",
+      ev.level ? (intLevelLabel(ev.level, false) || `Level ${ev.level}`) : "",
       ev.age_group ? ev.age_group : (ev.division ? `Div ${ev.division}` : ""),
       ev.event_type || "",
     ].filter(Boolean).join(" · ");
@@ -1766,7 +1773,7 @@ async function executeSearch() {
     if (!compId || !level || (!isIntLevel && !div)) return;
     closeSearchPanel();
     switchToView("search");
-    const levelLabel = INT_LEVEL_LABELS[Number(level)] || `L${level}`;
+    const levelLabel = intLevelLabel(Number(level), false) || `L${level}`;
     const divLabel2 = isIntLevel ? "" : (currentSport === "MAG" ? ` ${div}` : ` Div ${div}`);
     document.getElementById("search-view-title").textContent =
       `${compName} · ${levelLabel}${divLabel2}`;
@@ -2002,7 +2009,7 @@ async function onBrowseCompChange(compId) {
     ORDER BY e.level
   `, [compId]));
   levelSel.innerHTML = `<option value="">- Level -</option>` +
-    rows.map(([lvl]) => `<option value="${lvl}">${INT_LEVEL_LABELS[lvl] || `L${lvl}`}</option>`).join("");
+    rows.map(([lvl]) => `<option value="${lvl}">${intLevelLabel(lvl, false) || `L${lvl}`}</option>`).join("");
   levelSel.disabled = rows.length === 0;
 }
 
@@ -2238,8 +2245,8 @@ function buildLevelFilters() {
     render();
   };
 
-  _fillLevelSel("sel-level",         levels,        lvl => INT_LEVEL_LABELS[lvl] || `L${lvl}`, applyLevel);
-  _fillLevelSel("sel-athlete-level", athleteLevels, lvl => INT_LEVEL_LABELS[lvl] || `L${lvl}`, applyLevel);
+  _fillLevelSel("sel-level",         levels,        lvl => intLevelLabel(lvl, false) || `L${lvl}`, applyLevel);
+  _fillLevelSel("sel-athlete-level", athleteLevels, lvl => intLevelLabel(lvl, false) || `L${lvl}`, applyLevel);
 
   // Auto-select first athlete-eligible level
   const firstAthlSel = document.getElementById("sel-athlete-level");
@@ -2888,9 +2895,27 @@ function _profRepScore(statsRow, k) {
   return ct >= 2 ? avg : (ct === 1 ? pb : null);
 }
 
-function _profRenderTimeChart(canvasEl, type, rows, mode) {
-  if (_profGraphChart) { try { _profGraphChart.destroy(); } catch (_) {} _profGraphChart = null; }
-  if (!rows.length) return;
+// Compute a statsRow-compatible array from an in-memory profRows slice (used by the date range filter)
+function _statsFromRows(rows) {
+  const COL = { VT:'vault', UB:'bars', BB:'beam', FX:'floor', PH:'pommel', SR:'rings', PB:'pbars', HB:'hbar' };
+  const appKeys = G_APP_KEYS[currentSport] || [];
+  const result = new Array(25).fill(null);
+  for (const k of appKeys) {
+    const base = _STAT_OFFSET[k];
+    const col  = COL[k];
+    if (base === undefined || !col) continue;
+    const vals = rows.map(r => r[col]).filter(v => v != null && v > 0);
+    if (!vals.length) continue;
+    result[base]     = Math.max(...vals);
+    result[base + 1] = vals.reduce((a, b) => a + b, 0) / vals.length;
+    result[base + 2] = vals.length;
+  }
+  const tots = rows.map(r => r.total).filter(v => v != null && v > 0);
+  result[24] = tots.length ? Math.max(...tots) : null;
+  return result;
+}
+
+function _profRenderTimeChart(canvasEl, type, rows, mode, animate = true) {
   const appKeys  = G_APP_KEYS[currentSport] || [];
   const appNames = appName();
   const MON = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
@@ -2903,6 +2928,14 @@ function _profRenderTimeChart(canvasEl, type, rows, mode) {
         data:  rows.map(r => { const v = r[G_COL[k]]; return (v != null && v > 0) ? v : null; }),
         ..._baseLine(G_COLOR[k], type), spanGaps: true,
       }));
+  if (!animate && _profGraphChart && _profGraphChart.data.datasets.length === datasets.length) {
+    _profGraphChart.data.labels = labels;
+    _profGraphChart.data.datasets.forEach((ds, i) => { ds.data = datasets[i].data; });
+    _profGraphChart.update('none');
+    return;
+  }
+  if (_profGraphChart) { try { _profGraphChart.destroy(); } catch (_) {} _profGraphChart = null; }
+  if (!rows.length) return;
   _profGraphChart = new Chart(canvasEl.getContext('2d'), {
     type,
     data: { labels, datasets },
@@ -2923,8 +2956,7 @@ function _profRenderTimeChart(canvasEl, type, rows, mode) {
   });
 }
 
-function _profRenderStrengthChart(canvasEl, showPB, statsRow) {
-  if (_profStrengthChart) { try { _profStrengthChart.destroy(); } catch (_) {} _profStrengthChart = null; }
+function _profRenderStrengthChart(canvasEl, showPB, statsRow, animate = true) {
   const appKeys  = G_APP_KEYS[currentSport] || [];
   if (!appKeys.length) return;
   const appNames = appName();
@@ -2943,6 +2975,15 @@ function _profRenderStrengthChart(canvasEl, showPB, statsRow) {
   const top    = allVals.length ? Math.ceil(Math.max(...allVals) + 0.5) : 15;
   const range  = top - minVal;
   const step   = range <= 4 ? 0.5 : 1;
+  if (!animate && _profStrengthChart && _profStrengthChart.data.datasets.length === datasets.length) {
+    _profStrengthChart.data.datasets.forEach((ds, i) => { ds.data = datasets[i].data; });
+    _profStrengthChart.options.scales.r.min = minVal;
+    _profStrengthChart.options.scales.r.max = top;
+    _profStrengthChart.options.scales.r.ticks.stepSize = step;
+    _profStrengthChart.update('none');
+    return;
+  }
+  if (_profStrengthChart) { try { _profStrengthChart.destroy(); } catch (_) {} _profStrengthChart = null; }
   _profStrengthChart = new Chart(canvasEl.getContext('2d'), {
     type: 'radar',
     data: { labels: lbl, datasets },
@@ -3048,7 +3089,7 @@ async function renderAthleteProfile(athleteName) {
   // Spelled-out level label for profile display ("Level 7 · Div 2", "Junior Int", etc.)
   const profLevelLabel = (() => {
     if (curLevel == null) return null;
-    if (INT_LEVEL_FULL[curLevel]) return INT_LEVEL_FULL[curLevel];
+    if (intLevelLabel(curLevel, true)) return intLevelLabel(curLevel, true);
     let s = `Level ${curLevel}`;
     if (curAgeGroup) s += ` · ${curAgeGroup}`;
     else if (curDivision != null) s += ` · Div ${curDivision}`;
@@ -3161,6 +3202,19 @@ async function renderAthleteProfile(athleteName) {
         </div>` : ''}
       </div>
       <div class="prof-series-toggles" id="prof-series-toggles" style="display:none"></div>
+      ${profRows.length > 2 ? `
+      <div class="prof-range-wrap" id="prof-range-wrap">
+        <div class="prof-range-labels">
+          <span id="prof-rl-label"></span>
+          <span id="prof-rr-label"></span>
+        </div>
+        <div class="prof-range-track">
+          <div class="prof-range-bg"></div>
+          <div class="prof-range-fill" id="prof-range-fill"></div>
+          <input type="range" class="prof-range-l" id="prof-rl" min="0" max="${profRows.length - 1}" value="0" step="1">
+          <input type="range" class="prof-range-r" id="prof-rr" min="0" max="${profRows.length - 1}" value="${profRows.length - 1}" step="1">
+        </div>
+      </div>` : ''}
       <div class="profile-canvas-wrap"><canvas id="profile-graph-canvas"></canvas></div>
     </div>
 
@@ -3194,12 +3248,17 @@ async function renderAthleteProfile(athleteName) {
   // ── Wire up controls ──────────────────────────────────────────────────────
   let profGraphMode   = 'apparatus';
   let profLevelFilter = hasOptional ? 'optional' : 'compulsory';
+  let profRangeL = 0;
+  let profRangeR = profRows.length - 1;
   const profSeriesVis = {}; // dataset label → boolean visibility state
 
   function profFilteredRows() {
+    const dr = profRangeL === 0 && profRangeR === profRows.length - 1
+      ? profRows
+      : profRows.slice(profRangeL, profRangeR + 1);
     return profLevelFilter === 'compulsory'
-      ? profRows.filter(r => r.level !== null && r.level <= 6)
-      : profRows.filter(r => r.level !== null && r.level > 6);
+      ? dr.filter(r => r.level !== null && r.level <= 6)
+      : dr.filter(r => r.level !== null && r.level > 6);
   }
 
   function _buildSeriesToggle(containerId, chart) {
@@ -3224,10 +3283,10 @@ async function renderAthleteProfile(athleteName) {
     });
   }
 
-  function profDrawGraph() {
+  function profDrawGraph(animate = true) {
     const c = document.getElementById('profile-graph-canvas');
     if (!c) return;
-    _profRenderTimeChart(c, 'line', profFilteredRows(), profGraphMode);
+    _profRenderTimeChart(c, 'line', profFilteredRows(), profGraphMode, animate);
     const togglesEl = el.querySelector('#prof-series-toggles');
     if (togglesEl) {
       if (profGraphMode === 'apparatus') {
@@ -3240,12 +3299,34 @@ async function renderAthleteProfile(athleteName) {
     }
   }
 
-  function profDrawStrength() {
+  function profDrawStrength(animate = true) {
     const c = document.getElementById('profile-strengths-canvas');
-    if (c) {
-      _profRenderStrengthChart(c, true, statsRow);
-      _buildSeriesToggle('prof-radar-toggles', _profStrengthChart);
+    if (!c) return;
+    const appKeys = G_APP_KEYS[currentSport] || [];
+    const computed = _statsFromRows(profFilteredRows());
+    const nonZeroCount = appKeys.filter(k => (_profRepScore(computed, k) || 0) > 0).length;
+    const minNeeded = Math.ceil(appKeys.length / 2);
+    if (nonZeroCount < minNeeded) {
+      if (_profStrengthChart) { try { _profStrengthChart.destroy(); } catch (_) {} _profStrengthChart = null; }
+      const appNames = appName();
+      _profStrengthChart = new Chart(c.getContext('2d'), {
+        type: 'radar',
+        data: { labels: appKeys.map(k => appNames[k] || k), datasets: [] },
+        options: {
+          responsive: true, aspectRatio: 1.1,
+          plugins: {
+            legend: { display: false },
+            title: { display: true, text: 'Not enough apparatus data', color: '#8888aa', font: { size: 13 } },
+          },
+          scales: {
+            r: { min: 0, max: 15, ticks: { color: '#8888aa', backdropColor: 'transparent', font: { size: 10 }, stepSize: 5, callback: v => v.toFixed(0) }, grid: GRID, angleLines: GRID, pointLabels: { color: appKeys.map(k => G_COLOR[k]), font: { size: 12, weight: '700' } } },
+          },
+        },
+      });
+      return;
     }
+    _profRenderStrengthChart(c, true, computed, animate);
+    _buildSeriesToggle('prof-radar-toggles', _profStrengthChart);
   }
 
   el.querySelector('#prof-tab-mode').addEventListener('click', e => {
@@ -3268,6 +3349,51 @@ async function renderAthleteProfile(athleteName) {
     });
   }
 
+
+  // ── Date range slider ────────────────────────────────────────────────────
+  const _rlEl   = el.querySelector('#prof-rl');
+  const _rrEl   = el.querySelector('#prof-rr');
+  const _fillEl = el.querySelector('#prof-range-fill');
+  const _lblLEl = el.querySelector('#prof-rl-label');
+  const _lblREl = el.querySelector('#prof-rr-label');
+
+  function _profFmtDate(iso) {
+    const MON = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    const p = iso.split('-');
+    return `${parseInt(p[2])} ${MON[parseInt(p[1])-1]} '${p[0].slice(2)}`;
+  }
+  function _profUpdateRangeUI() {
+    const n = Math.max(profRows.length - 1, 1);
+    if (_fillEl) {
+      _fillEl.style.left  = (profRangeL / n * 100) + '%';
+      _fillEl.style.width = ((profRangeR - profRangeL) / n * 100) + '%';
+    }
+    if (_lblLEl) _lblLEl.textContent = _profFmtDate(profRows[profRangeL].sortDate);
+    if (_lblREl) _lblREl.textContent = _profFmtDate(profRows[profRangeR].sortDate);
+    // When thumbs meet, raise left slider so it can be dragged back left
+    if (_rlEl && _rrEl) {
+      const swap = profRangeL >= profRangeR;
+      _rlEl.style.zIndex = swap ? 6 : '';
+      _rrEl.style.zIndex = swap ? '' : '';
+    }
+  }
+  if (_rlEl && _rrEl) {
+    _profUpdateRangeUI();
+    _rlEl.addEventListener('input', () => {
+      profRangeL = Math.min(+_rlEl.value, profRangeR);
+      _rlEl.value = profRangeL;
+      _profUpdateRangeUI();
+      profDrawGraph(false);
+      profDrawStrength(false);
+    });
+    _rrEl.addEventListener('input', () => {
+      profRangeR = Math.max(+_rrEl.value, profRangeL);
+      _rrEl.value = profRangeR;
+      _profUpdateRangeUI();
+      profDrawGraph(false);
+      profDrawStrength(false);
+    });
+  }
 
   attachSort(el.querySelector('table.athlete-profile-table'));
   profDrawGraph();

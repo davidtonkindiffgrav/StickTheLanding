@@ -32,6 +32,10 @@ WAG_INT_LEVELS = {
     105: "Developing Int 16+",
 }
 
+MAG_INT_LEVELS = {
+    104: "Senior",
+}
+
 # (db_column, display_label)
 WAG_AA_COLS  = [("vault","VT"), ("bars","UB"), ("beam","BB"), ("floor","FX"), ("total","Total")]
 MAG_AA_COLS  = [("floor","FX"), ("pommel","PH"), ("rings","SR"), ("vault","VT"), ("pbars","PB"), ("hbar","HB"), ("total","Total")]
@@ -132,8 +136,9 @@ def fmt(v) -> str:
 
 
 def level_label(level, sport: str) -> str:
-    if sport == "WAG" and level in WAG_INT_LEVELS:
-        return WAG_INT_LEVELS[level]
+    mapping = WAG_INT_LEVELS if sport == "WAG" else MAG_INT_LEVELS if sport == "MAG" else {}
+    if level in mapping:
+        return mapping[level]
     return f"Level {level}"
 
 
@@ -300,6 +305,8 @@ def render_page(comp: sqlite3.Row, tree: dict, sport: str) -> str:
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
+  <meta name="color-scheme" content="light dark" />
+  <script>!function(){{document.documentElement.dataset.theme=localStorage.getItem('stl-theme')||(matchMedia('(prefers-color-scheme:dark)').matches?'dark':'light')}}()</script>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>{name} Results — Stick The Landing</title>
   <meta name="description" content="{meta_desc}" />
@@ -446,7 +453,7 @@ def build_competitions_index(sport: str, con: sqlite3.Connection, results_index:
             if pdfs:
                 pdf_items = "".join(
                     f'<li><a href="/{(src or "pdfs/" + fp).replace(chr(92), "/")}" target="_blank" rel="noopener">'
-                    f'{Path(fp).name}</a></li>'
+                    f'{Path(fp).name.replace("_ignore", "")}</a></li>'
                     for fp, src in pdfs
                     if fp
                 )
@@ -492,6 +499,8 @@ def build_competitions_index(sport: str, con: sqlite3.Connection, results_index:
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
+  <meta name="color-scheme" content="light dark" />
+  <script>!function(){{document.documentElement.dataset.theme=localStorage.getItem('stl-theme')||(matchMedia('(prefers-color-scheme:dark)').matches?'dark':'light')}}()</script>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>{sport_full} Competitions — Stick The Landing</title>
   <meta name="description" content="{meta_desc}" />
@@ -567,6 +576,8 @@ def main():
                         help="Sport to build (default: all)")
     parser.add_argument("--comp", metavar="COMP_ID",
                         help="Build a single competition by ID")
+    parser.add_argument("--force", action="store_true",
+                        help="Rebuild all pages even if they already exist")
     args = parser.parse_args()
 
     sports = [args.sport] if args.sport else ["WAG", "MAG", "ACRO"]
@@ -588,6 +599,10 @@ def main():
         print(f"\n{sport}: {len(comps)} competition(s) to process")
 
         for comp in comps:
+            out_path = RESULTS_DIR / sport.lower() / comp["id"] / "index.html"
+            if out_path.exists() and not args.force and not args.comp:
+                print(f"  [SKIP] {out_path.relative_to(Path('.'))}")
+                continue
             out = build_one(comp, sport, con)
             if out:
                 upsert_index(results_index, sport, comp)

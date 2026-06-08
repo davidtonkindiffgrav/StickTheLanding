@@ -21,6 +21,18 @@
     "Natimuk & District Gymnastic Club Annual Invitational Competition and WAG LAT": {
       "EUREKA WHITE MILLIE": "EUR",
       "NATIMUK WHITE BERNI": "NAT"
+    },
+    "BTYC MAG Senior Extravaganza": {
+      "HPP": "BTY"
+    },
+    "MAG Senior Victorian Championship": {
+      "PI1": "PIT", "BTA": "BTY", "BTB": "BTY", "DO1": "DOL", "NA1": "NAT"
+    },
+    "Flyaway Invitational": {
+      "WVR": "WVG", "WVB": "WVG", "FLW": "FLY", "FLP": "FLY"
+    },
+    "WAG Border Challenge Trial 1": {
+      "FLYAWAY": "FLY", "WYND": "WYN"
     }
   },
 
@@ -30,7 +42,40 @@
 
   "name_corrections": {
     "_comment": "Global athlete name corrections — applied whenever the wrong spelling is seen regardless of competition. Format: { \"Wrong Spelling\": \"Correct Spelling\" }",
-    "Darby Westin": "Darby Weston"
+    "Darby Westin": "Darby Weston",
+    "Darby Western": "Darby Weston",
+    "Krista Gadsen": "Krista Gadsden",
+    "Kate McDonald#": "Kate McDonald",
+    "Leuca Henderson#": "Leuca Henderson",
+    "Maddie Smith#": "Maddie Smith",
+    "Zali Goulding#": "Zali Goulding",
+    "Ella Fitzgerrald": "Ella Fitzgerald",
+    "Ava Kearnssmale": "Ava Kearns-Smale",
+    "Poppy Master": "Poppy Masters",
+    "Ailani Songsaeong": "Ailani Songsaeng",
+    "Aleila Brand-Starkley": "Aleila Brand-Starkey",
+    "Aurelia Torressturt": "Aurelia Torres-Sturt",
+    "Cecily Andersson": "Cecily Anderson",
+    "Dhyuthishri (Judy) Sendil": "Dhyuthishri Sendil",
+    "Elle Konstantanidis": "Elle Konstantinidis",
+    "Emily Shepardson": "Emily Shepherdson",
+    "Erika Tjandjaja": "Erika Tjangdjaja",
+    "Farida Attida": "Farida Attia",
+    "Inessa Edmond": "Inessa Edmonds",
+    "Karina Haniev": "Karina Hanieva",
+    "Karyna Haniev": "Karina Hanieva",
+    "Karyna Hanieva": "Karina Hanieva",
+    "Karla Frievalds": "Karla Frievalde",
+    "Lexi Wallerhunt": "Lexi Waller-Hunt",
+    "Olivia Gheorgisor": "Olivia Gheorghisor",
+    "Orla McKennakastropil": "Orla McKenna-Kastropil",
+    "Phoenix Potter-Ayres": "Phoenix Potter-Ayers",
+    "Phoenix Potters-Ayers": "Phoenix Potter-Ayers",
+    "River Woolard": "River Woollard",
+    "Ruby Padhiar": "Ruby Padhair",
+    "Sharmaine Jinniekon": "Sharmaine Jinnie-Kon",
+    "Veronica Dipietantonio": "Veronica Dipietrantonio",
+    "Violet Polaska": "Violet Polacska"
   },
 
   "mixed_groups": {

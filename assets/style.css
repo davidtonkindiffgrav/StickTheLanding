@@ -1325,6 +1325,34 @@
 .profile-canvas-wrap    { position: relative; width: 100%; }
 .profile-canvas-sq canvas { max-height: 280px; }
 
+/* ── PROFILE DATE RANGE SLIDER ── */
+.prof-range-wrap { margin: 8px 0 4px; padding: 0 2px; }
+.prof-range-labels { display: flex; justify-content: space-between; font-size: 0.72rem; color: var(--muted); margin-bottom: 6px; }
+.prof-range-track { position: relative; height: 20px; display: flex; align-items: center; }
+.prof-range-bg   { position: absolute; left: 0; right: 0; height: 3px; background: var(--border); border-radius: 2px; pointer-events: none; }
+.prof-range-fill { position: absolute; height: 3px; background: var(--accent); border-radius: 2px; pointer-events: none; }
+.prof-range-track input[type=range] {
+  position: absolute; width: 100%; height: 100%;
+  top: 0; left: 0; margin: 0;
+  -webkit-appearance: none; appearance: none;
+  background: transparent; pointer-events: none; outline: none;
+}
+/* Right slider on top by default so its thumb is reachable; JS swaps when thumbs meet */
+.prof-range-track input.prof-range-r { z-index: 5; }
+.prof-range-track input.prof-range-l { z-index: 4; }
+.prof-range-track input[type=range]::-webkit-slider-thumb {
+  -webkit-appearance: none; appearance: none;
+  width: 15px; height: 15px; border-radius: 50%;
+  background: var(--accent); cursor: pointer; pointer-events: all;
+  border: 2px solid var(--surface); box-shadow: 0 1px 5px rgba(0,0,0,.45);
+}
+.prof-range-track input[type=range]::-moz-range-thumb {
+  width: 15px; height: 15px; border-radius: 50%;
+  background: var(--accent); cursor: pointer; pointer-events: all;
+  border: 2px solid var(--surface); box-shadow: 0 1px 5px rgba(0,0,0,.45);
+  box-sizing: border-box;
+}
+
 @media (max-width: 700px) {
   .profile-grid { grid-template-columns: 1fr; }
   .profile-hero-row { flex-wrap: wrap; }

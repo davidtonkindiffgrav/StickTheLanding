@@ -625,9 +625,9 @@ def parse_filename_meta(path, sport=None):
     div_m   = re.search(r"(?:div(?:ision)?|D)[_\s-]*(\d+)", name, re.IGNORECASE)
     level   = int(level_m.group(1)) if level_m else None
 
-    # Senior level code: LSNR, LSN, SNR → level 104 (Sen Int), same display as WAG Senior
+    # Senior level code: LSNR, LSN, SNR, LSR, SR → level 104; LSR is an alternate abbreviation
     # Split on underscores/spaces to avoid partial matches (e.g. _LSNR_ not caught by \b)
-    if level is None and any(re.fullmatch(r"L?SNR?", seg, re.IGNORECASE) for seg in re.split(r"[_\s]", name)):
+    if level is None and any(re.fullmatch(r"L?S(?:NR?|R)", seg, re.IGNORECASE) for seg in re.split(r"[_\s]", name)):
         level = 104
 
     # MAG fallback: "5O", "5U", "6P" style codes (e.g. SGC format); also bare leading number "10 and SR"

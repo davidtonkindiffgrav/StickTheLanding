@@ -388,5 +388,89 @@
     "comp_id": "border-challenge-trial-2-2025",
     "name": "Border Challenge Trial 2",
     "date": "2025-01-06"
+  },
+  {
+    "sport": "wag",
+    "comp_id": "casey-cup-2024",
+    "name": "Casey Cup",
+    "date": "2024-06-23"
+  },
+  {
+    "sport": "wag",
+    "comp_id": "flyaway-invitational-2024",
+    "name": "Flyaway Invitational",
+    "date": "2024-06-15"
+  },
+  {
+    "sport": "wag",
+    "comp_id": "wag-border-challenge-trial-2-2024",
+    "name": "WAG Border Challenge Trial 2",
+    "date": "2024-05-21"
+  },
+  {
+    "sport": "wag",
+    "comp_id": "wag-border-challenge-trial-1-2024",
+    "name": "WAG Border Challenge Trial 1",
+    "date": "2024-05-18"
+  },
+  {
+    "sport": "wag",
+    "comp_id": "myc-wag-senior-invitational-2024",
+    "name": "MYC WAG Senior Invitational",
+    "date": "2024-05-05"
+  },
+  {
+    "sport": "wag",
+    "comp_id": "wag-senior-victorian-championships-2024",
+    "name": "WAG Senior Victorian Championships",
+    "date": "2024-04-05"
+  },
+  {
+    "sport": "mag",
+    "comp_id": "mag-senior-victorian-championship-2024",
+    "name": "MAG Senior Victorian Championship",
+    "date": "2024-04-05"
+  },
+  {
+    "sport": "mag",
+    "comp_id": "mag-state-gymnastics-centre-invite-2024",
+    "name": "MAG State Gymnastics Centre Invite",
+    "date": "2024-03-24"
+  },
+  {
+    "sport": "wag",
+    "comp_id": "wag-2024-state-team-trial-2-2024",
+    "name": "WAG 2024 State Team Trial 2",
+    "date": "2024-03-17"
+  },
+  {
+    "sport": "mag",
+    "comp_id": "mag-state-team-trial-2-2024",
+    "name": "MAG State Team Trial 2",
+    "date": "2024-03-16"
+  },
+  {
+    "sport": "wag",
+    "comp_id": "wag-2024-state-team-trial-1-2024",
+    "name": "WAG 2024 State Team Trial 1",
+    "date": "2024-03-10"
+  },
+  {
+    "sport": "wag",
+    "comp_id": "btyc-wag-senior-invite-2024",
+    "name": "BTYC WAG Senior Invite",
+    "date": "2024-02-17"
+  },
+  {
+    "sport": "mag",
+    "comp_id": "btyc-mag-senior-invite-2024",
+    "name": "BTYC MAG Senior Invite",
+    "date": "2024-02-17"
+  },
+  {
+    "sport": "mag",
+    "comp_id": "mag-state-team-trial-1-2024",
+    "name": "MAG State Team Trial 1",
+    "date": "2024-02-03"
   }
 ]
