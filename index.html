@@ -1055,7 +1055,7 @@ function buildTeamStandings(rows, apparatus = "AA") {
   const clubs = {};
   for (const r of rows) {
     const score = r[scoreField];
-    if (score == null) continue;
+    if (score == null || score === 0) continue;
     const club = r.club || "Unknown";
     if (!clubs[club]) clubs[club] = {
       club, wins: 0, seconds: 0, thirds: 0, points: 0,
