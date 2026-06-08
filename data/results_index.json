@@ -391,6 +391,42 @@
   },
   {
     "sport": "wag",
+    "comp_id": "ekga-invitational-level-4-6-2024",
+    "name": "EKGA Invitational Level 4-6",
+    "date": "2024-08-06"
+  },
+  {
+    "sport": "wag",
+    "comp_id": "knox-invitational-2024",
+    "name": "Knox Invitational",
+    "date": "2024-07-20"
+  },
+  {
+    "sport": "wag",
+    "comp_id": "niddrie-invitational-2024",
+    "name": "Niddrie Invitational",
+    "date": "2024-07-13"
+  },
+  {
+    "sport": "wag",
+    "comp_id": "ymca-geelong-invitational-2024",
+    "name": "YMCA Geelong Invitational",
+    "date": "2024-07-13"
+  },
+  {
+    "sport": "wag",
+    "comp_id": "eclipse-invitational-2024",
+    "name": "Eclipse Invitational",
+    "date": "2024-07-06"
+  },
+  {
+    "sport": "wag",
+    "comp_id": "ballarat-winter-fest-2024",
+    "name": "Ballarat Winter Fest",
+    "date": "2024-07-04"
+  },
+  {
+    "sport": "wag",
     "comp_id": "casey-cup-2024",
     "name": "Casey Cup",
     "date": "2024-06-23"
@@ -418,6 +454,12 @@
     "comp_id": "myc-wag-senior-invitational-2024",
     "name": "MYC WAG Senior Invitational",
     "date": "2024-05-05"
+  },
+  {
+    "sport": "wag",
+    "comp_id": "warrnambool-invite-2024",
+    "name": "Warrnambool Invite",
+    "date": "2024-04-08"
   },
   {
     "sport": "wag",
@@ -454,6 +496,12 @@
     "comp_id": "wag-2024-state-team-trial-1-2024",
     "name": "WAG 2024 State Team Trial 1",
     "date": "2024-03-10"
+  },
+  {
+    "sport": "wag",
+    "comp_id": "aerodynamix-invitational-2024",
+    "name": "Aerodynamix Invitational",
+    "date": "2024-03-08"
   },
   {
     "sport": "wag",

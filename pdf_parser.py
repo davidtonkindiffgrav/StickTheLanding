@@ -1024,6 +1024,173 @@ def parse_scoreholder(text_pages, pdf_path, sport="WAG"):
     ]
 
 
+def parse_scoreholder_wag(text_pages, pdf_path):
+    """Parse WAG scoreholder.com PDFs (Ballarat Winterfest style).
+
+    Format differs from the MAG scoreholder layout:
+      - 4 apparatus (VT, UB, BB, FX), not 6
+      - Division embedded in page header: "WAG Level 5 Div 3"
+      - Club line has D/E breakdown: "Club Name 1 D E [P] D E [P] ..."
+      - Pass-2 vault line follows (skipped)
+
+    Club stored as full name; update.py maps to code via aliases.
+    D/E only extracted and stored for levels 7+ (E-score levels → NULL).
+    """
+    file_meta = parse_filename_meta(pdf_path, sport="WAG")
+    level_from_file = file_meta.get("level")
+
+    # Page header: "WAG Level 5 Div 3 Div 3" / "WAG Level 8"
+    _page_hdr_re = re.compile(
+        r"WAG\s+Level\s+(\d+)(?:\s+Div\s+([\d/& ]+))?",
+        re.IGNORECASE,
+    )
+
+    # Athlete AA line: rank  name  score(rank) ×4  total
+    _SH = r"[\d.]+\s*\(\d+[=T]?\)"
+    _athlete_re = re.compile(
+        rf"^(\d+[=T]?)\s+(.+?)\s+({_SH})\s+({_SH})\s+({_SH})\s+({_SH})\s+([\d.]+)\s*$"
+    )
+
+    # Club line: "Club Name 1 D E [P] ..." (Ballarat — has pass marker)
+    _club_re = re.compile(r"^(.+?)\s+1\s+(?=[\d-])")
+    # Club line fallback: "EKGA 10.000 -0.550 ..." (no pass marker — D/E follow immediately)
+    _club_re_nopass = re.compile(r"^(.+?)\s+(?=\d{2,}\.\d+(?:\s|$)|-?\d)")
+
+    # Exit AA section when apparatus sub-rankings begin
+    _section_end_re = re.compile(
+        r"^#\s+Org\b|^(?:Vault|U-Bars|Beam|Floor)\s*$|^Team\s+Results\b",
+        re.IGNORECASE,
+    )
+
+    # Noise lines to skip inside the AA section
+    _noise_re = re.compile(
+        r"^(?:#\s+Name\b|D\s+E\s+P\b|Generated\s+by\b|WAG\s+Level\b)",
+        re.IGNORECASE,
+    )
+
+    IDLE, AWAIT_CLUB, AWAIT_PASS2 = 0, 1, 2
+    events_by_key = {}   # (level, division) → [result dicts]
+
+    # Ballarat format has two vault passes ("Pass" column); EKGA does not
+    _full_concat = "\n".join(t for t in text_pages if t)
+    _has_pass = bool(re.search(r"#\s+Name\s+Pass\s+Vault", _full_concat, re.IGNORECASE))
+
+    for text in text_pages:
+        if not text:
+            continue
+
+        # Determine level and division for this page
+        page_level = level_from_file
+        page_div = None
+        hdr_m = _page_hdr_re.search(text)
+        if hdr_m:
+            page_level = int(hdr_m.group(1))
+            div_raw = (hdr_m.group(2) or "").strip()
+            if div_raw:
+                first_num = re.search(r"\d+", div_raw)
+                page_div = int(first_num.group()) if first_num else None
+
+        if page_level is None:
+            continue
+
+        in_aa = False
+        state = IDLE
+        pending = None
+
+        for raw_line in text.splitlines():
+            line = re.sub(r"\(cid:\d+\)", " ", raw_line).strip()
+            if not line:
+                continue
+
+            # Section control
+            if "All-Around Results" in line:
+                in_aa = True
+                state = IDLE
+                pending = None
+                continue
+
+            if _section_end_re.match(line):
+                in_aa = False
+                state = IDLE
+                pending = None
+                continue
+
+            if not in_aa:
+                continue
+
+            if _noise_re.match(line):
+                continue
+
+            # Waiting for pass-2 vault line
+            if state == AWAIT_PASS2:
+                if re.match(r"^2(?:\s|$)", line):
+                    state = IDLE
+                    continue
+                state = IDLE  # no pass-2 found — fall through
+
+            # Waiting for club name line
+            if state == AWAIT_CLUB:
+                cm = _club_re.match(line) or _club_re_nopass.match(line)
+                if cm:
+                    pending["club"] = cm.group(1).strip()
+                    # Extract D/E for levels 7+ only
+                    if page_level >= 7:
+                        after = line[cm.end():].strip()
+                        nums = []
+                        for tok in re.split(r"\s+", after):
+                            try:
+                                nums.append(float(tok))
+                            except ValueError:
+                                pass
+                        d_list, e_list = [], []
+                        idx = 0
+                        for _ in range(4):
+                            if idx + 1 >= len(nums):
+                                break
+                            d = nums[idx]; idx += 1
+                            e = nums[idx]; idx += 1
+                            # Optional penalty (negative) — fold into E
+                            if idx < len(nums) and nums[idx] < 0:
+                                e = round(e + nums[idx], 3); idx += 1
+                            d_list.append(d)
+                            e_list.append(e)
+                        for i, col in enumerate(_WAG_COL_ORDER[:len(d_list)]):
+                            pending[f"{col}_d"] = d_list[i]
+                            pending[f"{col}_e"] = e_list[i] if i < len(e_list) else None
+                    # Ballarat has a pass-2 vault line; EKGA goes straight to next athlete
+                    state = AWAIT_PASS2 if _has_pass else IDLE
+                    pending = None
+                    continue
+                # Not a club line — abandon pending row and fall through
+                state = IDLE
+                pending = None
+
+            # Try athlete rank line
+            m = _athlete_re.match(line)
+            if m:
+                rank_str = m.group(1)
+                name = _clean_name(m.group(2))
+                scores = [_parse_score(re.match(r"[\d.]+", g).group()) for g in m.groups()[2:6]]
+                total = _parse_score(m.group(7))
+                row = {
+                    "rank":    _parse_rank(rank_str.rstrip("=T")),
+                    "bib":     None,
+                    "athlete": name,
+                    "club":    None,
+                    "total":   total,
+                }
+                row.update(_build_app_scores(scores, [], [], "WAG"))
+                events_by_key.setdefault((page_level, page_div), []).append(row)
+                pending = row
+                state = AWAIT_CLUB
+
+    return [
+        {"level": lvl, "division": div, "age_group": None, "event_type": "AA", "results": results}
+        for (lvl, div), results in events_by_key.items()
+        if results
+    ]
+
+
 def parse_proscore_multi(text_pages, pdf_path, sport="WAG"):
     """Parse 'Meet Results - Multi' ProScore PDFs (Prelims + Finals + Combined Total per athlete)."""
     file_meta = parse_filename_meta(pdf_path, sport=sport)
@@ -1779,9 +1946,12 @@ def parse_pdf(pdf_path, sport="WAG"):
     meta = parse_filename_meta(pdf_path, sport=sport)
     age_group = meta.get("age_group")
 
-    # Scoreholder.com format
+    # Scoreholder.com format — WAG Winterfest style vs MAG PIT style differ in column headers
     if SCOREHOLDER_RE.search(full_text):
-        events = parse_scoreholder(text_pages, pdf_path, sport=sport)
+        if sport == "WAG" and re.search(r"#\s+Name\s+(?:Pass\s+)?Vault\b", full_text, re.IGNORECASE):
+            events = parse_scoreholder_wag(text_pages, pdf_path)
+        else:
+            events = parse_scoreholder(text_pages, pdf_path, sport=sport)
         return (events, "scoreholder") if events else ([], "scoreholder-empty")
 
     # WG scoring program (Natimuk style)

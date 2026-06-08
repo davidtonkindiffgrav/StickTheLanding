@@ -1,103 +1,989 @@
 {
-  "_comment": "Canonical club registry. 'code' is the short key used everywhere in the app. 'aliases' lists every raw string the parser might produce — add to this list whenever you spot a new variant. 'logo' is a relative path under assets/logos/ (leave null until you have the file). 'region' values: Metro East, Metro North, Metro South, Metro West, Regional NE, Regional SE, Regional West, Interstate.",
+  "_comment": "Canonical club registry. 'code' is the short key used everywhere in the app. 'aliases' lists every raw string the parser might produce â€” add to this list whenever you spot a new variant. 'logo' is a relative path under assets/logos/ (leave null until you have the file). 'region' values: Metro East, Metro North, Metro South, Metro West, Regional NE, Regional SE, Regional West, Interstate.",
   "clubs": [
-
-    { "code": "AUG",  "name": "AUG (Unknown Club Data)",                "region": "Unknown",        "aliases": [],                                                           "logo": null },
-    { "code": "AER",  "name": "Aerodynamix Gymnastics",                  "region": "Metro East",     "aliases": ["AERODYNAMIX", "AERO"],                                      "logo": null },
-    { "code": "EBL",  "name": "EBL (Unknown Club Data)",                "region": "Unknown",        "aliases": [],                                                           "logo": null },
-    { "code": "ATH",  "name": "Athleta Gymnastics",                      "region": "Metro West",     "aliases": ["ATHLETA", "ATHATB", "ATHATO"],                              "logo": null },
-    { "code": "BAY",  "name": "Bayside Gymnastics Club",                 "region": "Metro South",    "aliases": ["BAYSIDE"],                                                  "logo": null },
-    { "code": "BAL",  "name": "Balance Gymnastics",                       "region": "Metro North",    "aliases": ["BALANCE", "BA1", "BA2", "BA3", "BA4", "BA5", "BA6", "BA7", "BA8", "BA9"], "logo": null },
-    { "code": "BGS",  "name": "Ballarat Gymsports",                      "region": "Regional West",  "aliases": ["BALLARAT GYMSPORTS"],                                        "logo": null },
-    { "code": "BLK",  "name": "Blue Lake Gym Club",                      "region": "Regional West",  "aliases": ["BLUE LAKE"],                                                "logo": null },
-    { "code": "BMK",  "name": "Bentleigh McKinnon Gymnastics Club",      "region": "Metro South",    "aliases": [],                                                           "logo": null },
-    { "code": "BTY",  "name": "BTYC Gymnastics",                        "region": "Metro North",    "aliases": ["BTYC", "BTYBT1", "BTYBT8", "BT0", "BTY01", "BT1", "BT2", "BT3", "BT4", "BT5", "BT6", "BT7", "BT8", "BT9", "B5O", "B5U", "B6O", "B7O", "B7U", "B8O"], "logo": null },
-    { "code": "BUG",  "name": "BUGS Gymnastics",                        "region": "Metro East",     "aliases": ["BUGS", "BUGSWHI", "BUGSBLU"],                               "logo": null },
-
-    { "code": "CAS",  "name": "Casey Gymnastics",                        "region": "Metro East",
-      "aliases": ["CAS CS", "CASCS", "CAS EH", "CASEH", "CEH", "CASEY CRANBOURNE", "CASEY ENDEAVOUR HILLS", "CASEY STADIUM", "CASEY"],
-      "_venues": ["Casey Stadium", "Endeavour Hills"],
-      "logo": null },
-
-    { "code": "CCG",  "name": "Canberra City Gymnastics Club",           "region": "Interstate",     "aliases": ["CCGCCV", "CCGCCL", "CCGCCA"],                              "logo": null },
-    { "code": "CHA",  "name": "Chamford Gymnastics Club",               "region": "Metro South",    "aliases": ["CHAM", "CHAMFORD"],                                         "logo": null },
-    { "code": "CYC",  "name": "Cheltenham Youth Club",                  "region": "Metro South",    "aliases": [],                                                           "logo": null },
-    { "code": "DIA",  "name": "Diamond Gymnastics Club",                "region": "Metro South",    "aliases": ["DIAMOND"],                                                  "logo": null },
-    { "code": "DOL",  "name": "Dolphin Gymnastics Club",                "region": "Metro South",    "aliases": ["DGC", "DGCBLU", "DGCRED"],                                  "logo": null },
-    { "code": "EGG",  "name": "East Gippsland Gym Club",                "region": "Regional SE",    "aliases": [],                                                           "logo": null },
-    { "code": "ECL",  "name": "Eclipse Gymnastics Ringwood",            "region": "Metro East",     "aliases": ["ECLIPSE"],                                                  "logo": null },
-    { "code": "EDG",  "name": "Edge Gymnastics",                        "region": "Metro South",    "aliases": ["EDGE"],                                                     "logo": null },
-    { "code": "EGC",  "name": "Eastern Gymnastics Club",                "region": "Metro East",     "aliases": ["EAS", "EAST", "EA1", "EA2", "EA3", "EA4", "EA5", "EA6", "EA7", "EA8", "EA9", "EGCEGA", "EGCEGS", "EGCEG9", "EASTERN", "EG1", "EG2", "EG3", "EG4", "EG5", "EG6", "EG7", "EG8", "EG9"], "logo": null },
-    { "code": "EKG",  "name": "Essendon Keilor Gym Academy",            "region": "Metro West",     "aliases": ["EKGA", "EKB", "EKS", "EK1", "EK2", "EK3", "EK4", "EK5", "EK6", "EK7", "EK8", "EK9"], "logo": null },
-    { "code": "EUR",  "name": "Eureka Gymnastics Club",                 "region": "Regional West",  "aliases": ["EUREKA", "EUREKA 2"],                                       "logo": null },
-    { "code": "FLY",  "name": "Flyaway Gymnastics Club",                "region": "Regional NE",    "aliases": ["FLYFLW", "FLYFLP", "FLW", "FLP", "FLYAWAY"],                                         "logo": null },
-    { "code": "FBG",  "name": "Fishermens Bend Gymnastic Club",         "region": "Metro North",    "aliases": ["FBGC", "FISHERMENS BEND"],                                  "logo": null },
-    { "code": "FUN",  "name": "Funtastic Gymnastics",                   "region": "Metro East",     "aliases": ["FUNTASTIC", "TEAMFUN", "FUNFUN", "FUN FUNTASTIC", "FUNFUNTASTIC", "FUNNAV", "FUNSIL"], "logo": null },
-    { "code": "GLZ",  "name": "Glitz Gymnastics Academy",               "region": "Metro East",     "aliases": ["GLITZ", "GGA"],                                             "logo": null },
-    { "code": "GRI",  "name": "GRI (Unknown Club Data)",                "region": "Unknown",        "aliases": [],                                                           "logo": null },
-    { "code": "OGS",  "name": "OGS (Unknown Club Data)",                "region": "Unknown",        "aliases": [],                                                           "logo": null },
-    { "code": "GSA",  "name": "Gymnastics South Australia",             "region": "Interstate",     "aliases": ["GYMNASTICS SA"],                                            "logo": null },
-    { "code": "GUN",  "name": "Gymnastics Unlimited Aust Ltd",          "region": "Metro West",     "aliases": ["GU", "GYMNASTICS UNLIMITED", "GYU"],                        "logo": null },
-    { "code": "GYG",  "name": "Geelong YMCA Gym Club",                  "region": "Metro West",     "aliases": ["GEE", "GEEL", "GEELONG", "GEELONG YMCA", "Y GEELONG", "GYGRUB", "GYGBLA", "GYGSIL", "GYGWHI", "GYGRED", "GYGNA V", "GE1", "GE2", "GE3", "GE4", "GE5", "GE6", "GE7", "GE8", "GE9"], "logo": null },
-    { "code": "HAM",  "name": "Hamilton and District Gymnastics Club",  "region": "Regional West",  "aliases": ["HAMILTON"],                                                 "logo": null },
-
-    { "code": "JET",  "name": "Jets Gymnastics",                        "region": "Multi-Region",
-      "aliases": ["JETS", "JETSBENDIGO", "JEB", "JED", "JEG", "JER", "JES", "JETSGR", "JETS GR", "JGR", "JETSGIS", "JETS GIS", "JETGIS", "JET GIS", "JETSBEN", "JETS BEN", "JETSSHEP", "JETS SHEP", "JETSSHE", "JET BEN"],
-      "_venues": ["Diamond Creek", "Eltham", "Grovedale", "Shepparton", "Bendigo", "Gisborne"],
-      "logo": null },
-
-    { "code": "KBL",  "name": "KBL (Unknown Club Data)",                "region": "Unknown",        "aliases": [],                                                           "logo": null },
-    { "code": "KGS",  "name": "Kingborough Gymsports",                  "region": "Interstate",     "aliases": ["KGS", "KINGBOROUGH"],                                       "logo": null },
-    { "code": "KNO",  "name": "Knox Gym Club",                          "region": "Metro East",     "aliases": ["KNOX", "KN1", "KN2", "KN3", "KN4", "KN5", "KN6", "KN7", "KN8", "KN9", "KNOX GYMNASTICS"], "logo": null },
-    { "code": "LEO",  "name": "Leongatha Gymnastic Club",               "region": "Regional SE",    "aliases": ["LEONGATHA", "LGC"],                                         "logo": null },
-    { "code": "LFK",  "name": "LFK Dance and Gym",                      "region": "Metro West",     "aliases": [],                                                           "logo": null },
-    { "code": "MAF",  "name": "Maffra Gymnastic Club",                  "region": "Regional SE",    "aliases": ["MAFFRA"],                                                   "logo": null },
-    { "code": "MAC",  "name": "MAC (Unknown Club Data)",               "region": "Unknown",        "aliases": ["MAG ACADEMY", "MA1", "MA2", "MA3", "MA4", "MA5", "MA6", "MA7", "MA8", "MA9"],   "logo": null },
-    { "code": "MAG",  "name": "Melbourne Acrobatic Gymnastics Academy", "region": "Metro East",     "aliases": [],                                                           "logo": null },
-    { "code": "MEL",  "name": "Melton Gymnastics Academy",              "region": "Metro West",     "aliases": ["MELTON", "MGA", "ME1", "ME2", "ME3", "ME4", "ME5", "ME6", "ME7", "ME8", "ME9"], "logo": null },
-    { "code": "MAN",  "name": "Mansfield Gymnastic Club",               "region": "Regional NE",    "aliases": [],                                                           "logo": null },
-    { "code": "MGC",  "name": "Melbourne Gymnastics Centre",            "region": "Metro South",    "aliases": ["MG1", "MG2"],                                               "logo": null },
-    { "code": "MIL",  "name": "Mildura Gymnastics Centre",              "region": "Regional West",  "aliases": ["MI1", "MI2", "MILDURA"],                                    "logo": null },
-    { "code": "MLCT", "name": "Millicent Gymnastics Club",              "region": "Interstate",     "aliases": ["MILLICENT"],                                                "logo": null },
-    { "code": "MLC",  "name": "MLC Gymnastics Club",                    "region": "Metro East",     "aliases": ["MLC BLACK", "MLC GREEN", "MLC SILVER", "MLC WHITE"],          "logo": null },
-    { "code": "MOR",  "name": "Mordialloc Gymnastics",                  "region": "Metro South",    "aliases": ["MCC"],                                                      "logo": null },
-    { "code": "MOY",  "name": "Moyhu and District Youth Club Inc",       "region": "Regional NE",    "aliases": ["MOYHU"],                                                    "logo": null },
-    { "code": "MYC",  "name": "MYC Gymnastics",                        "region": "Metro South",    "aliases": ["MYC GOLD", "MYC NAVY", "GILCRIST MYC", "RODWELL MYC", "MY1", "MY2", "MY3", "MY4", "MY5", "MY6", "MY7", "MY8", "MY9"], "logo": null },
-    { "code": "NAT",  "name": "Natimuk and District Gymnastic Club",    "region": "Regional West",  "aliases": ["NATIMUK"],                                                  "logo": null },
-    { "code": "NID",  "name": "Niddrie Gymnastic Club",                 "region": "Metro West",     "aliases": ["NIDDRIE"],                                                  "logo": null },
-    { "code": "NUN",  "name": "Nunawading Gymnastics and Sports Club",  "region": "Metro East",     "aliases": ["NUNAWADING", "NGS"],                                        "logo": null },
-    { "code": "PEA",  "name": "Peak Gymnastics",                        "region": "Metro South",    "aliases": ["PEAK"],                                                     "logo": null },
-    { "code": "PIT",  "name": "PIT Gymnastics",                         "region": "Metro North",    "aliases": ["PI5", "PI6", "PI7", "PI8", "PI9", "PIT GYMNASTICS"],       "logo": null },
-    { "code": "POR",  "name": "Portland Gymnastics Club",               "region": "Regional West",  "aliases": ["PORTLAND"],                                                 "logo": null },
-    { "code": "PUL",  "name": "Pulse Gymnastics",                       "region": "Metro North",    "aliases": ["PULSE", "PULPU1", "PU1", "PU2", "PU3", "PU4", "PU5", "PU6", "PU7", "PU8"], "logo": null },
-    { "code": "REA",  "name": "Reach Gymnastics",                       "region": "Metro East",     "aliases": ["REACH", "REACH GYMNASTICS", "RE1", "RE2", "RE3", "RE4", "RE5", "RE6", "RE7", "RE8", "RE9"], "logo": null },
-    { "code": "YMCA", "name": "YMCA (Unknown Venue)",                   "region": "Unknown",        "aliases": [],                                                           "logo": null },
-    { "code": "RIV",  "name": "RIV (Unknown Club Data)",                "region": "Unknown",        "aliases": [],                                                           "logo": null },
-    { "code": "STA",  "name": "Stawell Gymnastic Club",                 "region": "Regional West",  "aliases": ["STAWELL"],                                                  "logo": null },
-    { "code": "STAG", "name": "STAG",                                   "region": "Interstate",     "aliases": [],                                                           "logo": null },
-    { "code": "SYD",  "name": "Sydney (No Club data)",                  "region": "Interstate",     "aliases": ["SYDNEY"],                                                   "logo": null },
-    { "code": "USA",  "name": "USA (Unknown Club Data)",                "region": "Unknown",        "aliases": [],                                                           "logo": null },
-    { "code": "STV",  "name": "Strive Gymnastics",                      "region": "Regional West",  "aliases": ["STRIVE", "STRV", "STR", "STRSTR"],                          "logo": null },
-    { "code": "TWI",  "name": "Twisters Gymnastics Club",               "region": "Metro North",    "aliases": ["TWISTERS", "TW1", "TW2", "TW3", "TW4"],                    "logo": null },
-    { "code": "TRI",  "name": "TRI (Unknown Club Data)",                "region": "Unknown",        "aliases": [],                                                           "logo": null },
-    { "code": "VIT",  "name": "Vital Gymnastics",                        "region": "Interstate",     "aliases": ["VITAL"],                                                    "logo": null },
-    { "code": "WER",  "name": "Werribee Gymnastic Club",                "region": "Metro West",     "aliases": ["WERR", "WERRIBEE"],                                         "logo": null },
-    { "code": "WVG",  "name": "Waverley Gymnastics Centre",             "region": "Metro South",    "aliases": ["WVGWVR", "WVGWVB", "WVR", "WVB", "WAV", "WAVERLEYGC", "WAVERLEY"],      "logo": null },
-    { "code": "WYN",  "name": "Wyndham City Gymnastics",               "region": "Metro West",     "aliases": ["WYNDHAM", "WYNDHAM CITY GYMNASTICS", "WYND", "WYD"],                       "logo": null },
-    { "code": "SBY",  "name": "Sunbury Gymnastics Club",               "region": "Metro West",     "aliases": ["SUNBURY"],                                                  "logo": null },
-
-    { "code": "EUR/WYN",      "name": "Eureka / Wyndham (Joint)",          "region": "Multi-Region",   "aliases": ["EUREKA/WYNDHAM"],                                           "logo": null },
-    { "code": "MIL/WYN",      "name": "Mildura / Wyndham (Joint)",         "region": "Regional West",  "aliases": ["MILDURA/WYNDHAM"],                                          "logo": null },
-    { "code": "MLCT/POR",     "name": "Millicent / Portland (Joint)",      "region": "Multi-Region",   "aliases": ["MILLICENT/PORTLAND"],                                       "logo": null },
-    { "code": "POR/BLK",      "name": "Portland / Blue Lake (Joint)",      "region": "Regional West",  "aliases": ["PORTLAND/BLUE LAKE"],                                       "logo": null },
-    { "code": "SBY/POR",      "name": "Sunbury / Portland (Joint)",        "region": "Multi-Region",   "aliases": ["SUNBURY/PORTLAND"],                                         "logo": null },
-    { "code": "STA/BLK/POR",  "name": "Stawell / Blue Lake / Portland (Joint)", "region": "Regional West", "aliases": ["STAWELL/BLUE LAKE/PORTLAND"],                          "logo": null },
-    { "code": "STV/FLY",      "name": "Strive / Flyaway (Joint)",               "region": "Multi-Region",  "aliases": ["STRIVE/FLYAWAY", "STRIVE/FLY"],                             "logo": null },
-    { "code": "BTY/FUN",      "name": "BTYC / Funtastic (Joint)",               "region": "Multi-Region",  "aliases": ["BTYC/FUNTASTIC", "BTYC/FUN"],                               "logo": null },
-
-    { "code": "SKY",  "name": "Skylark Sports",                        "region": "Metro South",    "aliases": [],  "logo": null },
-    { "code": "ADR",  "name": "Team Adrenalin",                        "region": "Metro West",     "aliases": [],  "logo": null },
-    { "code": "SPA",  "name": "Sparta Gymnastics",                     "region": "Metro East",     "aliases": [],  "logo": null },
-    { "code": "YVG",  "name": "Yarra Valley Gymsports Academy",        "region": "Metro East",     "aliases": [],  "logo": null }
+    {
+      "code": "ADR",
+      "name": "Team Adrenalin",
+      "region": "Metro West",
+      "aliases": [],
+      "logo": null
+    },
+    {
+      "code": "AER",
+      "name": "Aerodynamix Gymnastics",
+      "region": "Metro East",
+      "aliases": [
+        "AERODYNAMIX",
+        "AERO"
+      ],
+      "logo": null
+    },
+    {
+      "code": "ATH",
+      "name": "Athleta Gymnastics",
+      "region": "Metro West",
+      "aliases": [
+        "ATHLETA",
+        "ATHATB",
+        "ATHATO"
+      ],
+      "logo": null
+    },
+    {
+      "code": "AUG",
+      "name": "AUG (Unknown Club Data)",
+      "region": "Unknown",
+      "aliases": [],
+      "logo": null
+    },
+    {
+      "code": "BAL",
+      "name": "Balance Gymnastics",
+      "region": "Metro North",
+      "aliases": [
+        "BALANCE",
+        "BA1",
+        "BA2",
+        "BA3",
+        "BA4",
+        "BA5",
+        "BA6",
+        "BA7",
+        "BA8",
+        "BA9"
+      ],
+      "logo": null
+    },
+    {
+      "code": "BAY",
+      "name": "Bayside Gymnastics Club",
+      "region": "Metro South",
+      "aliases": [
+        "BAYSIDE"
+      ],
+      "logo": null
+    },
+    {
+      "code": "BGS",
+      "name": "Ballarat Gymsports",
+      "region": "Regional West",
+      "aliases": [
+        "BALLARAT GYMSPORTS"
+      ],
+      "logo": null
+    },
+    {
+      "code": "BLK",
+      "name": "Blue Lake Gym Club",
+      "region": "Regional West",
+      "aliases": [
+        "BLUE LAKE",
+        "BLUE LAKE GYMNASTICS CLUB"
+      ],
+      "logo": null
+    },
+    {
+      "code": "BMK",
+      "name": "Bentleigh McKinnon Gymnastics Club",
+      "region": "Metro South",
+      "aliases": [],
+      "logo": null
+    },
+    {
+      "code": "BTY",
+      "name": "BTYC Gymnastics",
+      "region": "Metro North",
+      "aliases": [
+        "BTYC",
+        "BTYBT1",
+        "BTYBT8",
+        "BT0",
+        "BTY01",
+        "BT1",
+        "BT2",
+        "BT3",
+        "BT4",
+        "BT5",
+        "BT6",
+        "BT7",
+        "BT8",
+        "BT9",
+        "B5O",
+        "B5U",
+        "B6O",
+        "B7O",
+        "B7U",
+        "B8O"
+      ],
+      "logo": null
+    },
+    {
+      "code": "BTY/FUN",
+      "name": "BTYC / Funtastic (Joint)",
+      "region": "Multi-Region",
+      "aliases": [
+        "BTYC/FUNTASTIC",
+        "BTYC/FUN"
+      ],
+      "logo": null
+    },
+    {
+      "code": "BUG",
+      "name": "BUGS Gymnastics",
+      "region": "Metro East",
+      "aliases": [
+        "BUGS",
+        "BUGSWHI",
+        "BUGSBLU"
+      ],
+      "logo": null
+    },
+    {
+      "code": "CAS",
+      "name": "Casey Gymnastics",
+      "region": "Metro East",
+      "aliases": [
+        "CAS CS",
+        "CASCS",
+        "CAS EH",
+        "CASEH",
+        "CEH",
+        "CASEY CRANBOURNE",
+        "CASEY ENDEAVOUR HILLS",
+        "CASEY STADIUM",
+        "CASEY"
+      ],
+      "_venues": [
+        "Casey Stadium",
+        "Endeavour Hills"
+      ],
+      "logo": null
+    },
+    {
+      "code": "CCG",
+      "name": "Canberra City Gymnastics Club",
+      "region": "Interstate",
+      "aliases": [
+        "CCGCCV",
+        "CCGCCL",
+        "CCGCCA"
+      ],
+      "logo": null
+    },
+    {
+      "code": "CHA",
+      "name": "Chamford Gymnastics Club",
+      "region": "Metro South",
+      "aliases": [
+        "CHAM",
+        "CHAMFORD"
+      ],
+      "logo": null
+    },
+    {
+      "code": "CYC",
+      "name": "Cheltenham Youth Club",
+      "region": "Metro South",
+      "aliases": [],
+      "logo": null
+    },
+    {
+      "code": "DIA",
+      "name": "Diamond Gymnastics Club",
+      "region": "Metro South",
+      "aliases": [
+        "DIAMOND"
+      ],
+      "logo": null
+    },
+    {
+      "code": "DOL",
+      "name": "Dolphin Gymnastics Club",
+      "region": "Metro South",
+      "aliases": [
+        "DGC",
+        "DGCBLU",
+        "DGCRED"
+      ],
+      "logo": null
+    },
+    {
+      "code": "EBL",
+      "name": "EBL (Unknown Club Data)",
+      "region": "Unknown",
+      "aliases": [],
+      "logo": null
+    },
+    {
+      "code": "ECL",
+      "name": "Eclipse Gymnastics Ringwood",
+      "region": "Metro East",
+      "aliases": [
+        "ECLIPSE"
+      ],
+      "logo": null
+    },
+    {
+      "code": "EDG",
+      "name": "Edge Gymnastics",
+      "region": "Metro South",
+      "aliases": [
+        "EDGE"
+      ],
+      "logo": null
+    },
+    {
+      "code": "EGC",
+      "name": "Eastern Gymnastics Club",
+      "region": "Metro East",
+      "aliases": [
+        "EAS",
+        "EAST",
+        "EA1",
+        "EA2",
+        "EA3",
+        "EA4",
+        "EA5",
+        "EA6",
+        "EA7",
+        "EA8",
+        "EA9",
+        "EGCEGA",
+        "EGCEGS",
+        "EGCEG9",
+        "EASTERN",
+        "EG1",
+        "EG2",
+        "EG3",
+        "EG4",
+        "EG5",
+        "EG6",
+        "EG7",
+        "EG8",
+        "EG9"
+      ],
+      "logo": null
+    },
+    {
+      "code": "EGG",
+      "name": "East Gippsland Gym Club",
+      "region": "Regional SE",
+      "aliases": [],
+      "logo": null
+    },
+    {
+      "code": "EKG",
+      "name": "Essendon Keilor Gym Academy",
+      "region": "Metro West",
+      "aliases": [
+        "EKGA",
+        "EKB",
+        "EKS",
+        "EK1",
+        "EK2",
+        "EK3",
+        "EK4",
+        "EK5",
+        "EK6",
+        "EK7",
+        "EK8",
+        "EK9"
+      ],
+      "logo": null
+    },
+    {
+      "code": "EUR",
+      "name": "Eureka Gymnastics Club",
+      "region": "Regional West",
+      "aliases": [
+        "EUREKA",
+        "EUREKA 2",
+        "EUREKA GYMNASTICS CLUB"
+      ],
+      "logo": null
+    },
+    {
+      "code": "EUR/WYN",
+      "name": "Eureka / Wyndham (Joint)",
+      "region": "Multi-Region",
+      "aliases": [
+        "EUREKA/WYNDHAM"
+      ],
+      "logo": null
+    },
+    {
+      "code": "FBG",
+      "name": "Fishermens Bend Gymnastic Club",
+      "region": "Metro North",
+      "aliases": [
+        "FBGC",
+        "FISHERMENS BEND"
+      ],
+      "logo": null
+    },
+    {
+      "code": "FLY",
+      "name": "Flyaway Gymnastics Club",
+      "region": "Regional NE",
+      "aliases": [
+        "FLYFLW",
+        "FLYFLP",
+        "FLW",
+        "FLP",
+        "FLYAWAY"
+      ],
+      "logo": null
+    },
+    {
+      "code": "FUN",
+      "name": "Funtastic Gymnastics",
+      "region": "Metro East",
+      "aliases": [
+        "FUNTASTIC",
+        "TEAMFUN",
+        "FUNFUN",
+        "FUN FUNTASTIC",
+        "FUNFUNTASTIC",
+        "FUNNAV",
+        "FUNSIL"
+      ],
+      "logo": null
+    },
+    {
+      "code": "GLZ",
+      "name": "Glitz Gymnastics Academy",
+      "region": "Metro East",
+      "aliases": [
+        "GLITZ",
+        "GGA"
+      ],
+      "logo": null
+    },
+    {
+      "code": "GRI",
+      "name": "GRI (Unknown Club Data)",
+      "region": "Unknown",
+      "aliases": [],
+      "logo": null
+    },
+    {
+      "code": "GSA",
+      "name": "Gymnastics South Australia",
+      "region": "Interstate",
+      "aliases": [
+        "GYMNASTICS SA"
+      ],
+      "logo": null
+    },
+    {
+      "code": "GUN",
+      "name": "Gymnastics Unlimited Aust Ltd",
+      "region": "Metro West",
+      "aliases": [
+        "GU",
+        "GYMNASTICS UNLIMITED",
+        "GYU"
+      ],
+      "logo": null
+    },
+    {
+      "code": "GYG",
+      "name": "Geelong YMCA Gym Club",
+      "region": "Metro West",
+      "aliases": [
+        "GEE",
+        "GEEL",
+        "GEELONG",
+        "GEELONG YMCA",
+        "Y GEELONG",
+        "GYGRUB",
+        "GYGBLA",
+        "GYGSIL",
+        "GYGWHI",
+        "GYGRED",
+        "GYGNA V",
+        "GE1",
+        "GE2",
+        "GE3",
+        "GE4",
+        "GE5",
+        "GE6",
+        "GE7",
+        "GE8",
+        "GE9"
+      ],
+      "logo": null
+    },
+    {
+      "code": "HAM",
+      "name": "Hamilton and District Gymnastics Club",
+      "region": "Regional West",
+      "aliases": [
+        "HAMILTON",
+        "HAMILTON & DISTRICT GYMNASTICS CLUB"
+      ],
+      "logo": null
+    },
+    {
+      "code": "IND",
+      "name": "Indigo Gymnastics Club",
+      "region": "North East",
+      "aliases": [
+        "INDIGO",
+        "INDIGO GYMNASTICS CLUB",
+        "INDIGO GYMNASTICS CLU"
+      ],
+      "logo": null
+    },
+    {
+      "code": "JET",
+      "name": "Jets Gymnastics",
+      "region": "Multi-Region",
+      "aliases": [
+        "JETS",
+        "JETSBENDIGO",
+        "JEB",
+        "JED",
+        "JEG",
+        "JER",
+        "JES",
+        "JETSGR",
+        "JETS GR",
+        "JGR",
+        "JETSGIS",
+        "JETS GIS",
+        "JETGIS",
+        "JET GIS",
+        "JETSBEN",
+        "JETS BEN",
+        "JETSSHEP",
+        "JETS SHEP",
+        "JETSSHE",
+        "JET BEN"
+      ],
+      "_venues": [
+        "Diamond Creek",
+        "Eltham",
+        "Grovedale",
+        "Shepparton",
+        "Bendigo",
+        "Gisborne"
+      ],
+      "logo": null
+    },
+    {
+      "code": "KBL",
+      "name": "KBL (Unknown Club Data)",
+      "region": "Unknown",
+      "aliases": [],
+      "logo": null
+    },
+    {
+      "code": "KGS",
+      "name": "Kingborough Gymsports",
+      "region": "Interstate",
+      "aliases": [
+        "KGS",
+        "KINGBOROUGH"
+      ],
+      "logo": null
+    },
+    {
+      "code": "KNO",
+      "name": "Knox Gym Club",
+      "region": "Metro East",
+      "aliases": [
+        "KNOX",
+        "KN1",
+        "KN2",
+        "KN3",
+        "KN4",
+        "KN5",
+        "KN6",
+        "KN7",
+        "KN8",
+        "KN9",
+        "KNOX GYMNASTICS"
+      ],
+      "logo": null
+    },
+    {
+      "code": "LEO",
+      "name": "Leongatha Gymnastic Club",
+      "region": "Regional SE",
+      "aliases": [
+        "LEONGATHA",
+        "LGC"
+      ],
+      "logo": null
+    },
+    {
+      "code": "LFK",
+      "name": "LFK Dance and Gym",
+      "region": "Metro West",
+      "aliases": [],
+      "logo": null
+    },
+    {
+      "code": "MAC",
+      "name": "MAC (Unknown Club Data)",
+      "region": "Unknown",
+      "aliases": [
+        "MAG ACADEMY",
+        "MA1",
+        "MA2",
+        "MA3",
+        "MA4",
+        "MA5",
+        "MA6",
+        "MA7",
+        "MA8",
+        "MA9"
+      ],
+      "logo": null
+    },
+    {
+      "code": "MAF",
+      "name": "Maffra Gymnastic Club",
+      "region": "Regional SE",
+      "aliases": [
+        "MAFFRA",
+        "MAFFRA GYMNASTICS CLUB",
+        "MAFFRA GYMNATICS CLUB"
+      ],
+      "logo": null
+    },
+    {
+      "code": "MAG",
+      "name": "Melbourne Acrobatic Gymnastics Academy",
+      "region": "Metro East",
+      "aliases": [],
+      "logo": null
+    },
+    {
+      "code": "MAN",
+      "name": "Mansfield Gymnastic Club",
+      "region": "Regional NE",
+      "aliases": [],
+      "logo": null
+    },
+    {
+      "code": "MEL",
+      "name": "Melton Gymnastics Academy",
+      "region": "Metro West",
+      "aliases": [
+        "MELTON",
+        "MGA",
+        "ME1",
+        "ME2",
+        "ME3",
+        "ME4",
+        "ME5",
+        "ME6",
+        "ME7",
+        "ME8",
+        "ME9",
+        "MELTON GYMNASTICS ACADEMY"
+      ],
+      "logo": null
+    },
+    {
+      "code": "MGC",
+      "name": "Melbourne Gymnastics Centre",
+      "region": "Metro South",
+      "aliases": [
+        "MG1",
+        "MG2"
+      ],
+      "logo": null
+    },
+    {
+      "code": "MIL",
+      "name": "Mildura Gymnastics Centre",
+      "region": "Regional West",
+      "aliases": [
+        "MI1",
+        "MI2",
+        "MILDURA"
+      ],
+      "logo": null
+    },
+    {
+      "code": "MIL/WYN",
+      "name": "Mildura / Wyndham (Joint)",
+      "region": "Regional West",
+      "aliases": [
+        "MILDURA/WYNDHAM"
+      ],
+      "logo": null
+    },
+    {
+      "code": "MLC",
+      "name": "MLC Gymnastics Club",
+      "region": "Metro East",
+      "aliases": [
+        "MLC BLACK",
+        "MLC GREEN",
+        "MLC SILVER",
+        "MLC WHITE"
+      ],
+      "logo": null
+    },
+    {
+      "code": "MLCT",
+      "name": "Millicent Gymnastics Club",
+      "region": "Interstate",
+      "aliases": [
+        "MILLICENT"
+      ],
+      "logo": null
+    },
+    {
+      "code": "MLCT/POR",
+      "name": "Millicent / Portland (Joint)",
+      "region": "Multi-Region",
+      "aliases": [
+        "MILLICENT/PORTLAND"
+      ],
+      "logo": null
+    },
+    {
+      "code": "MOR",
+      "name": "Mordialloc Gymnastics",
+      "region": "Metro South",
+      "aliases": [
+        "MCC"
+      ],
+      "logo": null
+    },
+    {
+      "code": "MOY",
+      "name": "Moyhu and District Youth Club Inc",
+      "region": "Regional NE",
+      "aliases": [
+        "MOYHU"
+      ],
+      "logo": null
+    },
+    {
+      "code": "MYC",
+      "name": "MYC Gymnastics",
+      "region": "Metro South",
+      "aliases": [
+        "MYC GOLD",
+        "MYC NAVY",
+        "GILCRIST MYC",
+        "RODWELL MYC",
+        "MY1",
+        "MY2",
+        "MY3",
+        "MY4",
+        "MY5",
+        "MY6",
+        "MY7",
+        "MY8",
+        "MY9"
+      ],
+      "logo": null
+    },
+    {
+      "code": "NAT",
+      "name": "Natimuk and District Gymnastic Club",
+      "region": "Regional West",
+      "aliases": [
+        "NATIMUK",
+        "NATIMUK & DISTRICT GYMNASTICS CLUB"
+      ],
+      "logo": null
+    },
+    {
+      "code": "NID",
+      "name": "Niddrie Gymnastic Club",
+      "region": "Metro West",
+      "aliases": [
+        "NIDDRIE"
+      ],
+      "logo": null
+    },
+    {
+      "code": "NUN",
+      "name": "Nunawading Gymnastics and Sports Club",
+      "region": "Metro East",
+      "aliases": [
+        "NUNAWADING",
+        "NGS"
+      ],
+      "logo": null
+    },
+    {
+      "code": "OGS",
+      "name": "OGS (Unknown Club Data)",
+      "region": "Unknown",
+      "aliases": [],
+      "logo": null
+    },
+    {
+      "code": "PEA",
+      "name": "Peak Gymnastics",
+      "region": "Metro South",
+      "aliases": [
+        "PEAK"
+      ],
+      "logo": null
+    },
+    {
+      "code": "PIT",
+      "name": "PIT Gymnastics",
+      "region": "Metro North",
+      "aliases": [
+        "PI5",
+        "PI6",
+        "PI7",
+        "PI8",
+        "PI9",
+        "PIT GYMNASTICS"
+      ],
+      "logo": null
+    },
+    {
+      "code": "POR",
+      "name": "Portland Gymnastics Club",
+      "region": "Regional West",
+      "aliases": [
+        "PORTLAND",
+        "PORTLAND GYMNASTICS CLUB"
+      ],
+      "logo": null
+    },
+    {
+      "code": "POR/BLK",
+      "name": "Portland / Blue Lake (Joint)",
+      "region": "Regional West",
+      "aliases": [
+        "PORTLAND/BLUE LAKE"
+      ],
+      "logo": null
+    },
+    {
+      "code": "PUL",
+      "name": "Pulse Gymnastics",
+      "region": "Metro North",
+      "aliases": [
+        "PULSE",
+        "PULPU1",
+        "PU1",
+        "PU2",
+        "PU3",
+        "PU4",
+        "PU5",
+        "PU6",
+        "PU7",
+        "PU8"
+      ],
+      "logo": null
+    },
+    {
+      "code": "REA",
+      "name": "Reach Gymnastics",
+      "region": "Metro East",
+      "aliases": [
+        "REACH",
+        "REACH GYMNASTICS",
+        "RE1",
+        "RE2",
+        "RE3",
+        "RE4",
+        "RE5",
+        "RE6",
+        "RE7",
+        "RE8",
+        "RE9"
+      ],
+      "logo": null
+    },
+    {
+      "code": "RIV",
+      "name": "RIV (Unknown Club Data)",
+      "region": "Unknown",
+      "aliases": [],
+      "logo": null
+    },
+    {
+      "code": "SBY",
+      "name": "Sunbury Gymnastics Club",
+      "region": "Metro West",
+      "aliases": [
+        "SUNBURY"
+      ],
+      "logo": null
+    },
+    {
+      "code": "SBY/POR",
+      "name": "Sunbury / Portland (Joint)",
+      "region": "Multi-Region",
+      "aliases": [
+        "SUNBURY/PORTLAND"
+      ],
+      "logo": null
+    },
+    {
+      "code": "SKY",
+      "name": "Skylark Sports",
+      "region": "Metro South",
+      "aliases": [],
+      "logo": null
+    },
+    {
+      "code": "SPA",
+      "name": "Sparta Gymnastics",
+      "region": "Metro East",
+      "aliases": [],
+      "logo": null
+    },
+    {
+      "code": "STA",
+      "name": "Stawell Gymnastic Club",
+      "region": "Regional West",
+      "aliases": [
+        "STAWELL"
+      ],
+      "logo": null
+    },
+    {
+      "code": "STA/BLK/POR",
+      "name": "Stawell / Blue Lake / Portland (Joint)",
+      "region": "Regional West",
+      "aliases": [
+        "STAWELL/BLUE LAKE/PORTLAND"
+      ],
+      "logo": null
+    },
+    {
+      "code": "STAG",
+      "name": "STAG",
+      "region": "Interstate",
+      "aliases": [],
+      "logo": null
+    },
+    {
+      "code": "STV",
+      "name": "Strive Gymnastics",
+      "region": "Regional West",
+      "aliases": [
+        "STRIVE",
+        "STRV",
+        "STR",
+        "STRSTR",
+        "STRIVE GYMNASTICS"
+      ],
+      "logo": null
+    },
+    {
+      "code": "STV/FLY",
+      "name": "Strive / Flyaway (Joint)",
+      "region": "Multi-Region",
+      "aliases": [
+        "STRIVE/FLYAWAY",
+        "STRIVE/FLY"
+      ],
+      "logo": null
+    },
+    {
+      "code": "SYD",
+      "name": "Sydney (No Club data)",
+      "region": "Interstate",
+      "aliases": [
+        "SYDNEY"
+      ],
+      "logo": null
+    },
+    {
+      "code": "TRI",
+      "name": "TRI (Unknown Club Data)",
+      "region": "Unknown",
+      "aliases": [],
+      "logo": null
+    },
+    {
+      "code": "TWI",
+      "name": "Twisters Gymnastics Club",
+      "region": "Metro North",
+      "aliases": [
+        "TWISTERS",
+        "TW1",
+        "TW2",
+        "TW3",
+        "TW4"
+      ],
+      "logo": null
+    },
+    {
+      "code": "USA",
+      "name": "USA (Unknown Club Data)",
+      "region": "Unknown",
+      "aliases": [],
+      "logo": null
+    },
+    {
+      "code": "VIT",
+      "name": "Vital Gymnastics",
+      "region": "Interstate",
+      "aliases": [
+        "VITAL"
+      ],
+      "logo": null
+    },
+    {
+      "code": "WER",
+      "name": "Werribee Gymnastic Club",
+      "region": "Metro West",
+      "aliases": [
+        "WERR",
+        "WERRIBEE"
+      ],
+      "logo": null
+    },
+    {
+      "code": "WVG",
+      "name": "Waverley Gymnastics Centre",
+      "region": "Metro South",
+      "aliases": [
+        "WVGWVR",
+        "WVGWVB",
+        "WVR",
+        "WVB",
+        "WAV",
+        "WAVERLEYGC",
+        "WAVERLEY"
+      ],
+      "logo": null
+    },
+    {
+      "code": "WYN",
+      "name": "Wyndham City Gymnastics",
+      "region": "Metro West",
+      "aliases": [
+        "WYNDHAM",
+        "WYNDHAM CITY GYMNASTICS",
+        "WYND",
+        "WYD",
+        "WYNDHAM GYMNASTICS"
+      ],
+      "logo": null
+    },
+    {
+      "code": "YMCA",
+      "name": "YMCA (Unknown Venue)",
+      "region": "Unknown",
+      "aliases": [],
+      "logo": null
+    },
+    {
+      "code": "YVG",
+      "name": "Yarra Valley Gymsports Academy",
+      "region": "Metro East",
+      "aliases": [],
+      "logo": null
+    }
   ]
 }
