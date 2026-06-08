@@ -1475,3 +1475,8 @@ html[data-theme="light"] #landing-view .v3-card:hover { border-color: #c47d00; }
 html[data-theme="light"] #landing-view .v3-about a,
 html[data-theme="light"] #landing-view .v3-about a:visited,
 html[data-theme="light"] #landing-view .v3-about .link-btn { color: #c47d00; }
+
+html[data-theme="light"] .cal-badge-wag  { background: rgba(107,92,231,0.1);  color: #5b4ac2; }
+html[data-theme="light"] .cal-badge-mag  { background: rgba(26,169,112,0.1);  color: #1a8e63; }
+html[data-theme="light"] .cal-badge-acro { background: rgba(217,119,6,0.1);   color: #b45309; }
+html[data-theme="light"] .cal-badge-all  { background: rgba(161,138,0,0.1);   color: #856e00; }
