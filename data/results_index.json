@@ -391,6 +391,24 @@
   },
   {
     "sport": "wag",
+    "comp_id": "eureka-invitational-2024",
+    "name": "Eureka Invitational",
+    "date": "2024-08-12"
+  },
+  {
+    "sport": "wag",
+    "comp_id": "casey-classic-2024",
+    "name": "Casey Classic",
+    "date": "2024-08-10"
+  },
+  {
+    "sport": "wag",
+    "comp_id": "btyc-junior-invitational-2024",
+    "name": "BTYC Junior Invitational",
+    "date": "2024-08-09"
+  },
+  {
+    "sport": "wag",
     "comp_id": "ekga-invitational-level-4-6-2024",
     "name": "EKGA Invitational Level 4-6",
     "date": "2024-08-06"
