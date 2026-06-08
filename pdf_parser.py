@@ -1056,9 +1056,9 @@ def parse_scoreholder_wag(text_pages, pdf_path):
     # Club line fallback: "EKGA 10.000 -0.550 ..." (no pass marker — D/E follow immediately)
     _club_re_nopass = re.compile(r"^(.+?)\s+(?=\d{2,}\.\d+(?:\s|$)|-?\d)")
 
-    # Exit AA section when apparatus sub-rankings begin
+    # Exit current section when apparatus sub-rankings begin
     _section_end_re = re.compile(
-        r"^#\s+Org\b|^(?:Vault|U-Bars|Beam|Floor)\s*$|^Team\s+Results\b",
+        r"^#\s+Org\b|^(?:Vault|U-Bars|Beam|Floor)\s*$",
         re.IGNORECASE,
     )
 
@@ -1069,7 +1069,8 @@ def parse_scoreholder_wag(text_pages, pdf_path):
     )
 
     IDLE, AWAIT_CLUB, AWAIT_PASS2 = 0, 1, 2
-    events_by_key = {}   # (level, division) → [result dicts]
+    aa_by_key   = {}   # (level, division) → [AA result dicts]
+    team_by_key = {}   # (level, division) → [Team result dicts]
 
     # Ballarat format has two vault passes ("Pass" column); EKGA does not
     _full_concat = "\n".join(t for t in text_pages if t)
@@ -1093,8 +1094,9 @@ def parse_scoreholder_wag(text_pages, pdf_path):
         if page_level is None:
             continue
 
-        in_aa = False
-        state = IDLE
+        in_aa   = False
+        in_team = False
+        state   = IDLE
         pending = None
 
         for raw_line in text.splitlines():
@@ -1104,21 +1106,44 @@ def parse_scoreholder_wag(text_pages, pdf_path):
 
             # Section control
             if "All-Around Results" in line:
-                in_aa = True
-                state = IDLE
-                pending = None
+                in_aa = True; in_team = False
+                state = IDLE; pending = None
+                continue
+
+            if "Team Results" in line:
+                in_team = True; in_aa = False
+                state = IDLE; pending = None
                 continue
 
             if _section_end_re.match(line):
-                in_aa = False
-                state = IDLE
-                pending = None
-                continue
-
-            if not in_aa:
+                in_aa = False; in_team = False
+                state = IDLE; pending = None
                 continue
 
             if _noise_re.match(line):
+                continue
+
+            # ── Team section ──────────────────────────────────────────
+            if in_team:
+                m = _athlete_re.match(line)
+                if m:
+                    rank_str = m.group(1)
+                    team_name = m.group(2).strip()
+                    scores = [_parse_score(re.match(r"[\d.]+", g).group()) for g in m.groups()[2:6]]
+                    total = _parse_score(m.group(7))
+                    row = {
+                        "rank":    _parse_rank(rank_str.rstrip("=T")),
+                        "athlete": None,
+                        "club":    team_name,
+                        "total":   total,
+                    }
+                    row.update(_build_app_scores(scores, [], [], "WAG"))
+                    team_by_key.setdefault((page_level, page_div), []).append(row)
+                # All other lines in team section (member names, D/E rows) are skipped
+                continue
+
+            # ── AA section ────────────────────────────────────────────
+            if not in_aa:
                 continue
 
             # Waiting for pass-2 vault line
@@ -1180,15 +1205,18 @@ def parse_scoreholder_wag(text_pages, pdf_path):
                     "total":   total,
                 }
                 row.update(_build_app_scores(scores, [], [], "WAG"))
-                events_by_key.setdefault((page_level, page_div), []).append(row)
+                aa_by_key.setdefault((page_level, page_div), []).append(row)
                 pending = row
                 state = AWAIT_CLUB
 
-    return [
-        {"level": lvl, "division": div, "age_group": None, "event_type": "AA", "results": results}
-        for (lvl, div), results in events_by_key.items()
-        if results
-    ]
+    events = []
+    for (lvl, div), results in aa_by_key.items():
+        if results:
+            events.append({"level": lvl, "division": div, "age_group": None, "event_type": "AA", "results": results})
+    for (lvl, div), results in team_by_key.items():
+        if results:
+            events.append({"level": lvl, "division": div, "age_group": None, "event_type": "Team", "results": results})
+    return events
 
 
 def parse_proscore_multi(text_pages, pdf_path, sport="WAG"):
