@@ -528,6 +528,18 @@
     "date": "2024-05-05"
   },
   {
+    "sport": "acro",
+    "comp_id": "acr-state-team-trial-2-2024",
+    "name": "ACR State Team Trial 2",
+    "date": "2024-05-05"
+  },
+  {
+    "sport": "acro",
+    "comp_id": "acr-senior-victorian-championships-2024",
+    "name": "ACR Senior Victorian Championships",
+    "date": "2024-04-09"
+  },
+  {
     "sport": "wag",
     "comp_id": "warrnambool-invite-2024",
     "name": "Warrnambool Invite",
@@ -555,6 +567,12 @@
     "sport": "wag",
     "comp_id": "wag-2024-state-team-trial-2-2024",
     "name": "WAG 2024 State Team Trial 2",
+    "date": "2024-03-17"
+  },
+  {
+    "sport": "acro",
+    "comp_id": "acr-state-team-trial-1-2024",
+    "name": "ACR State Team Trial 1",
     "date": "2024-03-17"
   },
   {

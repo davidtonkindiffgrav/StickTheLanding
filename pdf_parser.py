@@ -120,6 +120,237 @@ _HEADER_SKIP = re.compile(
 )
 
 # ---------------------------------------------------------------------------
+# GymACRO custom scoring system constants (Victorian State Trials / Vic Champs)
+# ---------------------------------------------------------------------------
+
+# Detection: "Final Results" followed by an ACRO category line
+GYM_ACRO_DETECT_RE = re.compile(
+    r"Final Results\s*\n\s*"
+    r"(?:Level\s+\d+|Junior\s+\d+-\d+|Senior|Adult)\s+"
+    r"(?:Women|Womens|Men|Mens|Mixed)",
+    re.IGNORECASE | re.MULTILINE,
+)
+
+# Category header: "Level 6 Mixed Pair" / "Junior 11-16 Women's Pair" / "Senior Mixed Pair"
+_GYM_ACRO_CATEGORY_RE = re.compile(
+    r"^(Level\s+\d+|Junior\s+\d+-\d+|Senior|Adult)"
+    r"\s+(Women'?s?|Womens?|Men'?s?|Mens?|Mixed)"
+    r"\s+(Pair|Trio|Group)\s*$",
+    re.IGNORECASE,
+)
+
+# Exercise line: "Balance ...", "Dynamic ...", "Combined ..."
+_GYM_ACRO_EXERCISE_RE = re.compile(r"^(Balance|Dynamic|Combined)\s+", re.IGNORECASE)
+
+# Lines to skip in GymACRO format
+_GYM_ACRO_SKIP_RE = re.compile(
+    r"^(?:Date:|Time:|Page:|# End|Total Final Overall|"
+    r"Rank Diff|E1\s+E2|A1\s+A2|Perform Penalties)",
+    re.IGNORECASE,
+)
+
+
+def _gym_acro_normalise_category(gender_raw: str, group_raw: str) -> str:
+    g_map = {
+        "women": "Women's", "womens": "Women's", "women's": "Women's",
+        "men":   "Men's",   "mens":   "Men's",   "men's":   "Men's",
+        "mixed": "Mixed",
+    }
+    t_map = {"pair": "Pair", "trio": "Group", "group": "Group"}
+    g_str = g_map.get(gender_raw.strip().lower(), gender_raw.strip().title())
+    t_str = t_map.get(group_raw.strip().lower(), group_raw.strip().title())
+    return f"{g_str} {t_str}"
+
+
+def _gym_acro_parse_athlete_line(line: str):
+    """Parse: '{bib} {club words} {First Last}[, {First Last}]... [{total}]'
+
+    Returns (bib, club, athletes_list, total_or_None).
+    """
+    tokens = line.split()
+    if not tokens or not tokens[0].isdigit():
+        return None, None, None, None
+
+    bib = tokens[0]
+    rest = line[len(bib):].strip()
+
+    # Try to strip trailing float (grand total)
+    total = None
+    m = re.match(r"^(.+?)\s+(\d+\.\d+)\s*$", rest)
+    if m:
+        try:
+            total = float(m.group(2))
+            rest = m.group(1).strip()
+        except ValueError:
+            pass
+
+    # rest = "{club words} {a1_first} {a1_last}, {a2_first} {a2_last}[, ...]"
+    comma_idx = rest.find(", ")
+    if comma_idx == -1:
+        words = rest.split()
+        if len(words) >= 3:
+            return bib, " ".join(words[:-2]), [" ".join(words[-2:])], total
+        return bib, "", [rest.strip()], total
+
+    first_seg = rest[:comma_idx]
+    remaining = [s.strip() for s in rest[comma_idx + 2:].split(", ") if s.strip()]
+    first_words = first_seg.split()
+    if len(first_words) >= 3:
+        athlete1 = first_words[-2] + " " + first_words[-1]
+        club = " ".join(first_words[:-2])
+    elif len(first_words) == 2:
+        athlete1 = " ".join(first_words)
+        club = ""
+    else:
+        athlete1 = first_words[0] if first_words else ""
+        club = ""
+
+    return bib, club, [athlete1] + remaining, total
+
+
+def parse_gym_acro(text_pages, pdf_path):
+    """Parse GymACRO custom scoring PDFs (Victorian State Trials / Senior Vic Champs).
+
+    Each page has one category with ranked athlete blocks. Each block:
+      - rank line (bare integer)
+      - athlete line: bib club athletes... [total]
+      - optional standalone total line
+      - Balance / Dynamic / Combined exercise lines
+    """
+    all_lines = []
+    for text in text_pages:
+        if not text:
+            continue
+        for line in text.splitlines():
+            s = line.strip()
+            if s:
+                all_lines.append(s)
+
+    if not all_lines:
+        return []
+
+    events = []
+    current_level = None
+    current_category = None
+    current_results = []
+
+    p_rank = p_athletes = p_club = p_total = None
+    p_bal = p_dyn = p_com = None
+    awaiting_total = False
+    in_results = False
+    comp_title = None
+
+    def _flush_entry():
+        if p_rank is not None and p_athletes:
+            current_results.append({
+                "rank":     p_rank,
+                "athletes": "|".join(_normalise_name(a) for a in p_athletes),
+                "club":     p_club or "",
+                "total":    p_total,
+                "bal":      p_bal,
+                "dyn":      p_dyn,
+                "com":      p_com,
+            })
+
+    def _emit_category(level, category, results):
+        if not results:
+            return
+        events.append({"level": level, "category": category, "event_type": "All-Around", "results": results})
+        for key, name in [("bal", "Balance"), ("dyn", "Dynamic"), ("com", "Combined")]:
+            ex = [r for r in results if r.get(key) is not None]
+            if not ex:
+                continue
+            ex_sorted = sorted(ex, key=lambda r: -(r[key] or 0))
+            ex_results = [
+                {"rank": i + 1, "athletes": r["athletes"], "club": r["club"],
+                 "total": r[key], "bal": None, "dyn": None, "com": None}
+                for i, r in enumerate(ex_sorted)
+            ]
+            events.append({"level": level, "category": category, "event_type": name, "results": ex_results})
+
+    for line in all_lines:
+        if _GYM_ACRO_SKIP_RE.match(line):
+            continue
+
+        if comp_title is None:
+            comp_title = line
+            continue
+
+        if re.match(r"^Final Results$", line, re.IGNORECASE):
+            in_results = True
+            continue
+
+        if not in_results:
+            continue
+
+        # Category header → start new event, flush previous
+        cat_m = _GYM_ACRO_CATEGORY_RE.match(line)
+        if cat_m:
+            _flush_entry()
+            _emit_category(current_level, current_category, current_results)
+            level_raw = cat_m.group(1).strip()
+            lw = level_raw.split()
+            current_level = ("Level " + lw[-1]) if lw[0].lower() == "level" else " ".join(w.title() for w in lw)
+            current_category = _gym_acro_normalise_category(cat_m.group(2), cat_m.group(3))
+            current_results = []
+            p_rank = p_athletes = p_club = p_total = None
+            p_bal = p_dyn = p_com = None
+            awaiting_total = False
+            continue
+
+        if current_level is None:
+            continue
+
+        # Standalone total on its own line (follows athlete line with no inline total)
+        if awaiting_total:
+            try:
+                p_total = float(line)
+                awaiting_total = False
+                continue
+            except ValueError:
+                awaiting_total = False
+
+        # Exercise line
+        if _GYM_ACRO_EXERCISE_RE.match(line) and p_athletes is not None:
+            floats = re.findall(r"\d+\.\d+", line)
+            if floats:
+                score = float(floats[-1])
+                et = line.split()[0].lower()
+                if et == "balance":
+                    p_bal = score
+                elif et == "dynamic":
+                    p_dyn = score
+                elif et == "combined":
+                    p_com = score
+            continue
+
+        # Rank line (bare integer)
+        if re.match(r"^\d+$", line):
+            _flush_entry()
+            p_rank = int(line)
+            p_athletes = p_club = p_total = None
+            p_bal = p_dyn = p_com = None
+            awaiting_total = False
+            continue
+
+        # Athlete line
+        if p_rank is not None and p_athletes is None:
+            bib, club, athletes, total = _gym_acro_parse_athlete_line(line)
+            if bib is not None:
+                p_athletes = athletes
+                p_club = club
+                p_total = total
+                if total is None:
+                    awaiting_total = True
+
+    # Final flush
+    _flush_entry()
+    _emit_category(current_level, current_category, current_results)
+
+    return events
+
+
+# ---------------------------------------------------------------------------
 # ScoreExpress ACRO constants
 # ---------------------------------------------------------------------------
 
@@ -2041,6 +2272,11 @@ def parse_pdf(pdf_path, sport="WAG"):
         text_pages = [page.extract_text() for page in pdf.pages]
 
     full_text = "\n".join(t for t in text_pages if t)
+
+    # GymACRO custom scoring system (Victorian State Trials / Vic Champs format)
+    if sport == "ACRO" and GYM_ACRO_DETECT_RE.search(full_text):
+        events = parse_gym_acro(text_pages, pdf_path)
+        return (events, "gym-acro") if events else ([], "gym-acro-empty")
 
     # ScoreExpress ACRO — check before filename-meta guard (ACRO files have no level in name)
     if sport == "ACRO" and SCOREEXPRESS_RE.search(full_text):

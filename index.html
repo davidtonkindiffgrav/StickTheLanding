@@ -2399,7 +2399,7 @@ async function renderAcroClubs() {
     const rank = i + 1;
     const badge = rank <= 3 ? `<span class="rank-badge rank-${rank}">${rank}</span>` : `<span class="rank-badge rank-n">${rank}</span>`;
     const hiTip = s.highScoreComp ? ` title="${esc(s.highScoreComp)}" data-tip="${esc(s.highScoreComp)}" style="cursor:pointer"` : "";
-    const code = CLUBS_BY_NAME[s.club];
+    const code = CLUBS_BY_NAME[s.club] || s.club;
     const logoCell = code ? `<td class="logo-cell">${clubLogo(code, "club-logo-sm")}</td>` : `<td></td>`;
     const nameCell = code ? `<strong>${clubDisplay(code)}</strong>` : `<strong>${esc(s.club)}</strong>`;
     return `<tr>
@@ -2489,7 +2489,7 @@ async function renderAcroPartnerships() {
     const scoreCells = isAA
       ? `<td class="score">${fmt(p.bestBal)}</td><td class="score">${fmt(p.bestDyn)}</td><td class="score">${fmt(p.bestCom)}</td>`
       : `<td class="score">${fmt(p.bestDiff)}</td><td class="score">${fmt(p.bestExec)}</td><td class="score">${fmt(p.bestArt)}</td>`;
-    const pCode = CLUBS_BY_NAME[p.club];
+    const pCode = CLUBS_BY_NAME[p.club] || p.club;
     const pClub = pCode ? clubDisplay(pCode) : esc(p.club);
     return `<tr>
       <td>${badge}</td>
