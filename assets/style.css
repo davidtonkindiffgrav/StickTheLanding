@@ -160,20 +160,7 @@
       white-space: nowrap;
     }
     #back-btn:hover { border-color: var(--accent); color: var(--text); }
-    #season-selector { display: flex; gap: 4px; flex-wrap: nowrap; align-items: center; margin-left: auto; padding: 0 8px; }
-    .season-btn {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      color: var(--muted);
-      padding: 5px 13px;
-      border-radius: 999px;
-      cursor: pointer;
-      font-size: 0.82rem;
-      font-weight: 600;
-      transition: all 0.12s;
-    }
-    .season-btn:hover { border-color: var(--accent); color: var(--text); }
-    .season-btn.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+    #apparatus-year option { background: #ffffff; color: #111111; }
 
     /* ── NAV ───────────────────────────────────────────────────────────────── */
     nav {
@@ -1062,7 +1049,7 @@
       nav button { padding: 12px 14px; font-size: 0.85rem; }
       .header-inner { gap: 10px; }
       #sport-bar { gap: 6px; }
-      #back-btn, .season-btn { padding: 4px 10px; font-size: 0.78rem; }
+      #back-btn { padding: 4px 10px; font-size: 0.78rem; }
       .badge { font-size: 0.65rem; padding: 2px 6px; }
     }
 

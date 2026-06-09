@@ -205,7 +205,6 @@
     <button onclick="showCalendar('app')">Events</button>
     <button data-view="graphs">Graphs</button>
     <button onclick="showContact('app')">Contact</button>
-    <div id="season-selector"></div>
     <button id="search-btn" onclick="openSearchPanel()" title="Search athletes or browse results"><i class="fas fa-search"></i></button>
   </nav>
   <nav id="apparatus-nav">
@@ -632,7 +631,6 @@ async function enterSport(sport) {
     ));
     availableSeasons = seasRows.map(([s]) => s);
     currentSeason    = availableSeasons[0] || new Date().getFullYear().toString();
-    document.getElementById("apparatus-year").textContent = currentSeason;
 
     // Clubs
     if (!CLUBS_LIST.length) {
@@ -666,10 +664,9 @@ async function enterSport(sport) {
   document.querySelector('[data-view="clubs"]').textContent    = sport === "ACRO" ? "Club Standings"      : "Team Standings";
   document.querySelector('[data-view="athletes"]').textContent = sport === "ACRO" ? "Partnerships"        : "Individual Rankings";
 
+  rebuildApparatusNav(sport);
   renderSeasonButtons();
   resetFilters();
-  rebuildApparatusNav(sport);
-  document.getElementById("apparatus-year").textContent = currentSeason;
   buildLevelFilters();
   buildRegionFilters();
 
@@ -719,23 +716,19 @@ function exitToLanding() {
 // Seasons
 // ─────────────────────────────────────────────────────────────────────────────
 function renderSeasonButtons() {
-  const sel = document.getElementById("season-selector");
+  const sel = document.getElementById("apparatus-year");
+  if (!sel || sel.tagName !== "SELECT") return;
   sel.innerHTML = availableSeasons.map(s =>
-    `<button class="season-btn${s === currentSeason ? " active" : ""}" data-season="${esc(s)}">${esc(s)}</button>`
+    `<option value="${esc(s)}">${esc(s)}</option>`
   ).join("");
-  sel.querySelectorAll(".season-btn").forEach(btn => {
-    btn.addEventListener("click", async () => {
-      currentSeason = btn.dataset.season;
-      document.getElementById("apparatus-year").textContent = currentSeason;
-      sel.querySelectorAll(".season-btn").forEach(b =>
-        b.classList.toggle("active", b.dataset.season === currentSeason)
-      );
-      await reloadLevelDivs();
-      resetFilters();
-      buildLevelFilters();
-      buildRegionFilters();
-    });
-  });
+  sel.value = currentSeason;
+  sel.onchange = async () => {
+    currentSeason = sel.value;
+    await reloadLevelDivs();
+    resetFilters();
+    buildLevelFilters();
+    buildRegionFilters();
+  };
 }
 
 async function reloadLevelDivs() {
@@ -2140,7 +2133,7 @@ function rebuildApparatusNav(sport) {
   activeApparatus = defaultApp;
   nav.innerHTML = buttons.map(([key, label]) =>
     `<button${key === defaultApp ? ' class="active"' : ""} data-apparatus="${key}">${label}</button>`
-  ).join("") + `<span id="apparatus-year" style="margin-left:auto;padding:0 20px;font-size:1.1rem;font-weight:700;color:var(--text);align-self:center;letter-spacing:1px"></span>`;
+  ).join("") + `<select id="apparatus-year" style="margin-left:auto;font-size:1.1rem;font-weight:700;color:var(--text);background:transparent;border:1px solid var(--border);border-radius:6px;padding:4px 12px;cursor:pointer;outline:none;letter-spacing:1px;align-self:center"></select>`;
   nav.querySelectorAll("button[data-apparatus]").forEach(btn => {
     btn.addEventListener("click", () => {
       activeApparatus = btn.dataset.apparatus;
