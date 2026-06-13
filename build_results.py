@@ -511,7 +511,14 @@ def build_competitions_index(sport: str, con: sqlite3.Connection, results_index:
             f'<div class="ci-list">{"".join(rows_html)}</div>'
         )
 
-    meta_desc = f"All {sport_full} competitions on Stick The Landing."
+    years     = sorted(by_season.keys())
+    year_range = f"{years[0]}–{years[-1]}" if len(years) > 1 else years[0]
+    n_comps   = sum(len(v) for v in by_season.values())
+    meta_desc = (
+        f"Results from {n_comps} {sport_full} competitions across the "
+        f"{year_range} Victorian season — invitational, regional championships, "
+        f"state trials, and Victorian Championships."
+    )
     html = f"""<!DOCTYPE html>
 <html lang="en">
 <head>
