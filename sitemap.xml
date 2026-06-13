@@ -46,6 +46,18 @@
     <priority>0.4</priority>
   </url>
   <url>
+    <loc>https://stickthelanding.com.au/news/posts/2026-06-13-BTYC-Profile/</loc>
+    <lastmod>2026-06-13</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://stickthelanding.com.au/news/posts/2026-06-10-Waverley-Profile/</loc>
+    <lastmod>2026-06-10</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
     <loc>https://stickthelanding.com.au/news/posts/2026-06-06-D-vs-E-Does-Difficulty-Win/</loc>
     <lastmod>2026-06-06</lastmod>
     <changefreq>monthly</changefreq>
@@ -101,7 +113,7 @@
   </url>
   <url>
     <loc>https://stickthelanding.com.au/results/wag/waverley-invite-2026/</loc>
-    <lastmod>2026-10-05</lastmod>
+    <lastmod>2026-06-13</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>

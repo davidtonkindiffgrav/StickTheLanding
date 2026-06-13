@@ -1,12 +1,6 @@
 [
   {
     "sport": "wag",
-    "comp_id": "waverley-invite-2026",
-    "name": "Waverley Invite",
-    "date": "2026-10-05"
-  },
-  {
-    "sport": "wag",
     "comp_id": "senior-victorian-championships-2026",
     "name": "Senior Victorian Championships",
     "date": "2026-05-22"
@@ -22,6 +16,12 @@
     "comp_id": "senior-victorian-championships-apparatus-2026",
     "name": "Senior Victorian Championships - Apparatus",
     "date": "2026-05-22"
+  },
+  {
+    "sport": "wag",
+    "comp_id": "waverley-invite-2026",
+    "name": "Waverley Invite",
+    "date": "2026-05-10"
   },
   {
     "sport": "acro",

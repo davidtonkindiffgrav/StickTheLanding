@@ -329,6 +329,7 @@ def render_page(comp: sqlite3.Row, tree: dict, sport: str) -> str:
   <meta property="og:title"       content="{name} Results — Stick The Landing" />
   <meta property="og:description" content="{meta_desc}" />
   <meta property="og:url"         content="{BASE_URL}/results/{sport.lower()}/{comp_id}/" />
+  <link rel="canonical"           href="{BASE_URL}/results/{sport.lower()}/{comp_id}/" />
   <link rel="apple-touch-icon" sizes="180x180" href="/assets/favicons/apple-touch-icon.png" />
   <link rel="icon" type="image/png" sizes="32x32"  href="/assets/favicons/favicon-32x32.png" />
   <link rel="icon" type="image/png" sizes="16x16"  href="/assets/favicons/favicon-16x16.png" />
@@ -523,6 +524,7 @@ def build_competitions_index(sport: str, con: sqlite3.Connection, results_index:
   <meta property="og:title"       content="{sport_full} Competitions — Stick The Landing" />
   <meta property="og:description" content="{meta_desc}" />
   <meta property="og:url"         content="{BASE_URL}/competitions/{sport.lower()}/" />
+  <link rel="canonical"           href="{BASE_URL}/competitions/{sport.lower()}/" />
   <link rel="apple-touch-icon" sizes="180x180" href="/assets/favicons/apple-touch-icon.png" />
   <link rel="icon" type="image/png" sizes="32x32"  href="/assets/favicons/favicon-32x32.png" />
   <link rel="icon" type="image/png" sizes="16x16"  href="/assets/favicons/favicon-16x16.png" />
