@@ -329,6 +329,8 @@ def render_page(comp: sqlite3.Row, tree: dict, sport: str) -> str:
   <meta property="og:title"       content="{name} Results — Stick The Landing" />
   <meta property="og:description" content="{meta_desc}" />
   <meta property="og:url"         content="{BASE_URL}/results/{sport.lower()}/{comp_id}/" />
+  <meta property="og:image"       content="{BASE_URL}/assets/favicons/android-chrome-512x512.png" />
+  <meta name="twitter:card"       content="summary" />
   <link rel="canonical"           href="{BASE_URL}/results/{sport.lower()}/{comp_id}/" />
   <link rel="apple-touch-icon" sizes="180x180" href="/assets/favicons/apple-touch-icon.png" />
   <link rel="icon" type="image/png" sizes="32x32"  href="/assets/favicons/favicon-32x32.png" />
@@ -524,6 +526,8 @@ def build_competitions_index(sport: str, con: sqlite3.Connection, results_index:
   <meta property="og:title"       content="{sport_full} Competitions — Stick The Landing" />
   <meta property="og:description" content="{meta_desc}" />
   <meta property="og:url"         content="{BASE_URL}/competitions/{sport.lower()}/" />
+  <meta property="og:image"       content="{BASE_URL}/assets/favicons/android-chrome-512x512.png" />
+  <meta name="twitter:card"       content="summary" />
   <link rel="canonical"           href="{BASE_URL}/competitions/{sport.lower()}/" />
   <link rel="apple-touch-icon" sizes="180x180" href="/assets/favicons/apple-touch-icon.png" />
   <link rel="icon" type="image/png" sizes="32x32"  href="/assets/favicons/favicon-32x32.png" />
