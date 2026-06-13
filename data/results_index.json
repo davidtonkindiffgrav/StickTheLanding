@@ -175,6 +175,12 @@
   },
   {
     "sport": "wag",
+    "comp_id": "metro-south-regional-championships-2025",
+    "name": "Metro South Regional Championships",
+    "date": "2025-09-13"
+  },
+  {
+    "sport": "wag",
     "comp_id": "metro-west-regional-championships-2025",
     "name": "Metro West Regional Championships",
     "date": "2025-09-13"
@@ -183,12 +189,6 @@
     "sport": "wag",
     "comp_id": "south-east-regional-championships-2025",
     "name": "South East Regional Championships",
-    "date": "2025-09-13"
-  },
-  {
-    "sport": "wag",
-    "comp_id": "metro-south-regional-championships-2025",
-    "name": "Metro South Regional Championships",
     "date": "2025-09-13"
   },
   {
