@@ -63,6 +63,8 @@
           '<div class="stl-nav-divider"></div>' +
           a('/contact/', 'Contact') +
           a('/privacy/', 'Privacy') +
+          '<div class="stl-nav-divider"></div>' +
+          '<a class="stl-nav-link" href="https://www.facebook.com/StickTheLandingGymnastics" target="_blank" rel="noopener" aria-label="Stick The Landing on Facebook"><i class="fab fa-facebook"></i></a>' +
         '</div>' +
         '<div class="stl-nav-divider"></div>' +
         '<button class="stl-theme-btn" id="stl-theme-btn" aria-label="Toggle theme" title="Toggle dark/light mode">' +
