@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-RQH8J568DE"></script>
+  <script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-RQH8J568DE');</script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="robots" content="noindex" />
+  <script>!function(){document.documentElement.dataset.theme=localStorage.getItem('stl-theme')||(matchMedia('(prefers-color-scheme:dark)').matches?'dark':'light')}()</script>
+  <title>Find a Gymnast — WAG — Stick The Landing</title>
+  <link rel="apple-touch-icon" sizes="180x180" href="/assets/favicons/apple-touch-icon.png" />
+  <link rel="icon" type="image/png" sizes="32x32" href="/assets/favicons/favicon-32x32.png" />
+  <link rel="stylesheet" href="/assets/style.css?v=3" />
+  <style>
+    /* WAG accent override */
+    :root { --accent: #7c6dfa; --accent-rgb: 124,109,250; --accent-glow: rgba(124,109,250,0.18); }
+    [data-theme="light"] { --accent: #7c6dfa; }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      min-height: 100dvh;
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+      padding: 0 16px 40px;
+      font-family: 'Space Grotesk', system-ui, sans-serif;
+    }
+
+    .portal {
+      width: 100%;
+      max-width: 480px;
+      padding-top: clamp(48px, 12vh, 96px);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .sport-badge {
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--accent);
+      background: var(--accent-glow);
+      border: 1px solid var(--accent);
+      border-radius: 6px;
+      padding: 4px 12px;
+    }
+
+    .portal-title {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--text);
+      margin-top: 4px;
+    }
+
+    .portal-sub {
+      font-size: 0.85rem;
+      color: var(--muted);
+      margin-bottom: 8px;
+    }
+
+    .search-wrap {
+      width: 100%;
+      position: relative;
+      margin-top: 8px;
+    }
+
+    #q {
+      width: 100%;
+      padding: 16px 18px;
+      font-size: 1.1rem;
+      font-family: inherit;
+      background: var(--surface);
+      color: var(--text);
+      border: 2px solid var(--surface2);
+      border-radius: 12px;
+      outline: none;
+      transition: border-color 0.15s;
+      -webkit-appearance: none;
+    }
+
+    #q:focus { border-color: var(--accent); }
+    #q::placeholder { color: var(--muted); }
+
+    #status {
+      text-align: center;
+      font-size: 0.82rem;
+      color: var(--muted);
+      padding: 10px 0;
+    }
+
+    #list {
+      list-style: none;
+      width: 100%;
+      margin-top: 6px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    #list li {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 18px;
+      background: var(--surface);
+      border: 1px solid var(--surface2);
+      border-radius: 10px;
+      cursor: pointer;
+      transition: border-color 0.12s, background 0.12s;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    #list li:hover,
+    #list li:active { border-color: var(--accent); background: var(--surface2); }
+
+    .sug-name {
+      font-weight: 600;
+      font-size: 1rem;
+      color: var(--text);
+    }
+
+    .sug-club {
+      font-size: 0.78rem;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      color: var(--accent);
+      background: var(--accent-glow);
+      padding: 2px 8px;
+      border-radius: 4px;
+      white-space: nowrap;
+    }
+
+    .no-results {
+      text-align: center;
+      color: var(--muted);
+      font-size: 0.9rem;
+      padding: 20px 0;
+    }
+
+    .portal-footer {
+      margin-top: 32px;
+      font-size: 0.78rem;
+      color: var(--muted);
+    }
+
+    .portal-footer a { color: var(--muted); text-decoration: none; }
+    .portal-footer a:hover { color: var(--text); }
+  </style>
+</head>
+<body>
+
+  <div class="portal">
+    <div class="sport-badge">WAG</div>
+    <h1 class="portal-title">Find a Gymnast</h1>
+    <p class="portal-sub">Stick The Landing</p>
+
+    <div class="search-wrap">
+      <input
+        id="q"
+        type="search"
+        placeholder="Type an athlete's name…"
+        autofocus
+        autocomplete="off"
+        autocorrect="off"
+        autocapitalize="off"
+        spellcheck="false"
+        inputmode="search"
+      />
+      <div id="status">Loading…</div>
+      <ul id="list"></ul>
+    </div>
+
+    <p class="portal-footer"><a href="/">stickthelanding.com.au</a></p>
+  </div>
+
+  <script>
+    const DEST = '/#WAG/athlete/';
+    let athletes = [];
+    let ready = false;
+
+    fetch('/data/athletes_WAG.json')
+      .then(r => r.json())
+      .then(data => {
+        athletes = data;
+        ready = true;
+        document.getElementById('status').style.display = 'none';
+        if (document.getElementById('q').value.trim()) filter();
+      })
+      .catch(() => {
+        document.getElementById('status').textContent = 'Could not load athlete list.';
+      });
+
+    const q = document.getElementById('q');
+    const list = document.getElementById('list');
+    const status = document.getElementById('status');
+
+    let timer;
+    q.addEventListener('input', () => { clearTimeout(timer); timer = setTimeout(filter, 150); });
+
+    function go(name) {
+      window.location.href = DEST + encodeURIComponent(name);
+    }
+
+    function filter() {
+      const term = q.value.trim().toLowerCase();
+      list.innerHTML = '';
+      if (!term) return;
+      if (!ready) { status.style.display = ''; status.textContent = 'Loading…'; return; }
+      status.style.display = 'none';
+      const matches = athletes.filter(a => a.name.toLowerCase().includes(term)).slice(0, 8);
+      if (matches.length === 0) {
+        list.innerHTML = '<li class="no-results" style="border:none;background:none;cursor:default">No athletes found</li>';
+        return;
+      }
+      matches.forEach(a => {
+        const li = document.createElement('li');
+        li.innerHTML = `<span class="sug-name">${a.name}</span><span class="sug-club">${a.club}</span>`;
+        li.addEventListener('click', () => go(a.name));
+        list.appendChild(li);
+      });
+    }
+  </script>
+
+</body>
+</html>
