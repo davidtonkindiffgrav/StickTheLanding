@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-RQH8J568DE"></script>
+  <script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-RQH8J568DE');</script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="robots" content="noindex" />
+  <script>!function(){document.documentElement.dataset.theme=localStorage.getItem('stl-theme')||(matchMedia('(prefers-color-scheme:dark)').matches?'dark':'light')}()</script>
+  <title>Find a Gymnast — Stick The Landing</title>
+  <link rel="apple-touch-icon" sizes="180x180" href="/assets/favicons/apple-touch-icon.png" />
+  <link rel="icon" type="image/png" sizes="32x32" href="/assets/favicons/favicon-32x32.png" />
+  <link rel="stylesheet" href="/assets/style.css?v=3" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      min-height: 100dvh;
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+      padding: 0 16px 40px;
+      font-family: 'Space Grotesk', system-ui, sans-serif;
+    }
+
+    .portal {
+      width: 100%;
+      max-width: 480px;
+      padding-top: clamp(48px, 12vh, 96px);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .portal-title {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--text);
+      margin-top: 4px;
+    }
+
+    .portal-sub {
+      font-size: 0.85rem;
+      color: var(--muted);
+      margin-bottom: 4px;
+    }
+
+    .sport-toggle {
+      display: flex;
+      gap: 10px;
+      margin: 12px 0 4px;
+    }
+
+    .sport-btn {
+      flex: 1;
+      padding: 13px 28px;
+      font-size: 0.95rem;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      font-family: inherit;
+      border-radius: 10px;
+      border: 2px solid var(--surface2);
+      background: var(--surface);
+      color: var(--muted);
+      cursor: pointer;
+      transition: border-color 0.15s, color 0.15s, background 0.15s;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .sport-btn.active[data-sport="WAG"] {
+      border-color: #7c6dfa;
+      color: #7c6dfa;
+      background: rgba(124,109,250,0.12);
+    }
+
+    .sport-btn.active[data-sport="MAG"] {
+      border-color: #34d399;
+      color: #34d399;
+      background: rgba(52,211,153,0.12);
+    }
+
+    .search-wrap {
+      width: 100%;
+      margin-top: 8px;
+    }
+
+    #q {
+      width: 100%;
+      padding: 16px 18px;
+      font-size: 1.1rem;
+      font-family: inherit;
+      background: var(--surface);
+      color: var(--text);
+      border: 2px solid var(--surface2);
+      border-radius: 12px;
+      outline: none;
+      transition: border-color 0.15s;
+      -webkit-appearance: none;
+    }
+
+    #q:focus { border-color: var(--active-accent, var(--muted)); }
+    #q::placeholder { color: var(--muted); }
+
+    #status {
+      text-align: center;
+      font-size: 0.82rem;
+      color: var(--muted);
+      padding: 10px 0;
+      display: none;
+    }
+
+    #list {
+      list-style: none;
+      width: 100%;
+      margin-top: 6px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    #list li {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 18px;
+      background: var(--surface);
+      border: 1px solid var(--surface2);
+      border-radius: 10px;
+      cursor: pointer;
+      transition: border-color 0.12s, background 0.12s;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    #list li:hover,
+    #list li:active { background: var(--surface2); }
+
+    #list li:hover { border-color: var(--active-accent, var(--muted)); }
+
+    .sug-name {
+      font-weight: 600;
+      font-size: 1rem;
+      color: var(--text);
+    }
+
+    .sug-club {
+      font-size: 0.78rem;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      padding: 2px 8px;
+      border-radius: 4px;
+      white-space: nowrap;
+    }
+
+    .sug-club.wag {
+      color: #7c6dfa;
+      background: rgba(124,109,250,0.12);
+    }
+
+    .sug-club.mag {
+      color: #34d399;
+      background: rgba(52,211,153,0.12);
+    }
+
+    .no-results {
+      text-align: center;
+      color: var(--muted);
+      font-size: 0.9rem;
+      padding: 20px 0;
+    }
+
+    .portal-footer {
+      margin-top: 32px;
+      font-size: 0.78rem;
+      color: var(--muted);
+    }
+
+    .portal-footer a { color: var(--muted); text-decoration: none; }
+    .portal-footer a:hover { color: var(--text); }
+  </style>
+</head>
+<body>
+
+  <div class="portal">
+    <h1 class="portal-title">Find a Gymnast</h1>
+    <p class="portal-sub">Stick The Landing</p>
+
+    <div class="sport-toggle">
+      <button class="sport-btn" data-sport="WAG">WAG</button>
+      <button class="sport-btn" data-sport="MAG">MAG</button>
+    </div>
+
+    <div class="search-wrap">
+      <input
+        id="q"
+        type="search"
+        placeholder="Select a sport above…"
+        disabled
+        autocomplete="off"
+        autocorrect="off"
+        autocapitalize="off"
+        spellcheck="false"
+        inputmode="search"
+      />
+      <div id="status"></div>
+      <ul id="list"></ul>
+    </div>
+
+    <p class="portal-footer"><a href="/">stickthelanding.com.au</a></p>
+  </div>
+
+  <script>
+    const data = { WAG: null, MAG: null };
+    const q = document.getElementById('q');
+    const list = document.getElementById('list');
+    const status = document.getElementById('status');
+    let sport = null;
+    let timer;
+
+    // Pre-fetch both lists immediately
+    ['WAG', 'MAG'].forEach(s => {
+      fetch(`/data/athletes_${s}.json`)
+        .then(r => r.json())
+        .then(d => { data[s] = d; })
+        .catch(() => {});
+    });
+
+    document.querySelectorAll('.sport-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.sport-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        sport = btn.dataset.sport;
+        document.documentElement.style.setProperty(
+          '--active-accent',
+          sport === 'WAG' ? '#7c6dfa' : '#34d399'
+        );
+        q.disabled = false;
+        q.placeholder = 'Type an athlete\'s name…';
+        q.focus();
+        list.innerHTML = '';
+        status.style.display = 'none';
+        if (q.value.trim()) filter();
+      });
+    });
+
+    q.addEventListener('input', () => { clearTimeout(timer); timer = setTimeout(filter, 150); });
+
+    function go(name) {
+      window.location.href = `/#${sport}/athlete/` + encodeURIComponent(name);
+    }
+
+    function filter() {
+      const term = q.value.trim().toLowerCase();
+      list.innerHTML = '';
+      if (!term || !sport) return;
+      if (!data[sport]) {
+        status.style.display = '';
+        status.textContent = 'Loading…';
+        return;
+      }
+      status.style.display = 'none';
+      const matches = data[sport].filter(a => a.name.toLowerCase().includes(term)).slice(0, 8);
+      if (matches.length === 0) {
+        list.innerHTML = '<li class="no-results" style="border:none;background:none;cursor:default">No athletes found</li>';
+        return;
+      }
+      const cls = sport.toLowerCase();
+      matches.forEach(a => {
+        const li = document.createElement('li');
+        li.innerHTML = `<span class="sug-name">${a.name}</span><span class="sug-club ${cls}">${a.club}</span>`;
+        li.addEventListener('click', () => go(a.name));
+        list.appendChild(li);
+      });
+    }
+  </script>
+
+</body>
+</html>
