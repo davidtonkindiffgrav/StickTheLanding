@@ -248,9 +248,9 @@
       font-size: 0.8rem;
       flex-shrink: 0;
     }
-    .rank-1 { background: var(--gold); color: #000; }
-    .rank-2 { background: var(--silver); color: #000; }
-    .rank-3 { background: var(--bronze); color: #fff; }
+    .rank-1 { background: linear-gradient(135deg, #9a7508 0%, #ffd740 42%, #c8a00a 100%); color: #000; }
+    .rank-2 { background: linear-gradient(135deg, #78838e 0%, #d4dbe3 42%, #96a2ac 100%); color: #000; }
+    .rank-3 { background: linear-gradient(135deg, #7a3c0a 0%, #e08c35 42%, #9c5018 100%); color: #fff; }
     .rank-n { background: var(--surface2); color: var(--muted); }
 
     .stat-chip {
