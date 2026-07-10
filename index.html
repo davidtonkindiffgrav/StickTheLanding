@@ -3594,25 +3594,22 @@ async function fetchClubSportData(dbHandle, sport, code) {
     SELECT e.level, COUNT(DISTINCT r.athlete)
     FROM results r JOIN events e ON e.id = r.event_id JOIN competitions c ON c.id = e.competition_id
     WHERE r.club = ? AND c.sport = ? AND e.level IS NOT NULL
-    GROUP BY e.level ORDER BY CAST(e.level AS INTEGER)
+    GROUP BY e.level HAVING COUNT(DISTINCT r.athlete) > 0 ORDER BY CAST(e.level AS INTEGER)
   `, [code, sport]));
 
-  let avgRows = [];
-  if (latestSeason) {
-    avgRows = _execRows(await dbHandle.exec(`
-      SELECT e.level,
-             AVG(CASE WHEN r.club = ? THEN r.total END) AS club_avg,
-             COUNT(CASE WHEN r.club = ? THEN r.total END) AS club_n,
-             AVG(r.total) AS state_avg
-      FROM results r
-      JOIN events e ON e.id = r.event_id
-      JOIN competitions c ON c.id = e.competition_id
-      WHERE c.sport = ? AND c.season = ? AND e.event_type = 'AA' AND r.total IS NOT NULL
-      GROUP BY e.level
-      HAVING club_n >= 3
-      ORDER BY CAST(e.level AS INTEGER)
-    `, [code, code, sport, latestSeason]));
-  }
+  const avgRows = _execRows(await dbHandle.exec(`
+    SELECT e.level,
+           AVG(CASE WHEN r.club = ? THEN r.total END) AS club_avg,
+           COUNT(CASE WHEN r.club = ? THEN r.total END) AS club_n,
+           AVG(r.total) AS state_avg
+    FROM results r
+    JOIN events e ON e.id = r.event_id
+    JOIN competitions c ON c.id = e.competition_id
+    WHERE c.sport = ? AND e.event_type = 'AA' AND r.total IS NOT NULL
+    GROUP BY e.level
+    HAVING club_n >= 3
+    ORDER BY CAST(e.level AS INTEGER)
+  `, [code, code, sport]));
   const avgByLevel = {};
   for (const [lvl, clubAvg, clubN, stateAvg] of avgRows) avgByLevel[lvl] = { clubAvg, stateAvg };
   const levels = countRows.map(([level, count]) => ({
@@ -3790,7 +3787,7 @@ async function onClubChartModeChange(mode) {
       wrap.querySelector('.clubA-chart-body').innerHTML = `<div class="clubA-loading">Loading…</div>`;
       const dbHandle = sport === currentSport ? DB : CLUB_ALT_DB[sport];
       if (!dbHandle) return;
-      data.apparatusVsState = await fetchClubApparatusVsState(dbHandle, sport, code, data.latestSeason);
+      data.apparatusVsState = await fetchClubApparatusVsState(dbHandle, sport, code);
     }
     items = data.apparatusVsState;
   } else {
@@ -3842,18 +3839,18 @@ function clubChartBodyHtml(items, accent) {
 // Club vs. state average, per apparatus instead of per level (optional levels
 // blended, same convention as the radar's "All levels" default, since raw
 // apparatus scores aren't comparable across compulsory/optional levels).
-async function fetchClubApparatusVsState(dbHandle, sport, code, season) {
+async function fetchClubApparatusVsState(dbHandle, sport, code) {
   const apps = (CLUB_RECORD_APPS[sport] || []).filter(([col]) => col !== 'total');
-  if (!season || !apps.length) return [];
+  if (!apps.length) return [];
   const sql = apps.map(([col]) => `
     SELECT '${col}' AS key,
            AVG(CASE WHEN r.club = ? THEN ${col} END) AS club_avg,
            COUNT(CASE WHEN r.club = ? THEN ${col} END) AS club_n,
            AVG(${col}) AS state_avg
     FROM results r JOIN events e ON e.id = r.event_id JOIN competitions c ON c.id = e.competition_id
-    WHERE c.sport = ? AND c.season = ? AND e.event_type != 'Team' AND e.level > 6 AND ${col} > 0
+    WHERE c.sport = ? AND e.event_type != 'Team' AND e.level > 6 AND ${col} > 0
   `).join(' UNION ALL ');
-  const params = apps.flatMap(() => [code, code, sport, season]);
+  const params = apps.flatMap(() => [code, code, sport]);
   const labelByCol = Object.fromEntries(CLUB_RECORD_APPS[sport] || []);
   return _execRows(await dbHandle.exec(sql, params))
     .filter(([key, clubAvg, clubN, stateAvg]) => clubN >= 3 && clubAvg != null && stateAvg != null)
