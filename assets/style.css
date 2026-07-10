@@ -1340,6 +1340,234 @@
   box-sizing: border-box;
 }
 
+/* ── CLUB DIRECTORY (still used by the directory table, unrelated to the club profile page) ── */
+.club-dir-row:hover { background: var(--surface2); }
+
+/* ── CLUB PROFILE ──────────────────────────────────────────────────────────────
+   Ported near-verbatim from the design handoff (club-profile-direction-a.jsx),
+   scoped under .clubA so it doesn't fight the site's own --surface/--border tokens.
+   See D:\Downloads\design_handoff_club_profile\README.md for the design rationale. */
+.clubA {
+  font-family: 'Space Grotesk', 'Inter', system-ui, sans-serif;
+  width: 100%;
+  box-sizing: border-box;
+  position: relative;
+  font-size: 13px;
+}
+.clubA *, .clubA *::before, .clubA *::after { box-sizing: border-box; }
+/* Tracks the site's live html[data-theme] toggle (assets/nav.js), not a snapshot
+   taken at render time, so flipping the theme after the page has loaded works. */
+.clubA {
+  --cA-bg: #0a0b10; --cA-panel: #14161f; --cA-panel-2: #191c29; --cA-line: #232739; --cA-line-2: #2c3148;
+  --cA-text: #f2f3fa; --cA-muted: #8d92ac; --cA-dim: #5d6285;
+}
+html[data-theme="light"] .clubA {
+  --cA-bg: #f7f7f5; --cA-panel: #ffffff; --cA-panel-2: #fbfbfa; --cA-line: #e6e5e0; --cA-line-2: #d8d7d0;
+  --cA-text: #1a1a1f; --cA-muted: #63636f; --cA-dim: #93939c;
+}
+.clubA { background: var(--cA-bg); color: var(--cA-text); border-radius: 12px; overflow: hidden; }
+.clubA a { color: inherit; }
+
+/* header */
+.clubA-head { display:flex; align-items:center; justify-content:space-between; padding: 20px 32px 0; gap: 20px; flex-wrap: wrap; }
+.clubA-brand { display:flex; align-items:center; gap: 13px; }
+.clubA-logo { width: 44px; height: 44px; border-radius: 12px; display:grid; place-items:center;
+  font: 700 20px 'Space Grotesk',sans-serif; flex-shrink:0; overflow: hidden; }
+.clubA-logo img { width: 100%; height: 100%; object-fit: contain; }
+.clubA-id h1 { margin:0; font-size: 20px; font-weight: 700; letter-spacing: -0.015em; }
+.clubA-id .meta { display:flex; gap:8px; align-items:center; margin-top:4px; font: 600 10.5px/1 'JetBrains Mono',monospace;
+  letter-spacing:.06em; text-transform:uppercase; color: var(--cA-muted); }
+.clubA-id .meta .code { padding: 2px 6px; border-radius: 5px; border: 1px solid var(--cA-line-2); }
+
+.clubA-switch { display:flex; gap:3px; padding:3px; border:1px solid var(--cA-line); border-radius: 10px; background: var(--cA-panel); }
+.clubA-switch button { all:unset; cursor:pointer; padding: 7px 15px; border-radius: 7px; font: 700 12px 'Space Grotesk',sans-serif;
+  color: var(--cA-muted); transition: background .15s, color .15s; }
+.clubA-switch button.cur { color: #0a0b10; }
+.clubA-switch button[disabled] { opacity: .4; cursor: default; }
+
+/* two-column dashboard body */
+.clubA-body { display:grid; grid-template-columns: 1fr 300px; gap: 16px; padding: 16px 32px 32px; align-items:start; }
+.clubA-main, .clubA-sidebar { display:flex; flex-direction:column; gap: 14px; min-width:0; }
+
+/* profile card (sidebar, non-data "about") */
+.clubA-profile { border:1px solid var(--cA-line); border-radius: 12px; background: var(--cA-panel); overflow:hidden; }
+.clubA-profile-pic { height: 64px; background-image: repeating-linear-gradient(45deg, var(--cA-panel-2) 0 7px, var(--cA-line) 7px 8px);
+  display:flex; align-items:center; justify-content:center; }
+.clubA-profile-pic .mono { font: 700 28px 'Space Grotesk',sans-serif; opacity:.4; }
+.clubA-profile-body { padding: 12px 14px; display:flex; flex-direction:column; gap:6px; }
+.clubA-profile-top { display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+.clubA-profile-top h2 { margin:0; font-size: 14px; font-weight: 700; }
+.clubA-profile-top .est { font:700 9.5px 'JetBrains Mono',monospace; letter-spacing:.06em; text-transform:uppercase; color:var(--cA-muted);
+  border:1px solid var(--cA-line-2); border-radius:999px; padding:2px 7px; }
+.clubA-profile-desc { font-size: 12px; color: var(--cA-muted); line-height:1.5; margin:0; }
+.clubA-profile-facts { display:flex; flex-direction:column; gap:4px; margin-top:2px; padding-top:8px; border-top:1px solid var(--cA-line); }
+.clubA-profile-facts div { font-size: 11px; color: var(--cA-text); display:flex; justify-content:space-between; gap: 8px; }
+.clubA-profile-facts b { font-family:'JetBrains Mono',monospace; color: var(--cA-muted); font-weight:600; text-align: right; }
+
+/* sidebar stats */
+.clubA-stats { display:grid; grid-template-columns: 1fr 1fr; gap:8px; }
+.clubA-stat { border:1px solid var(--cA-line); border-radius: 12px; padding: 9px 11px; background: var(--cA-panel); }
+.clubA-stat .n { font: 700 17px 'JetBrains Mono',monospace; letter-spacing:-0.02em; }
+.clubA-stat .l { font: 600 8.5px/1.2 'JetBrains Mono',monospace; text-transform:uppercase; letter-spacing:.06em; color:var(--cA-muted); margin-top:4px; }
+
+/* section head */
+.clubA-sec { padding: 4px 0 0; }
+.clubA-sec .k { font: 700 10px/1 'JetBrains Mono',monospace; letter-spacing:.14em; text-transform:uppercase; }
+.clubA-sec h2 { margin: 5px 0 3px; font-size: 19px; font-weight: 700; letter-spacing:-0.015em; }
+.clubA-sec p { margin:0; color: var(--cA-muted); font-size: 11.5px; max-width: 62ch; }
+
+/* two-up hero row: chart + records side by side. align-items:stretch (not the
+   design mock's "start") plus the flex treatment below lets whichever side is
+   naturally taller (varies a lot: MAG has 7 apparatus vs WAG's 4, so a fixed
+   height ratio between the two sides doesn't hold) pull the shorter one up to
+   match, instead of leaving a dead gap under it. */
+.clubA-herorow { display:grid; grid-template-columns: 1.7fr 1fr; gap: 14px; align-items:stretch; }
+.clubA-herorow > div { display:flex; flex-direction:column; min-height: 100%; }
+
+/* centerpiece: diverging bar chart */
+.clubA-chart { border:1px solid var(--cA-line); border-radius: 12px; background: var(--cA-panel); padding: 12px 14px 8px; display:flex; flex-direction:column; flex: 1; }
+.clubA-chart-body { flex: 1; display:flex; flex-direction:column; }
+.clubA-chart-rows { flex: 1; display:flex; flex-direction:column; justify-content: space-evenly; }
+
+.clubA-chart-toggle { display:flex; gap:3px; padding:3px; border:1px solid var(--cA-line); border-radius:8px; background:var(--cA-panel); flex-shrink:0; }
+.clubA-chart-toggle button { all:unset; cursor:pointer; padding:5px 10px; border-radius:6px; font:700 10px 'JetBrains Mono',monospace; text-transform:uppercase; letter-spacing:.03em; color:var(--cA-muted); }
+.clubA-chart-toggle button.cur { background:var(--cA-panel-2); color:var(--cA-text); }
+.clubA-row { display:grid; grid-template-columns: 56px 1fr 64px; align-items:center; gap:8px; padding: 5px 0; border-bottom: 1px solid var(--cA-line); }
+.clubA-row:last-child { border-bottom:none; }
+.clubA-row .lvl { font: 700 11.5px 'Space Grotesk',sans-serif; }
+.clubA-row .raw { font: 600 8px 'JetBrains Mono',monospace; color: var(--cA-muted); margin-top: 1px; }
+.clubA-bars { position:relative; height: 11px; }
+.clubA-axis0 { position:absolute; top:-3px; bottom:-3px; left:50%; width:1px; background: var(--cA-line-2); }
+.clubA-bar-delta { position:absolute; top:0; bottom:0; border-radius:3px; }
+.clubA-delta { text-align:right; font: 700 12px 'JetBrains Mono',monospace; }
+.clubA-delta .sub { display:block; font: 600 7px 'JetBrains Mono',monospace; color:var(--cA-muted); text-transform:uppercase; letter-spacing:.05em; margin-top:0; }
+.clubA-legend { display:flex; gap:12px; margin-top: 8px; flex-shrink: 0; font: 600 8.5px/1 'JetBrains Mono',monospace; text-transform:uppercase; letter-spacing:.05em; color:var(--cA-muted); }
+.clubA-legend span { display:inline-flex; align-items:center; gap:4px; }
+.clubA-legend i { width:8px; height:8px; border-radius:2px; display:inline-block; }
+
+/* records: compact list, sits beside the chart */
+.clubA-reclist { display:flex; flex-direction:column; gap:6px; }
+.clubA-rec { display:grid; grid-template-columns: 46px 1fr auto; align-items:center; gap:8px;
+  border:1px solid var(--cA-line); border-radius: 9px; padding: 7px 10px 7px 9px; background: var(--cA-panel); position:relative; overflow:hidden; }
+.clubA-rec .ap { font: 700 8.5px/1.2 'JetBrains Mono',monospace; text-transform:uppercase; letter-spacing:.04em; color:var(--cA-muted); }
+.clubA-rec .who { font-size: 11px; font-weight: 600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.clubA-rec .meta { font-size: 8.5px; color: var(--cA-muted); margin-top: 1px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.clubA-rec .sc { font: 700 16px 'JetBrains Mono',monospace; letter-spacing:-0.02em; text-align:right; }
+
+/* radar: club-wide average per apparatus (optional levels only), same Chart.js
+   component/styling as the athlete profile's Strength Radar. Sits under the
+   records list and grows to fill any remaining stretched height. */
+.clubA-radar { border:1px solid var(--cA-line); border-radius: 12px; background: var(--cA-panel); padding: 12px; margin-top: 8px; display:flex; flex-direction:column; align-items:center; gap:2px; flex: 1; }
+.clubA-radar .cap { font: 600 9px/1 'JetBrains Mono',monospace; text-transform:uppercase; letter-spacing:.08em; color: var(--cA-muted); align-self:flex-start; margin-bottom:2px; }
+.clubA-radar-canvas-wrap { flex: 1; width: 100%; display:flex; align-items:center; justify-content:center; min-height: 230px; }
+.clubA-radar-head { display:flex; align-items:center; justify-content:space-between; width:100%; gap:8px; margin-bottom:2px; }
+.clubA-radar-select { font: 700 9.5px 'JetBrains Mono',monospace; text-transform:uppercase; letter-spacing:.04em; color:var(--cA-text); background:var(--cA-panel-2); border:1px solid var(--cA-line-2); border-radius:6px; padding:3px 6px; cursor:pointer; }
+
+/* podium (50%) + competition entries (50%), side by side */
+.clubA-podiumrow { display:grid; grid-template-columns: 1fr 1fr; gap: 14px; align-items:start; }
+
+.clubA-podium { display:flex; flex-direction:column; gap:7px; }
+.clubA-p { display:grid; grid-template-columns: 28px 1fr 58px 1fr 54px; align-items:center; gap: 10px;
+  border:1px solid var(--cA-line); border-radius: 10px; padding: 8px 12px; background: var(--cA-panel); }
+.clubA-rank { width:24px; height:24px; border-radius:7px; display:grid; place-items:center; font:700 11px 'JetBrains Mono',monospace; color:#221a06; }
+.clubA-rank.r1 { background: linear-gradient(135deg,#ffe27a,#d9a428); }
+.clubA-rank.r2 { background: linear-gradient(135deg,#e7e9ee,#aab0bd); }
+.clubA-rank.r3 { background: linear-gradient(135deg,#e7b481,#a86a34); }
+.clubA-p .ath { font-weight: 700; font-size: 12px; }
+.clubA-p .lvl2 { font: 600 9.5px 'JetBrains Mono',monospace; color:var(--cA-muted); text-transform:uppercase; }
+.clubA-p .sc2 { font: 700 14px 'JetBrains Mono',monospace; text-align:right; }
+.clubA-p .comp { font-size: 10.5px; color: var(--cA-muted); }
+
+/* athletes-per-level: vertical list, sits in the sidebar under the roster
+   (narrow column, so a row-per-level list reads better than side-by-side bars) */
+.clubA-levels-v { border:1px solid var(--cA-line); border-radius: 12px; background: var(--cA-panel); padding: 12px 14px; display:flex; flex-direction:column; gap:6px; }
+.clubA-lv-row { display:grid; grid-template-columns: 46px 1fr 22px; align-items:center; gap:8px; }
+.clubA-lv-row .lbl { font: 700 9px 'JetBrains Mono',monospace; color:var(--cA-muted); text-transform:uppercase; }
+.clubA-lv-row .track { background: var(--cA-panel-2); border-radius: 4px; overflow:hidden; height: 8px; }
+.clubA-lv-row .bar { height: 100%; border-radius: 4px; }
+.clubA-lv-row .cnt { font: 700 10px 'JetBrains Mono',monospace; text-align:right; }
+
+.clubA-comps { border:1px solid var(--cA-line); border-radius: 12px; background: var(--cA-panel); padding: 10px 12px; display:flex; flex-direction:column; gap:7px; }
+.clubA-yr-row { display:flex; align-items:baseline; gap:8px; }
+.clubA-yr-row .y { font: 700 11px 'JetBrains Mono',monospace; color: var(--cA-muted); width: 30px; flex-shrink:0; }
+.clubA-yr-chips { display:flex; flex-wrap:wrap; gap:5px; }
+.clubA-yr-chip { font-size: 10px; font-weight:600; padding: 3px 7px; border-radius: 6px; background: var(--cA-panel-2); border:1px solid var(--cA-line-2); }
+.clubA-yr-chip b { font-family:'JetBrains Mono',monospace; margin-left:3px; }
+
+/* roster: compact scrollable list */
+.clubA-roster { border:1px solid var(--cA-line); border-radius: 12px; background: var(--cA-panel); padding: 12px 14px; }
+.clubA-roster-head { display:flex; justify-content:space-between; align-items:baseline; margin-bottom: 8px; }
+.clubA-roster-head h2 { margin:0; font-size: 14px; font-weight: 700; }
+.clubA-roster-head .cnt { font: 700 10px 'JetBrains Mono',monospace; color: var(--cA-muted); }
+.clubA-rlist {
+  display:flex; flex-direction:column; max-height: 228px; overflow-y:auto; border-top:1px solid var(--cA-line);
+  scrollbar-width: thin; scrollbar-color: var(--cA-line-2) transparent;
+}
+.clubA-rlist::-webkit-scrollbar { width: 6px; }
+.clubA-rlist::-webkit-scrollbar-track { background: transparent; }
+.clubA-rlist::-webkit-scrollbar-thumb { background: var(--cA-line-2); border-radius: 999px; }
+.clubA-rlist::-webkit-scrollbar-thumb:hover { background: var(--cA-dim); }
+.clubA-rrow { display:flex; align-items:center; gap:9px; padding: 6px 2px; border-bottom: 1px solid var(--cA-line); text-decoration:none; color: var(--cA-text); cursor: pointer; }
+.clubA-rrow:last-child { border-bottom:none; }
+.clubA-av { width:22px; height:22px; border-radius:50%; display:grid; place-items:center; font:700 8.5px 'JetBrains Mono',monospace; color:#0a0b10; flex-shrink:0; }
+.clubA-rrow .nm { font-size: 11.5px; font-weight:600; flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.clubA-rrow .lv { font: 700 9px 'JetBrains Mono',monospace; color: var(--cA-muted); border:1px solid var(--cA-line-2); border-radius:5px; padding: 2px 6px; flex-shrink:0; }
+.clubA-more2 {
+  display:block; width:100%; text-align:center; padding-top:8px; font-size: 10.5px; font-weight:700;
+  font-family:'JetBrains Mono',monospace; background:none; border:none; cursor:pointer;
+}
+.clubA-more2:hover { text-decoration:underline; }
+
+/* roster modal: full athlete list */
+#roster-modal {
+  display:none; position:fixed; inset:0; background: rgba(0,0,0,0.72); z-index: 300;
+  align-items:center; justify-content:center; padding: 24px;
+}
+#roster-modal.open { display:flex; }
+#roster-modal-box {
+  background: var(--cA-panel, var(--surface)); border:1px solid var(--cA-line, var(--border));
+  border-radius: 16px; padding: 22px 22px 18px; max-width: 420px; width:100%;
+  max-height: 82vh; display:flex; flex-direction:column; position:relative; color: var(--cA-text, var(--text));
+}
+#roster-modal-box .modal-close { color: var(--cA-muted, var(--muted)); }
+#roster-modal-box .modal-close:hover { color: var(--cA-text, var(--text)); }
+#roster-modal-head { display:flex; justify-content:space-between; align-items:baseline; margin: 0 28px 10px 0; }
+#roster-modal-head h2 { margin:0; font-size: 15px; font-weight:700; font-family:'Space Grotesk','Inter',sans-serif; }
+#roster-modal-head .cnt { font: 700 10px 'JetBrains Mono',monospace; color: var(--cA-muted, var(--muted)); }
+#roster-modal-filter {
+  width:100%; margin-bottom:10px; background: var(--cA-panel-2, var(--surface2));
+  border:1px solid var(--cA-line, var(--border)); border-radius:8px; padding:8px 11px;
+  font-size:.85rem; color: var(--cA-text, var(--text)); font-family:'Space Grotesk',sans-serif; outline:none;
+}
+#roster-modal-filter:focus { border-color: var(--accent); }
+#roster-modal-list { overflow-y:auto; flex:1; border-top:1px solid var(--cA-line, var(--border)); }
+#roster-modal-empty { padding: 16px 2px; text-align:center; font-size:.82rem; color: var(--cA-muted, var(--muted)); }
+
+/* curated links/news (distinct) */
+.clubA-about { border: 1px dashed var(--cA-line-2); border-radius: 12px; padding: 12px 14px; background: var(--cA-panel-2); display:flex; flex-direction:column; gap: 12px; }
+.clubA-about .k { font: 700 9px/1 'JetBrains Mono',monospace; letter-spacing:.1em; text-transform:uppercase; color: var(--cA-muted); margin-bottom:6px; }
+.clubA-about h4 { margin:0 0 2px; font-size: 11.5px; font-weight:700; }
+.clubA-about .addr { font-size: 10.5px; color: var(--cA-muted); margin-bottom: 6px; }
+.clubA-about ul { list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:5px; }
+.clubA-about li a { font-size: 11px; font-weight:600; text-decoration: none; }
+.clubA-about .news-item { font-size: 10.5px; }
+.clubA-about .news-date { font: 600 9px 'JetBrains Mono',monospace; color: var(--cA-muted); display:block; margin-top:1px; }
+
+.clubA-empty { color: var(--cA-muted); font-size: 12px; padding: 10px 2px; }
+.clubA-loading { color: var(--cA-muted); font-size: 12px; padding: 40px 0; text-align: center; }
+
+@media (max-width: 900px) {
+  .clubA-body { grid-template-columns: 1fr; }
+  .clubA-herorow, .clubA-podiumrow { grid-template-columns: 1fr; }
+  .clubA-herorow > div { min-height: 0; }
+}
+@media (max-width: 560px) {
+  .clubA-head { padding: 16px 16px 0; }
+  .clubA-body { padding: 12px 16px 24px; }
+  .clubA-p { grid-template-columns: 24px 1fr 54px; grid-template-rows: auto auto; }
+  .clubA-p .comp { grid-column: 2 / -1; }
+}
+
 @media (max-width: 700px) {
   .profile-grid { grid-template-columns: 1fr; }
   .profile-hero-row { flex-wrap: wrap; }

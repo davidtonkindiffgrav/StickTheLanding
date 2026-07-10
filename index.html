@@ -537,6 +537,17 @@
   </div>
 </div>
 
+<!-- ══════════════════════════════════════════════ ROSTER MODAL ═══ -->
+<div id="roster-modal">
+  <div id="roster-modal-box">
+    <button class="modal-close" onclick="closeRosterModal()">&#x2715;</button>
+    <div id="roster-modal-head"><h2 id="roster-modal-title">Roster</h2><span class="cnt" id="roster-modal-count"></span></div>
+    <input id="roster-modal-filter" type="search" placeholder="Filter by name&hellip;" autocomplete="off">
+    <div id="roster-modal-list"></div>
+    <p id="roster-modal-empty" style="display:none">No athletes match that filter.</p>
+  </div>
+</div>
+
 <!-- ════════════════════════════════════════════════ LOADING OVERLAY ═══ -->
 <div id="loading-overlay">
   <div class="loading-spinner"></div>
@@ -593,10 +604,25 @@ let _browseCompId     = null;
 // ─────────────────────────────────────────────────────────────────────────────
 // DB init (lazy - only called when a sport is entered)
 // ─────────────────────────────────────────────────────────────────────────────
-async function initDB() {
-  if (DB) return;
+// Loads a sql.js DB handle for the given sport, independent of the global DB/currentSport.
+// Used both by initDB() (the site's primary sport) and the club page's lazy alt-sport loader.
+async function loadSportDbHandle(sport) {
   const workerUrl = new URL("sql/sqlite.worker.js", location.href).toString();
   const wasmUrl   = new URL("sql/sql-wasm.wasm",   location.href).toString();
+
+  const cfgResp   = await fetch(new URL(`data/dbconfig_${sport}.json`, location.href).toString(), { cache: "no-cache" });
+  const dbCfg     = await cfgResp.json();
+  const dbUrl     = new URL(`data/stick_${sport}.db?v=${dbCfg.fileLength}.${dbCfg.rev || 0}`, location.href).toString();
+  dbCfg.url       = dbUrl;
+  const worker    = await createDbWorker(
+    [{ from: "inline", config: dbCfg }],
+    workerUrl, wasmUrl
+  );
+  return worker.db;
+}
+
+async function initDB() {
+  if (DB) return;
 
   if (!MIXED_OVERRIDES.size) {
     try {
@@ -609,15 +635,7 @@ async function initDB() {
     } catch (_) {}
   }
 
-  const cfgResp   = await fetch(new URL(`data/dbconfig_${currentSport}.json`, location.href).toString(), { cache: "no-cache" });
-  const dbCfg     = await cfgResp.json();
-  const dbUrl     = new URL(`data/stick_${currentSport}.db?v=${dbCfg.fileLength}.${dbCfg.rev || 0}`, location.href).toString();
-  dbCfg.url       = dbUrl;
-  const worker    = await createDbWorker(
-    [{ from: "inline", config: dbCfg }],
-    workerUrl, wasmUrl
-  );
-  DB = worker.db;
+  DB = await loadSportDbHandle(currentSport);
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -643,11 +661,24 @@ async function enterSport(sport) {
     // Clubs
     if (!CLUBS_LIST.length) {
       const clubRows = _execRows(await DB.exec(
-        "SELECT code, name, region, logo FROM clubs ORDER BY name"
+        "SELECT code, name, region, logo, founded, description, links FROM clubs ORDER BY name"
       ));
-      for (const [code, name, region, logo] of clubRows) {
+      const venuesByCode = {};
+      try {
+        for (const [vcode, vname, vaddr] of _execRows(await DB.exec(
+          "SELECT club_code, name, address FROM club_venues WHERE address IS NOT NULL"
+        ))) {
+          (venuesByCode[vcode] = venuesByCode[vcode] || []).push({ name: vname, address: vaddr });
+        }
+      } catch (_) {} // club_venues may not exist on older DB builds
+      for (const [code, name, region, logo, founded, description, linksJson] of clubRows) {
+        let links = [];
+        try { links = linksJson ? JSON.parse(linksJson) : []; } catch (_) {}
         CLUBS[code] = name;
-        CLUBS_LIST.push({ code, name, region, logo });
+        CLUBS_LIST.push({
+          code, name, region, logo, founded, description, links,
+          venues: venuesByCode[code] || [],
+        });
         if (sport === "ACRO") CLUBS_BY_NAME[name] = code;
       }
       INTERSTATE = new Set(CLUBS_LIST.filter(c => c.region === "Interstate").map(c => c.code));
@@ -884,6 +915,23 @@ function openComingSoon() {
 }
 function closeComingSoon() {
   document.getElementById("coming-soon-modal").classList.remove("open");
+}
+function openRosterModal() {
+  const { sport, sports } = CLUB_STATE;
+  const data = sports[sport];
+  if (!data) return;
+  const meta = CLUBS_LIST.find(c => c.code === CLUB_STATE.code);
+  document.getElementById("roster-modal-title").textContent = `${meta.name} Roster`;
+  document.getElementById("roster-modal-count").textContent = `${data.roster.length} total`;
+  document.getElementById("roster-modal-list").innerHTML = data.roster.map(a => clubRosterRowHtml(a, sport)).join('');
+  const input = document.getElementById("roster-modal-filter");
+  input.value = "";
+  document.getElementById("roster-modal-empty").style.display = "none";
+  document.getElementById("roster-modal").classList.add("open");
+  input.focus();
+}
+function closeRosterModal() {
+  document.getElementById("roster-modal").classList.remove("open");
 }
 function showLoading(on) {
   document.getElementById("loading-overlay").classList.toggle("open", on);
@@ -1393,7 +1441,7 @@ function renderClubDirectory() {
   });
 
   tbody.innerHTML = sorted.map(c => `
-    <tr>
+    <tr class="club-dir-row" data-code="${esc(c.code)}" style="cursor:pointer">
       <td class="logo-cell-md">${clubLogo(c.code, "club-logo-md", true)}</td>
       <td><strong>${esc(c.name)}</strong></td>
       <td><span class="club-code" style="margin-left:0">${esc(c.code)}</span></td>
@@ -1401,7 +1449,7 @@ function renderClubDirectory() {
         ${c.region
           ? `<span class="region-pill ${regionClass(c.region)}">${esc(c.region)}</span>`
           : `<span style="color:var(--muted);font-size:0.8rem">Unknown</span>`}
-        ${c._venues ? `<div class="venue-list">${c._venues.map(v => esc(v)).join(" · ")}</div>` : ""}
+        ${c.venues && c.venues.length ? `<div class="venue-list">${c.venues.map(v => esc(v.address)).join(" · ")}</div>` : ""}
       </td>
     </tr>`).join("");
 
@@ -1426,6 +1474,11 @@ function initClubDirectory() {
 
   const table = document.getElementById("club-dir-table");
   if (!table) return;
+
+  table.addEventListener("click", e => {
+    const row = e.target.closest(".club-dir-row");
+    if (row && row.dataset.code) openClubProfile(row.dataset.code);
+  });
   table.addEventListener("mousemove", e => {
     const wrap    = e.target.closest(".logo-hover-wrap");
     const preview = wrap?.querySelector(".logo-preview");
@@ -1648,6 +1701,22 @@ document.getElementById("drill-overlay").addEventListener("click", e => {
 // Close coming soon modal on backdrop click
 document.getElementById("coming-soon-modal").addEventListener("click", e => {
   if (e.target === document.getElementById("coming-soon-modal")) closeComingSoon();
+});
+
+// Roster modal: backdrop click to close, live filter by name
+document.getElementById("roster-modal").addEventListener("click", e => {
+  if (e.target === document.getElementById("roster-modal")) closeRosterModal();
+});
+document.getElementById("roster-modal-filter").addEventListener("input", e => {
+  const term = e.target.value.trim().toLowerCase();
+  const list = document.getElementById("roster-modal-list");
+  let visible = 0;
+  list.querySelectorAll(".clubA-rrow").forEach(row => {
+    const match = !term || row.dataset.name.includes(term);
+    row.style.display = match ? "" : "none";
+    if (match) visible++;
+  });
+  document.getElementById("roster-modal-empty").style.display = visible ? "none" : "";
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -2960,10 +3029,10 @@ function _profRenderTimeChart(canvasEl, type, rows, mode, animate = true) {
   });
 }
 
-function _profRenderStrengthChart(canvasEl, showPB, statsRow, animate = true) {
-  const appKeys  = G_APP_KEYS[currentSport] || [];
+function _profRenderStrengthChart(canvasEl, showPB, statsRow, animate = true, sport = currentSport) {
+  const appKeys  = G_APP_KEYS[sport] || [];
   if (!appKeys.length) return;
-  const appNames = appName();
+  const appNames = sport === 'MAG' ? MAG_APPARATUS_NAME : (sport === 'ACRO' ? ACRO_APPARATUS_NAME : APPARATUS_NAME);
   const lbl    = appKeys.map(k => appNames[k] || k);
   const colors = appKeys.map(k => G_COLOR[k]);
   const avgVals = appKeys.map(k => _profRepScore(statsRow, k) || 0);
@@ -3405,6 +3474,625 @@ async function renderAthleteProfile(athleteName) {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
+// Club profile
+// ─────────────────────────────────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────────────────────
+// Club profile ("Direction A, Analytics Dashboard" design handoff)
+// ─────────────────────────────────────────────────────────────────────────────
+const WAG_RECORD_APPS = [['vault','Vault'],['bars','Bars'],['beam','Beam'],['floor','Floor'],['total','All-Around']];
+const MAG_RECORD_APPS = [['floor','Floor'],['pommel','Pommel'],['rings','Rings'],['pbars','P-Bars'],['hbar','High Bar'],['vault','Vault'],['total','All-Around']];
+const CLUB_RECORD_APPS = { WAG: WAG_RECORD_APPS, MAG: MAG_RECORD_APPS };
+const CLUB_SPORTS = ['WAG', 'MAG'];
+
+let CLUB_ALT_DB = {};   // sport -> lazily-loaded db handle, independent of the site's global DB
+let CLUB_STATE = null;  // { code, sport, sports: { WAG: fetchedData|undefined, MAG: ... } }
+
+function avatarColor(name) {
+  let h = 0;
+  for (let i = 0; i < name.length; i++) h = (h * 31 + name.charCodeAt(i)) % 360;
+  return `hsl(${h}, 55%, 62%)`;
+}
+
+// Last token = surname (handles hyphenated surnames fine, splits on whitespace
+// not hyphens). Deliberately does NOT filter out non-name tokens (a stray
+// score or footnote marker glued onto a name by a parser bug): that's a data
+// quality issue that belongs in the roster where it's visible, not something
+// to silently hide here. Fix it at the source (pdf_parser.py / the DB row).
+function _nameParts(name) {
+  return name.trim().split(/\s+/);
+}
+function surnameOf(name) {
+  const parts = _nameParts(name);
+  return parts.length > 1 ? parts[parts.length - 1] : (parts[0] || name);
+}
+function lastFirst(name) {
+  const parts = _nameParts(name);
+  if (parts.length < 2) return parts[0] || name;
+  return `${parts[parts.length - 1]}, ${parts.slice(0, -1).join(' ')}`;
+}
+
+// Shared row markup for both the on-page roster sample and the "full roster" modal.
+function clubRosterRowHtml(a, sport) {
+  const initials = a.name.split(' ').map(p => p[0]).filter(Boolean).join('').slice(0, 2).toUpperCase();
+  return `
+    <div class="clubA-rrow" data-name="${esc(a.name.toLowerCase())}">
+      <span class="clubA-av" style="background:${avatarColor(a.name)}">${esc(initials)}</span>
+      <span class="nm">${esc(lastFirst(a.name))}</span>
+      <span class="lv">${esc(clubLevelLabel(a.level, sport))}</span>
+    </div>`;
+}
+
+// Not intLevelLabel(): that reads the site's global currentSport, but the club
+// page's displayed sport can differ from it once lazy-load switching is in play.
+function clubLevelLabel(level, sport) {
+  const map = sport === 'MAG' ? MAG_LEVEL_LABELS : INT_LEVEL_LABELS;
+  if (map[level] != null) return map[level];
+  return 'L' + level;
+}
+
+async function openAthleteProfile(name) {
+  switchToView("search");
+  document.getElementById("search-view-title").textContent = "Athlete Profile";
+  document.getElementById("search-view-content").innerHTML =
+    `<p style="color:var(--muted);padding:12px 0">Loading…</p>`;
+  await renderAthleteProfile(name);
+}
+
+async function openClubProfile(code) {
+  switchToView("search");
+  document.getElementById("search-view-title").textContent = "Club Profile";
+  document.getElementById("search-view-content").innerHTML =
+    `<div class="clubA-loading">Loading…</div>`;
+  await renderClubProfile(code, currentSport);
+}
+
+// Fetch every piece of per-sport data the dashboard needs, against whichever
+// db handle is active for that sport (global DB for the primary sport, a
+// lazily-loaded CLUB_ALT_DB[sport] handle for the other one).
+// Club-wide average per apparatus, scoped to one level (or optional levels
+// blended, level=null, the default "All levels" radar view). Same statsRow
+// shape/column order as the athlete profile's own aggregate query
+// (_STAT_OFFSET), so it can reuse _profRenderStrengthChart as-is.
+async function fetchClubRadarStats(dbHandle, sport, code, level) {
+  const levelClause = level ? 'e.level = ?' : 'e.level > 6';
+  const params = level ? [code, sport, level] : [code, sport];
+  return (_execRows(await dbHandle.exec(`
+    SELECT
+      MAX(CASE WHEN vault  > 0 THEN vault  END), AVG(CASE WHEN vault  > 0 THEN vault  END), COUNT(CASE WHEN vault  > 0 THEN 1 END),
+      MAX(CASE WHEN bars   > 0 THEN bars   END), AVG(CASE WHEN bars   > 0 THEN bars   END), COUNT(CASE WHEN bars   > 0 THEN 1 END),
+      MAX(CASE WHEN beam   > 0 THEN beam   END), AVG(CASE WHEN beam   > 0 THEN beam   END), COUNT(CASE WHEN beam   > 0 THEN 1 END),
+      MAX(CASE WHEN floor  > 0 THEN floor  END), AVG(CASE WHEN floor  > 0 THEN floor  END), COUNT(CASE WHEN floor  > 0 THEN 1 END),
+      MAX(CASE WHEN pommel > 0 THEN pommel END), AVG(CASE WHEN pommel > 0 THEN pommel END), COUNT(CASE WHEN pommel > 0 THEN 1 END),
+      MAX(CASE WHEN rings  > 0 THEN rings  END), AVG(CASE WHEN rings  > 0 THEN rings  END), COUNT(CASE WHEN rings  > 0 THEN 1 END),
+      MAX(CASE WHEN pbars  > 0 THEN pbars  END), AVG(CASE WHEN pbars  > 0 THEN pbars  END), COUNT(CASE WHEN pbars  > 0 THEN 1 END),
+      MAX(CASE WHEN hbar   > 0 THEN hbar   END), AVG(CASE WHEN hbar   > 0 THEN hbar   END), COUNT(CASE WHEN hbar   > 0 THEN 1 END),
+      MAX(CASE WHEN total  > 0 THEN total  END)
+    FROM results r
+    JOIN events e ON e.id = r.event_id
+    JOIN competitions c ON c.id = e.competition_id
+    WHERE r.club = ? AND c.sport = ? AND e.event_type != 'Team' AND ${levelClause}
+  `, params))[0]) || Array(25).fill(null);
+}
+
+async function fetchClubSportData(dbHandle, sport, code) {
+  const heroRow = (_execRows(await dbHandle.exec(`
+    SELECT COUNT(DISTINCT r.athlete), COUNT(DISTINCT e.competition_id),
+           MIN(COALESCE(c.date, c.season || '-06-01')), MAX(COALESCE(c.date, c.season || '-06-01')),
+           MAX(c.season)
+    FROM results r
+    JOIN events e ON e.id = r.event_id
+    JOIN competitions c ON c.id = e.competition_id
+    WHERE r.club = ? AND c.sport = ?
+  `, [code, sport]))[0]) || [0, 0, null, null, null];
+  const [athleteCount, compCount, firstDate, lastDate, latestSeason] = heroRow;
+
+  if (!athleteCount) {
+    return { sport, athleteCount: 0, compCount: 0, firstDate: null, lastDate: null };
+  }
+
+  const countRows = _execRows(await dbHandle.exec(`
+    SELECT e.level, COUNT(DISTINCT r.athlete)
+    FROM results r JOIN events e ON e.id = r.event_id JOIN competitions c ON c.id = e.competition_id
+    WHERE r.club = ? AND c.sport = ? AND e.level IS NOT NULL
+    GROUP BY e.level ORDER BY CAST(e.level AS INTEGER)
+  `, [code, sport]));
+
+  let avgRows = [];
+  if (latestSeason) {
+    avgRows = _execRows(await dbHandle.exec(`
+      SELECT e.level,
+             AVG(CASE WHEN r.club = ? THEN r.total END) AS club_avg,
+             COUNT(CASE WHEN r.club = ? THEN r.total END) AS club_n,
+             AVG(r.total) AS state_avg
+      FROM results r
+      JOIN events e ON e.id = r.event_id
+      JOIN competitions c ON c.id = e.competition_id
+      WHERE c.sport = ? AND c.season = ? AND e.event_type = 'AA' AND r.total IS NOT NULL
+      GROUP BY e.level
+      HAVING club_n >= 3
+      ORDER BY CAST(e.level AS INTEGER)
+    `, [code, code, sport, latestSeason]));
+  }
+  const avgByLevel = {};
+  for (const [lvl, clubAvg, clubN, stateAvg] of avgRows) avgByLevel[lvl] = { clubAvg, stateAvg };
+  const levels = countRows.map(([level, count]) => ({
+    level, count, ...(avgByLevel[level] ? { clubAvg: avgByLevel[level].clubAvg, stateAvg: avgByLevel[level].stateAvg } : {}),
+  }));
+
+  // Levels selectable in the radar's dropdown: only ones with real individual
+  // apparatus scores (excludes low levels that only ever ran as Team events,
+  // which is common at L3/L4, so picking them would just hit "not enough data").
+  const radarAppCols = (CLUB_RECORD_APPS[sport] || []).map(([col]) => col).filter(col => col !== 'total');
+  const radarLevelRows = radarAppCols.length ? _execRows(await dbHandle.exec(`
+    SELECT DISTINCT e.level
+    FROM results r JOIN events e ON e.id = r.event_id JOIN competitions c ON c.id = e.competition_id
+    WHERE r.club = ? AND c.sport = ? AND e.event_type != 'Team' AND e.level IS NOT NULL
+      AND (${radarAppCols.map(col => `${col} > 0`).join(' OR ')})
+    ORDER BY CAST(e.level AS INTEGER)
+  `, [code, sport])) : [];
+  const radarLevels = radarLevelRows.map(([level]) => level);
+
+  const radarStats = await fetchClubRadarStats(dbHandle, sport, code, null);
+
+  // "Perfect 10" counter: individual apparatus execution (E) scores of exactly
+  // 10.000, summed across every apparatus this sport uses. Only competitions
+  // that recorded a D/E breakdown have these columns populated, so this is
+  // often 0, that's a true 0, not missing data.
+  const appCols = (CLUB_RECORD_APPS[sport] || []).map(([col]) => col).filter(col => col !== 'total');
+  const perfect10Row = appCols.length ? (_execRows(await dbHandle.exec(`
+    SELECT ${appCols.map(col => `SUM(CASE WHEN ${col}_e = 10 THEN 1 ELSE 0 END)`).join(' + ')}
+    FROM results r JOIN events e ON e.id = r.event_id JOIN competitions c ON c.id = e.competition_id
+    WHERE r.club = ? AND c.sport = ?
+  `, [code, sport]))[0]) : null;
+  const perfect10 = (perfect10Row && perfect10Row[0]) || 0;
+
+  const records = [];
+  for (const [col, label] of (CLUB_RECORD_APPS[sport] || [])) {
+    const row = (_execRows(await dbHandle.exec(`
+      SELECT r.athlete, r.${col}, e.level, c.name, COALESCE(c.date, c.season || '-06-01'), c.season
+      FROM results r JOIN events e ON e.id = r.event_id JOIN competitions c ON c.id = e.competition_id
+      WHERE r.club = ? AND c.sport = ? AND r.${col} > 0 AND e.event_type != 'Team'
+      ORDER BY r.${col} DESC LIMIT 1
+    `, [code, sport]))[0]);
+    if (row) records.push({ apparatus: label, col, score: row[1], athlete: row[0], level: row[2], comp: row[3], year: row[5] });
+  }
+
+  const highlights = latestSeason ? _execRows(await dbHandle.exec(`
+    SELECT r.athlete, r.rank, r.total, c.name, e.level,
+           COALESCE(c.date, c.season || '-06-01') AS d
+    FROM results r
+    JOIN events e ON e.id = r.event_id
+    JOIN competitions c ON c.id = e.competition_id
+    WHERE r.club = ? AND c.sport = ? AND c.season = ? AND r.rank BETWEEN 1 AND 3 AND e.event_type != 'Team'
+    ORDER BY d DESC LIMIT 12
+  `, [code, sport, latestSeason])).map(([athlete, rank, total, comp, level]) => ({ athlete, rank, total, comp, level })) : [];
+
+  const rosterRows = _execRows(await dbHandle.exec(`
+    SELECT athlete, level FROM (
+      SELECT r.athlete AS athlete, e.level AS level,
+             ROW_NUMBER() OVER (PARTITION BY r.athlete ORDER BY COALESCE(c.date, c.season || '-06-01') DESC) AS rn
+      FROM results r
+      JOIN events e ON e.id = r.event_id
+      JOIN competitions c ON c.id = e.competition_id
+      WHERE r.club = ? AND c.sport = ? AND r.athlete IS NOT NULL AND r.athlete != ''
+    ) WHERE rn = 1
+    ORDER BY athlete
+  `, [code, sport])).map(([name, level]) => ({ name, level }))
+    .sort((a, b) => surnameOf(a.name).localeCompare(surnameOf(b.name)) || a.name.localeCompare(b.name));
+
+  const compRows = _execRows(await dbHandle.exec(`
+    SELECT c.id, c.name, c.season, COALESCE(c.date, c.season || '-06-01') AS d, COUNT(*) AS entries
+    FROM results r JOIN events e ON e.id = r.event_id JOIN competitions c ON c.id = e.competition_id
+    WHERE r.club = ? AND c.sport = ?
+    GROUP BY c.id
+    ORDER BY d DESC
+  `, [code, sport]));
+  const compsByYear = {};
+  for (const [compId, name, season, d, entries] of compRows) {
+    (compsByYear[season] = compsByYear[season] || []).push({ name, entries });
+  }
+
+  return {
+    sport, athleteCount, compCount, firstDate, lastDate, latestSeason,
+    levels, radarLevels, records, radarStats, perfect10, highlights, roster: rosterRows, compsByYear,
+  };
+}
+
+// "Bars" reads better than "Uneven Bars" on a radar axis label: it's shorter,
+// so Chart.js needs less padding around the plot, which is what actually makes
+// the chart itself bigger/more centered (not a size tweak, a label-width one).
+function clubLabelFor(k, sport) {
+  if (k === 'UB') return 'Bars';
+  const names = sport === 'MAG' ? MAG_APPARATUS_NAME : APPARATUS_NAME;
+  return names[k] || k;
+}
+
+// Radar shell markup: the canvas gets drawn into by drawClubRadar() once this
+// is in the DOM (Chart.js needs a real canvas element, not an HTML string).
+// The level select defaults to "All levels" (optional levels blended); picking
+// a specific level re-queries and re-draws just this widget.
+function clubRadarHtml(radarLevels, sport) {
+  const options = radarLevels.map(level => `<option value="${esc(level)}">${esc(clubLevelLabel(level, sport))}</option>`).join('');
+  return `
+    <div class="clubA-radar">
+      <div class="clubA-radar-head">
+        <div class="cap">Apparatus average</div>
+        <select class="clubA-radar-select" onchange="onClubRadarLevelChange(this.value)">
+          <option value="">All levels</option>
+          ${options}
+        </select>
+      </div>
+      <div class="clubA-radar-canvas-wrap"><canvas id="club-radar-canvas"></canvas></div>
+    </div>`;
+}
+
+// Club-wide average per apparatus. Same Chart.js radar component/styling as the
+// athlete profile's Strength Radar (_profRenderStrengthChart), including its
+// "not enough data" fallback, just fed a club-wide (optionally level-scoped)
+// statsRow instead of one athlete's, and with no Best/PB series (average only).
+function drawClubRadar(statsRow, sport, accent) {
+  const c = document.getElementById('club-radar-canvas');
+  if (!c) return;
+  const appKeys = G_APP_KEYS[sport] || [];
+  const labels  = appKeys.map(k => clubLabelFor(k, sport));
+  const nonZeroCount = appKeys.filter(k => (_profRepScore(statsRow, k) || 0) > 0).length;
+  const minNeeded = Math.ceil(appKeys.length / 2);
+  if (nonZeroCount < minNeeded) {
+    _profStrengthChart = new Chart(c.getContext('2d'), {
+      type: 'radar',
+      data: { labels, datasets: [] },
+      options: {
+        responsive: true, aspectRatio: 1,
+        plugins: {
+          legend: { display: false },
+          title: { display: true, text: 'Not enough data for this selection', color: '#8888aa', font: { size: 12 } },
+        },
+        scales: {
+          r: { min: 0, max: 15, ticks: { color: '#8888aa', backdropColor: 'transparent', font: { size: 10 }, stepSize: 5, callback: v => v.toFixed(0) }, grid: GRID, angleLines: GRID, pointLabels: { color: appKeys.map(k => G_COLOR[k]), font: { size: 11, weight: '700' } } },
+        },
+      },
+    });
+    return;
+  }
+  _profRenderStrengthChart(c, false, statsRow, true, sport);
+  if (_profStrengthChart) {
+    _profStrengthChart.data.labels = labels;
+    _profStrengthChart.update('none');
+  }
+}
+
+async function onClubRadarLevelChange(levelValue) {
+  if (!CLUB_STATE) return;
+  const { code, sport } = CLUB_STATE;
+  const dbHandle = sport === currentSport ? DB : CLUB_ALT_DB[sport];
+  if (!dbHandle) return;
+  const accent = sport === 'MAG' ? '#5ee6a8' : '#7c6dfa';
+  const statsRow = await fetchClubRadarStats(dbHandle, sport, code, levelValue || null);
+  drawClubRadar(statsRow, sport, accent);
+}
+
+// "Club vs. state average" mode toggle: by level (default, from data already
+// fetched) or by apparatus (lazy-fetched on first switch, then cached on the
+// sport's data so flipping back and forth after that is instant).
+async function onClubChartModeChange(mode) {
+  if (!CLUB_STATE) return;
+  const { code, sport, sports } = CLUB_STATE;
+  const data = sports[sport];
+  const wrap = document.getElementById('club-chart-widget');
+  if (!data || !wrap) return;
+  const accent = sport === 'MAG' ? '#5ee6a8' : '#7c6dfa';
+
+  wrap.querySelectorAll('.clubA-chart-toggle button').forEach(b => b.classList.toggle('cur', b.dataset.mode === mode));
+
+  let items;
+  if (mode === 'apparatus') {
+    if (!data.apparatusVsState) {
+      wrap.querySelector('.clubA-chart-body').innerHTML = `<div class="clubA-loading">Loading…</div>`;
+      const dbHandle = sport === currentSport ? DB : CLUB_ALT_DB[sport];
+      if (!dbHandle) return;
+      data.apparatusVsState = await fetchClubApparatusVsState(dbHandle, sport, code, data.latestSeason);
+    }
+    items = data.apparatusVsState;
+  } else {
+    items = data.levels.filter(l => l.clubAvg != null).map(l => ({ label: clubLevelLabel(l.level, sport), clubAvg: l.clubAvg, stateAvg: l.stateAvg }));
+  }
+
+  const desc = mode === 'apparatus'
+    ? `Delta from the VIC-wide average, per apparatus (optional levels), ${sport === 'WAG' ? "Women's" : "Men's"} Artistic.`
+    : `Delta from the VIC-wide average, per level, ${sport === 'WAG' ? "Women's" : "Men's"} Artistic.`;
+  const pEl = wrap.querySelector('.clubA-sec p');
+  if (pEl) pEl.textContent = desc;
+  wrap.querySelector('.clubA-chart-body').innerHTML = clubChartBodyHtml(items, accent);
+}
+
+function clubRankBadge(rank) {
+  return `<div class="clubA-rank r${rank}">${rank}</div>`;
+}
+
+// Shared diverging-bar row renderer for the "Club vs. state average" widget,
+// used by both its modes (by level, by apparatus). items: [{label, clubAvg, stateAvg}].
+function clubDivergingRows(items, accent) {
+  const maxAbsDelta = Math.max(...items.map(it => Math.abs(it.clubAvg - it.stateAvg)), 0.1);
+  return items.map(it => {
+    const delta = +(it.clubAvg - it.stateAvg).toFixed(1);
+    const up = delta >= 0;
+    const pct = (Math.abs(delta) / maxAbsDelta) * 50;
+    return `
+      <div class="clubA-row">
+        <div>
+          <div class="lvl">${esc(it.label)}</div>
+          <div class="raw">${it.clubAvg.toFixed(1)} vs ${it.stateAvg.toFixed(1)}</div>
+        </div>
+        <div class="clubA-bars">
+          <div class="clubA-axis0"></div>
+          <div class="clubA-bar-delta" style="left:${up ? '50%' : `${50 - pct}%`};width:${pct}%;background:${up ? accent : '#ff6b6b'}"></div>
+        </div>
+        <div class="clubA-delta" style="color:${up ? accent : '#ff6b6b'}">${up ? '+' : ''}${delta}<span class="sub">vs state</span></div>
+      </div>`;
+  }).join('');
+}
+
+function clubChartBodyHtml(items, accent) {
+  return items.length
+    ? `<div class="clubA-chart-rows">${clubDivergingRows(items, accent)}</div>
+       <div class="clubA-legend"><span><i style="background:${accent}"></i>Above state</span><span><i style="background:#ff6b6b"></i>Below state</span></div>`
+    : `<div class="clubA-empty">Not enough same-season results yet for a state comparison.</div>`;
+}
+
+// Club vs. state average, per apparatus instead of per level (optional levels
+// blended, same convention as the radar's "All levels" default, since raw
+// apparatus scores aren't comparable across compulsory/optional levels).
+async function fetchClubApparatusVsState(dbHandle, sport, code, season) {
+  const apps = (CLUB_RECORD_APPS[sport] || []).filter(([col]) => col !== 'total');
+  if (!season || !apps.length) return [];
+  const sql = apps.map(([col]) => `
+    SELECT '${col}' AS key,
+           AVG(CASE WHEN r.club = ? THEN ${col} END) AS club_avg,
+           COUNT(CASE WHEN r.club = ? THEN ${col} END) AS club_n,
+           AVG(${col}) AS state_avg
+    FROM results r JOIN events e ON e.id = r.event_id JOIN competitions c ON c.id = e.competition_id
+    WHERE c.sport = ? AND c.season = ? AND e.event_type != 'Team' AND e.level > 6 AND ${col} > 0
+  `).join(' UNION ALL ');
+  const params = apps.flatMap(() => [code, code, sport, season]);
+  const labelByCol = Object.fromEntries(CLUB_RECORD_APPS[sport] || []);
+  return _execRows(await dbHandle.exec(sql, params))
+    .filter(([key, clubAvg, clubN, stateAvg]) => clubN >= 3 && clubAvg != null && stateAvg != null)
+    .map(([key, clubAvg, clubN, stateAvg]) => ({ label: labelByCol[key] || key, clubAvg, stateAvg }));
+}
+
+async function renderClubProfile(code, initialSport) {
+  _profDestroyCharts();
+  const el = document.getElementById("search-view-content");
+
+  const meta = CLUBS_LIST.find(c => c.code === code);
+  if (!meta) {
+    el.innerHTML = `<p style="color:var(--muted);padding:12px 0">Club not found.</p>`;
+    return;
+  }
+
+  const sport = CLUB_SPORTS.includes(initialSport) ? initialSport : 'WAG';
+  CLUB_STATE = { code, sport, sports: {} };
+  CLUB_STATE.sports[sport] = await fetchClubSportData(DB, sport, code);
+
+  // Fetch "in the news" once per club (cheap, independent of sport)
+  let news = [];
+  try {
+    const idx = await (await fetch(new URL("news/posts/index.json", location.href).toString(), { cache: "no-cache" })).json();
+    news = idx.filter(p => (p.tags || []).includes("Club Profile") && new RegExp(`-${code}-Profile$`, 'i').test(p.slug))
+              .map(p => ({ title: p.title, date: p.date, slug: p.slug }));
+  } catch (_) {}
+  CLUB_STATE.news = news;
+
+  renderClubDashboard();
+}
+
+async function switchClubSport(sport) {
+  if (!CLUB_STATE || sport === CLUB_STATE.sport) return;
+  const { code } = CLUB_STATE;
+  CLUB_STATE.sport = sport;
+
+  if (!CLUB_STATE.sports[sport]) {
+    renderClubDashboard(true); // keep header, show body loading state
+    let dbHandle = DB;
+    if (sport !== currentSport) {
+      if (!CLUB_ALT_DB[sport]) CLUB_ALT_DB[sport] = await loadSportDbHandle(sport);
+      dbHandle = CLUB_ALT_DB[sport];
+    }
+    CLUB_STATE.sports[sport] = await fetchClubSportData(dbHandle, sport, code);
+  }
+  renderClubDashboard();
+}
+
+function renderClubDashboard(bodyLoading) {
+  const el = document.getElementById("search-view-content");
+  const { code, sport, sports, news } = CLUB_STATE;
+  const meta = CLUBS_LIST.find(c => c.code === code);
+  const data = sports[sport];
+  const accent = sport === 'MAG' ? '#5ee6a8' : '#7c6dfa';
+  const initial = (meta.name.match(/[A-Za-z0-9]/) || ['?'])[0].toUpperCase();
+
+  // Competitions/years tiles sum whichever sports have been fetched so far
+  // (progressively more accurate as the visitor switches tabs and the other
+  // sport lazy-loads).
+  const fetchedSports = Object.values(sports).filter(Boolean);
+  const totalComps = fetchedSports.reduce((s, d) => s + (d.compCount || 0), 0);
+  const allDates = fetchedSports.flatMap(d => [d.firstDate, d.lastDate]).filter(Boolean);
+  const yearsLabel = allDates.length ? `${Math.min(...allDates.map(d => +d.slice(0,4)))}–${Math.max(...allDates.map(d => +d.slice(0,4)))}` : '–';
+
+  const switchBtns = CLUB_SPORTS.map(sp =>
+    `<button class="${sp === sport ? 'cur' : ''}" style="${sp === sport ? `background:${sp === 'MAG' ? '#5ee6a8' : '#7c6dfa'}` : ''}" onclick="switchClubSport('${sp}')">${sp}</button>`
+  ).join('');
+
+  const header = `
+    <header class="clubA-head">
+      <div class="clubA-brand">
+        <div class="clubA-logo" style="background:${accent};color:#0a0b10">
+          <img class="clubA-logo-img" data-fallback="${esc(initial)}" src="assets/logos/${esc(code)}.png" alt="">
+        </div>
+        <div class="clubA-id">
+          <h1>${esc(meta.name)}</h1>
+          <div class="meta">
+            <span class="code">${esc(code)}</span>
+            <span>${esc(meta.region || '')}${meta.region ? ', ' : ''}VIC</span>
+          </div>
+        </div>
+      </div>
+      <div class="clubA-switch">${switchBtns}</div>
+    </header>`;
+
+  let body;
+  if (bodyLoading) {
+    body = `<div class="clubA-body"><div class="clubA-loading" style="grid-column:1/-1">Loading ${esc(sport)} data…</div></div>`;
+  } else if (!data || !data.athleteCount) {
+    body = `<div class="clubA-body"><div class="clubA-empty" style="grid-column:1/-1">No ${esc(sport)} results on record for this club yet.</div></div>`;
+  } else {
+    const maxCount = Math.max(...data.levels.map(l => l.count), 1);
+    const cmpLevels = data.levels.filter(l => l.clubAvg != null);
+    const years = Object.keys(data.compsByYear).sort((a, b) => b - a);
+    const rosterSample = data.roster.slice(0, 30);
+
+    const recordRows = data.records.map(r => `
+      <div class="clubA-rec" style="border-left:3px solid ${accent}">
+        <div class="ap">${esc(r.apparatus)}</div>
+        <div>
+          <div class="who">${esc(r.athlete)} · ${esc(clubLevelLabel(r.level, sport))}</div>
+          <div class="meta">${esc(r.comp)}, ${esc(r.year)}</div>
+        </div>
+        <div class="sc">${Number(r.score).toFixed(3)}</div>
+      </div>`).join('');
+
+    const podiumRows = data.highlights.length ? data.highlights.map(h => `
+      <div class="clubA-p">
+        ${clubRankBadge(h.rank)}
+        <div class="ath">${esc(h.athlete)}</div>
+        <div class="lvl2">${esc(clubLevelLabel(h.level, sport))}</div>
+        <div class="comp">${esc(h.comp)}</div>
+        <div class="sc2">${Number(h.total).toFixed(3)}</div>
+      </div>`).join('') : `<div class="clubA-empty">No podium results recorded yet this season.</div>`;
+
+    const levelRows = data.levels.map(l => `
+      <div class="clubA-lv-row">
+        <div class="lbl">${esc(clubLevelLabel(l.level, sport))}</div>
+        <div class="track"><div class="bar" style="width:${Math.round((l.count / maxCount) * 100)}%;background:${accent};opacity:.85"></div></div>
+        <div class="cnt">${l.count}</div>
+      </div>`).join('');
+
+    const yearRows = years.map(yr => `
+      <div class="clubA-yr-row">
+        <div class="y">${esc(yr)}</div>
+        <div class="clubA-yr-chips">${data.compsByYear[yr].map(c => `<span class="clubA-yr-chip">${esc(c.name)}<b>${c.entries}</b></span>`).join('')}</div>
+      </div>`).join('');
+
+    const rosterRows = rosterSample.map(a => clubRosterRowHtml(a, sport)).join('');
+
+    const factsRows = [
+      meta.venues.length ? `<div><span>Venues</span><b>${meta.venues.length}</b></div>` : '',
+      `<div><span>Region</span><b>${esc(meta.region || 'Unknown')}, VIC</b></div>`,
+      `<div><span>Programs</span><b>${CLUB_SPORTS.filter(sp => sports[sp] && sports[sp].athleteCount).join(' · ') || esc(sport)}</b></div>`,
+    ].join('');
+
+    const hasAbout = meta.founded || meta.description || meta.venues.length || (meta.links && meta.links.length) || news.length;
+
+    const aboutSections = [
+      meta.venues.length ? `<div><div class="k">Venues</div>${meta.venues.map(v => `<div style="margin-bottom:6px"><h4>${esc(v.name || 'Location')}</h4><div class="addr" style="margin-bottom:0">${esc(v.address)}</div></div>`).join('')}</div>` : '',
+      (meta.links && meta.links.length) ? `<div><div class="k">Links</div><ul>${meta.links.map(l => `<li><a href="${esc(l.href)}" style="color:${accent}" target="_blank" rel="noopener">${esc(l.label)} ↗</a></li>`).join('')}</ul></div>` : '',
+      news.length ? `<div><div class="k">In the news</div><ul>${news.map(n => `<li class="news-item"><a href="/news/posts/${esc(n.slug)}/" style="color:inherit;text-decoration:none">${esc(n.title)}</a><span class="news-date">${esc(n.date)}</span></li>`).join('')}</ul></div>` : '',
+    ].join('');
+
+    body = `
+    <div class="clubA-body">
+      <div class="clubA-main">
+        <div class="clubA-herorow">
+          <div id="club-chart-widget">
+            <section class="clubA-sec" style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px">
+              <div>
+                <div class="k" style="color:${accent}">The centerpiece</div>
+                <h2>Club vs. state average</h2>
+                <p>Delta from the VIC-wide average, per level, ${sport === 'WAG' ? "Women's" : "Men's"} Artistic.</p>
+              </div>
+              <div class="clubA-chart-toggle">
+                <button class="cur" data-mode="level" onclick="onClubChartModeChange('level')">Level</button>
+                <button data-mode="apparatus" onclick="onClubChartModeChange('apparatus')">Apparatus</button>
+              </div>
+            </section>
+            <div class="clubA-chart">
+              <div class="clubA-chart-body">${clubChartBodyHtml(cmpLevels.map(l => ({ label: clubLevelLabel(l.level, sport), clubAvg: l.clubAvg, stateAvg: l.stateAvg })), accent)}</div>
+            </div>
+          </div>
+          <div>
+            <section class="clubA-sec"><div class="k" style="color:${accent}">All-time</div><h2>Club records</h2></section>
+            <div class="clubA-reclist">${recordRows}</div>
+            ${clubRadarHtml(data.radarLevels, sport)}
+          </div>
+        </div>
+
+        <div class="clubA-podiumrow">
+          <div>
+            <section class="clubA-sec"><div class="k" style="color:${accent}">This season</div><h2>Podium finishes</h2></section>
+            <div class="clubA-podium">${podiumRows}</div>
+          </div>
+          <div>
+            <section class="clubA-sec"><div class="k" style="color:${accent}">History</div><h2>Competition entries</h2></section>
+            <div class="clubA-comps">${yearRows}</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="clubA-sidebar">
+        <div class="clubA-profile">
+          <div class="clubA-profile-pic"><span class="mono">${esc(initial)}</span></div>
+          <div class="clubA-profile-body">
+            <div class="clubA-profile-top">
+              <h2>About ${esc(code)}</h2>
+              ${meta.founded ? `<span class="est">Est. ${esc(meta.founded)}</span>` : ''}
+            </div>
+            ${meta.description ? `<p class="clubA-profile-desc">${esc(meta.description)}</p>` : ''}
+            <div class="clubA-profile-facts">${factsRows}</div>
+          </div>
+        </div>
+
+        <div class="clubA-stats">
+          <div class="clubA-stat"><div class="n">${data.perfect10}</div><div class="l">Perfect 10s</div></div>
+          <div class="clubA-stat"><div class="n">${totalComps}</div><div class="l">Competitions</div></div>
+          <div class="clubA-stat"><div class="n">${yearsLabel}</div><div class="l">Years on record</div></div>
+          <div class="clubA-stat" style="border-color:${accent}"><div class="n" style="color:${accent}">${data.athleteCount}</div><div class="l">${esc(sport)} athletes</div></div>
+        </div>
+
+        <div class="clubA-roster">
+          <div class="clubA-roster-head"><h2>Roster</h2><span class="cnt">${data.roster.length} total</span></div>
+          <div class="clubA-rlist">${rosterRows}</div>
+          ${data.roster.length > rosterSample.length ? `<button type="button" class="clubA-more2" style="color:${accent}" onclick="openRosterModal()">+${data.roster.length - rosterSample.length} more athletes →</button>` : ''}
+        </div>
+
+        <div>
+          <section class="clubA-sec"><div class="k" style="color:${accent}">Depth</div><h2 style="font-size:14px;margin:3px 0">Athletes per level</h2></section>
+          <div class="clubA-levels-v">${levelRows}</div>
+        </div>
+
+        ${hasAbout ? `<div class="clubA-about">${aboutSections}</div>` : ''}
+      </div>
+    </div>`;
+  }
+
+  _profDestroyCharts();
+  el.innerHTML = `<div class="clubA">${header}${body}</div>`;
+
+  el.querySelectorAll('.clubA-logo-img').forEach(img => {
+    img.addEventListener('error', () => { img.parentElement.textContent = img.dataset.fallback; }, { once: true });
+  });
+  el.querySelectorAll('.clubA-rrow').forEach(row => {
+    row.addEventListener('click', () => openAthleteProfile(row.dataset.name));
+  });
+  if (!bodyLoading && data && data.athleteCount) {
+    drawClubRadar(data.radarStats, sport, accent);
+  }
+
+  if (currentSport) {
+    history.replaceState(null, "", "#" + currentSport + "/club/" + encodeURIComponent(code));
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 // Tap-friendly tooltip (supplements native title= on desktop)
 // ─────────────────────────────────────────────────────────────────────────────
 (function () {
@@ -3518,26 +4206,50 @@ async function renderAthleteProfile(athleteName) {
     if (gc && s.routines)     gc.textContent = fmtNum(s.routines);
   }).catch(() => {});
 
-  // ── Hash router: auto-navigate on direct URL load ─────────────────────────
-  (function() {
+  // ── Hash router: runs on direct/fresh URL load AND on in-page hash changes
+  // (typing a new #... address while the app is already open doesn't reload
+  // the page, browsers only fire "hashchange" for that, so this has to be a
+  // real listener, not a one-shot IIFE that only ever runs once at load). ──
+  function handleHashRoute() {
     const parts = location.hash.replace("#", "").split("/");
     const sport = (parts[0] || "").toUpperCase();
     const view  = parts[1] || "";
-    if (["WAG", "MAG", "ACRO"].includes(sport)) {
-      enterSport(sport).then(() => {
-        if (view === "athlete" && parts[2]) {
-          const name = decodeURIComponent(parts[2]);
-          switchToView("search");
-          document.getElementById("search-view-title").textContent = "Athlete Profile";
-          document.getElementById("search-view-content").innerHTML =
-            `<p style="color:var(--muted);padding:12px 0">Loading…</p>`;
-          renderAthleteProfile(name);
-        } else if (view && view !== "clubs") {
-          switchToView(view);
-        }
-      });
+    if (!["WAG", "MAG", "ACRO"].includes(sport)) return;
+
+    const applyRoute = () => {
+      if (view === "athlete" && parts[2]) {
+        const name = decodeURIComponent(parts[2]);
+        switchToView("search");
+        document.getElementById("search-view-title").textContent = "Athlete Profile";
+        document.getElementById("search-view-content").innerHTML =
+          `<p style="color:var(--muted);padding:12px 0">Loading…</p>`;
+        renderAthleteProfile(name);
+      } else if (view === "club" && parts[2]) {
+        const code = decodeURIComponent(parts[2]);
+        switchToView("search");
+        document.getElementById("search-view-title").textContent = "Club Profile";
+        document.getElementById("search-view-content").innerHTML =
+          `<div class="clubA-loading">Loading…</div>`;
+        renderClubProfile(code, sport);
+      } else if (view && view !== "clubs") {
+        switchToView(view);
+      }
+    };
+
+    if (sport === currentSport && DB) {
+      // Same sport already loaded (e.g. one club/athlete link to another) -- just re-route.
+      applyRoute();
+    } else {
+      // Different (or first) sport: same reset onSearchSportChange() uses before
+      // enterSport(), otherwise initDB() would short-circuit and leave DB pointed
+      // at the wrong sport's database.
+      DB = null; CLUBS = {}; CLUBS_LIST = []; CLUBS_BY_NAME = {};
+      enterSport(sport).then(applyRoute);
     }
-  })();
+  }
+
+  window.addEventListener("hashchange", handleHashRoute);
+  handleHashRoute();
 
 })();
 </script>

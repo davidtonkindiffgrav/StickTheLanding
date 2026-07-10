@@ -101,6 +101,13 @@ ATHLETE_LINE_AA_SPARE = re.compile(
     rf"^(\d+[T]?)\s+(\d+)\s+(.+?)\s+({_S})\s+({_S})\s+({_S})\s+({_S})\s+({_S})\s+({_S})\s*$"
 )
 
+# 7-score variant: rank bib name v ub bb fx spare spare total (two spare/placeholder
+# columns, seen in BTYC-style Level 7 "All Ages" sheets). Must be tried before the
+# 6-score variant above, or the extra trailing number gets absorbed into the name.
+ATHLETE_LINE_AA_SPARE2 = re.compile(
+    rf"^(\d+[T]?)\s+(\d+)\s+(.+?)\s+({_S})\s+({_S})\s+({_S})\s+({_S})\s+({_S})\s+({_S})\s+({_S})\s*$"
+)
+
 # MAG AA: rank bib name + 6 apparatus scores + total (7 numeric tokens after name)
 ATHLETE_LINE_MAG_AA = re.compile(
     rf"^(\d+[T]?)\s+(\d+)\s+(.+?)\s+({_S})\s+({_S})\s+({_S})\s+({_S})\s+({_S})\s+({_S})\s+({_S})\s*$"
@@ -415,8 +422,13 @@ def _parse_rank(s):
 
 
 def _clean_name(name):
-    """Strip ProScore annotation characters and rejoin words broken by PDF spacing."""
-    name = re.sub(r"^[\*\s]+|[\*\s]+$", "", name)
+    """Strip ProScore annotation characters and rejoin words broken by PDF spacing.
+
+    ProScore glues footnote markers straight onto the name with no separating
+    delimiter: "*" flags a tied placing, "#" flags a guest/non-scoring entry.
+    Both are stripped here so they never end up parsed as part of the name.
+    """
+    name = re.sub(r"^[\*#\s]+|[\*#\s]+$", "", name)
     # PDF text extraction sometimes inserts spaces mid-word. A token starting with
     # a lowercase letter is always a broken fragment — join it to the previous token.
     tokens = name.split(" ")
@@ -1717,10 +1729,12 @@ def parse_proscore_simple(text_pages, pdf_path, sport="WAG"):
                     prev_athlete = row
                     matched = True
             else:
-                # WAG: try 5-score (spare) first, then standard 4-score
-                m = ATHLETE_LINE_AA_SPARE.match(line)
+                # WAG: try longest (2-spare) variant first, then 1-spare, then plain
+                # 4-score. Trying the shorter variants first would let their fixed
+                # trailing-group count absorb an extra numeric token into the name.
+                m = ATHLETE_LINE_AA_SPARE2.match(line)
                 if m:
-                    rank_str, bib, name, v, ub, bb, fx, _spare, total = m.groups()
+                    rank_str, bib, name, v, ub, bb, fx, _spare1, _spare2, total = m.groups()
                     prev_athlete = {
                         "rank": _parse_rank(rank_str),
                         "bib": bib.strip(),
@@ -1735,9 +1749,9 @@ def parse_proscore_simple(text_pages, pdf_path, sport="WAG"):
                     events_by_ld[key].append(prev_athlete)
                     matched = True
                 else:
-                    m = ATHLETE_LINE_AA.match(line)
+                    m = ATHLETE_LINE_AA_SPARE.match(line)
                     if m:
-                        rank_str, bib, name, v, ub, bb, fx, total = m.groups()
+                        rank_str, bib, name, v, ub, bb, fx, _spare, total = m.groups()
                         prev_athlete = {
                             "rank": _parse_rank(rank_str),
                             "bib": bib.strip(),
@@ -1751,6 +1765,23 @@ def parse_proscore_simple(text_pages, pdf_path, sport="WAG"):
                         }
                         events_by_ld[key].append(prev_athlete)
                         matched = True
+                    else:
+                        m = ATHLETE_LINE_AA.match(line)
+                        if m:
+                            rank_str, bib, name, v, ub, bb, fx, total = m.groups()
+                            prev_athlete = {
+                                "rank": _parse_rank(rank_str),
+                                "bib": bib.strip(),
+                                "athlete": _clean_name(name),
+                                "club": None,
+                                "vault": _parse_score(v),
+                                "bars": _parse_score(ub),
+                                "beam": _parse_score(bb),
+                                "floor": _parse_score(fx),
+                                "total": _parse_score(total),
+                            }
+                            events_by_ld[key].append(prev_athlete)
+                            matched = True
 
             if not matched and prev_athlete is not None and prev_athlete["club"] is None:
                 cm = _CLUB_RANKS_LINE.match(line)

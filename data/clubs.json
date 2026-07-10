@@ -1,5 +1,5 @@
 {
-  "_comment": "Canonical club registry. 'code' is the short key used everywhere in the app. 'aliases' lists every raw string the parser might produce â€” add to this list whenever you spot a new variant. 'logo' is a relative path under assets/logos/ (leave null until you have the file). 'region' values: Metro East, Metro North, Metro South, Metro West, Regional NE, Regional SE, Regional West, Interstate.",
+  "_comment": "Canonical club registry. 'code' is the short key used everywhere in the app. 'aliases' lists every raw string the parser might produce, add to this list whenever you spot a new variant. 'logo' is a relative path under assets/logos/ (leave null until you have the file). 'region' values: Metro East, Metro North, Metro South, Metro West, Regional NE, Regional SE, Regional West, Interstate. Optional hand-curated fields, fill in as clubs are researched: 'venues' (array of {name, address}), 'founded' (year string), 'description' (2-3 sentence blurb), 'links' (array of {label, href}, e.g. club website/socials).",
   "clubs": [
     {
       "code": "ADR",

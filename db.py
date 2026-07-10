@@ -27,10 +27,19 @@ def create_schema(con: sqlite3.Connection) -> None:
         PRAGMA page_size = 1024;
 
         CREATE TABLE IF NOT EXISTS clubs (
-            code    TEXT PRIMARY KEY,
-            name    TEXT NOT NULL,
-            region  TEXT,
-            logo    TEXT
+            code         TEXT PRIMARY KEY,
+            name         TEXT NOT NULL,
+            region       TEXT,
+            logo         TEXT,
+            founded      TEXT,
+            description  TEXT,
+            links        TEXT
+        );
+
+        CREATE TABLE IF NOT EXISTS club_venues (
+            club_code   TEXT NOT NULL REFERENCES clubs(code),
+            name        TEXT,
+            address     TEXT
         );
 
         CREATE TABLE IF NOT EXISTS competitions (
@@ -118,6 +127,11 @@ def create_schema(con: sqlite3.Connection) -> None:
         con.execute("ALTER TABLE competitions ADD COLUMN date TEXT")
     except Exception:
         pass
+    for col in ("founded TEXT", "description TEXT", "links TEXT"):
+        try:
+            con.execute(f"ALTER TABLE clubs ADD COLUMN {col}")
+        except Exception:
+            pass
     con.commit()
 
 
@@ -137,13 +151,32 @@ def sync_clubs(con: sqlite3.Connection, clubs_path: Path) -> None:
         return
     with open(clubs_path, encoding="utf-8") as f:
         data = json.load(f)
+    clubs = data.get("clubs", [])
     rows = [
-        (c["code"], c["name"], c.get("region"), c.get("logo"))
-        for c in data.get("clubs", [])
+        (
+            c["code"], c["name"], c.get("region"), c.get("logo"),
+            c.get("founded"), c.get("description"),
+            json.dumps(c["links"]) if c.get("links") else None,
+        )
+        for c in clubs
     ]
     con.executemany(
-        "INSERT OR REPLACE INTO clubs (code, name, region, logo) VALUES (?, ?, ?, ?)",
+        "INSERT OR REPLACE INTO clubs (code, name, region, logo, founded, description, links) "
+        "VALUES (?, ?, ?, ?, ?, ?, ?)",
         rows,
+    )
+
+    # club_venues is fully rebuilt from clubs.json each sync (it's the source of truth)
+    con.execute("DELETE FROM club_venues")
+    venue_rows = [
+        (c["code"], v.get("name"), v.get("address"))
+        for c in clubs
+        for v in c.get("venues", [])
+        if v.get("address")
+    ]
+    con.executemany(
+        "INSERT INTO club_venues (club_code, name, address) VALUES (?, ?, ?)",
+        venue_rows,
     )
     con.commit()
 
@@ -258,10 +291,19 @@ def create_acro_schema(con: sqlite3.Connection) -> None:
         PRAGMA page_size = 1024;
 
         CREATE TABLE IF NOT EXISTS clubs (
-            code    TEXT PRIMARY KEY,
-            name    TEXT NOT NULL,
-            region  TEXT,
-            logo    TEXT
+            code         TEXT PRIMARY KEY,
+            name         TEXT NOT NULL,
+            region       TEXT,
+            logo         TEXT,
+            founded      TEXT,
+            description  TEXT,
+            links        TEXT
+        );
+
+        CREATE TABLE IF NOT EXISTS club_venues (
+            club_code   TEXT NOT NULL REFERENCES clubs(code),
+            name        TEXT,
+            address     TEXT
         );
 
         CREATE TABLE IF NOT EXISTS competitions (
@@ -320,6 +362,12 @@ def create_acro_schema(con: sqlite3.Connection) -> None:
         con.commit()
     except Exception:
         pass
+    for col in ("founded TEXT", "description TEXT", "links TEXT"):
+        try:
+            con.execute(f"ALTER TABLE clubs ADD COLUMN {col}")
+        except Exception:
+            pass
+    con.commit()
 
 
 def insert_acro_event(con, competition_id, ev):

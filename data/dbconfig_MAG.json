@@ -1,6 +1,1 @@
-{
-  "serverMode": "full",
-  "requestChunkSize": 1024,
-  "fileLength": 888832,
-  "rev": 16
-}
+{"serverMode": "full", "requestChunkSize": 1024, "fileLength": 884736, "rev": 34}
