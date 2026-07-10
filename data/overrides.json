@@ -33,6 +33,15 @@
     },
     "WAG Border Challenge Trial 1": {
       "FLYAWAY": "FLY", "WYND": "WYN"
+    },
+    "BTYC Senior Invite": {
+      "YMCA": "GYG"
+    },
+    "MYC MAG Senior Invitational": {
+      "YMCA": "GYG"
+    },
+    "SGC Invite": {
+      "YMCA": "GYG"
     }
   },
 
