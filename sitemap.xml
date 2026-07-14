@@ -46,6 +46,12 @@
     <priority>0.4</priority>
   </url>
   <url>
+    <loc>https://stickthelanding.com.au/news/posts/2026-07-14-Warrnambool-Invite/</loc>
+    <lastmod>2026-07-14</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
     <loc>https://stickthelanding.com.au/news/posts/2026-07-09-EKG-Profile/</loc>
     <lastmod>2026-07-09</lastmod>
     <changefreq>monthly</changefreq>
@@ -142,13 +148,13 @@
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://stickthelanding.com.au/results/wag/waverley-invite-2026/</loc>
-    <lastmod>2026-06-13</lastmod>
+    <loc>https://stickthelanding.com.au/results/wag/senior-victorian-championships-2026/</loc>
+    <lastmod>2026-05-22</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://stickthelanding.com.au/results/wag/senior-victorian-championships-2026/</loc>
+    <loc>https://stickthelanding.com.au/results/mag/senior-victorian-championships-apparatus-2026/</loc>
     <lastmod>2026-05-22</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
@@ -160,8 +166,14 @@
     <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://stickthelanding.com.au/results/mag/senior-victorian-championships-apparatus-2026/</loc>
-    <lastmod>2026-05-22</lastmod>
+    <loc>https://stickthelanding.com.au/results/wag/waverley-invite-2026/</loc>
+    <lastmod>2026-05-10</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://stickthelanding.com.au/results/wag/warrnambool-invite-2026/</loc>
+    <lastmod>2026-05-07</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
@@ -316,12 +328,6 @@
     <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://stickthelanding.com.au/results/wag/metro-south-regional-championships-2025/</loc>
-    <lastmod>2025-09-13</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.6</priority>
-  </url>
-  <url>
     <loc>https://stickthelanding.com.au/results/wag/metro-west-regional-championships-2025/</loc>
     <lastmod>2025-09-13</lastmod>
     <changefreq>monthly</changefreq>
@@ -329,6 +335,12 @@
   </url>
   <url>
     <loc>https://stickthelanding.com.au/results/wag/south-east-regional-championships-2025/</loc>
+    <lastmod>2025-09-13</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://stickthelanding.com.au/results/wag/metro-south-regional-championships-2025/</loc>
     <lastmod>2025-09-13</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
@@ -370,13 +382,13 @@
     <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://stickthelanding.com.au/results/wag/geelong-ymca-invite-2025/</loc>
+    <loc>https://stickthelanding.com.au/results/wag/mlc-junior-star-classic-2025/</loc>
     <lastmod>2025-07-19</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://stickthelanding.com.au/results/wag/mlc-junior-star-classic-2025/</loc>
+    <loc>https://stickthelanding.com.au/results/wag/geelong-ymca-invite-2025/</loc>
     <lastmod>2025-07-19</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
@@ -604,25 +616,25 @@
     <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://stickthelanding.com.au/results/wag/niddrie-invitational-2024/</loc>
-    <lastmod>2024-07-13</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.6</priority>
-  </url>
-  <url>
     <loc>https://stickthelanding.com.au/results/wag/ymca-geelong-invitational-2024/</loc>
     <lastmod>2024-07-13</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://stickthelanding.com.au/results/wag/metro-south-regional-championships-2024/</loc>
-    <lastmod>2024-07-09</lastmod>
+    <loc>https://stickthelanding.com.au/results/wag/niddrie-invitational-2024/</loc>
+    <lastmod>2024-07-13</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://stickthelanding.com.au/results/wag/metro-west-regional-championships-2024/</loc>
+    <lastmod>2024-07-09</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://stickthelanding.com.au/results/wag/metro-south-regional-championships-2024/</loc>
     <lastmod>2024-07-09</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
@@ -670,6 +682,18 @@
     <priority>0.6</priority>
   </url>
   <url>
+    <loc>https://stickthelanding.com.au/results/acro/acr-state-team-trial-2-2024/</loc>
+    <lastmod>2024-05-05</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://stickthelanding.com.au/results/acro/acr-senior-victorian-championships-2024/</loc>
+    <lastmod>2024-04-09</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
     <loc>https://stickthelanding.com.au/results/wag/warrnambool-invite-2024/</loc>
     <lastmod>2024-04-08</lastmod>
     <changefreq>monthly</changefreq>
@@ -695,6 +719,12 @@
   </url>
   <url>
     <loc>https://stickthelanding.com.au/results/wag/wag-2024-state-team-trial-2-2024/</loc>
+    <lastmod>2024-03-17</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://stickthelanding.com.au/results/acro/acr-state-team-trial-1-2024/</loc>
     <lastmod>2024-03-17</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
@@ -732,24 +762,6 @@
   <url>
     <loc>https://stickthelanding.com.au/results/wag/north-east-regional-championships-2024/</loc>
     <lastmod>2024-02-09</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.6</priority>
-  </url>
-  <url>
-    <loc>https://stickthelanding.com.au/results/acro/acr-state-team-trial-2-2024/</loc>
-    <lastmod>2024-05-05</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.6</priority>
-  </url>
-  <url>
-    <loc>https://stickthelanding.com.au/results/acro/acr-senior-victorian-championships-2024/</loc>
-    <lastmod>2024-04-09</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.6</priority>
-  </url>
-  <url>
-    <loc>https://stickthelanding.com.au/results/acro/acr-state-team-trial-1-2024/</loc>
-    <lastmod>2024-03-17</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
