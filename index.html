@@ -3029,11 +3029,11 @@ function _profRenderTimeChart(canvasEl, type, rows, mode, animate = true) {
   });
 }
 
-function _profRenderStrengthChart(canvasEl, showPB, statsRow, animate = true, sport = currentSport) {
+function _profRenderStrengthChart(canvasEl, showPB, statsRow, animate = true, sport = currentSport, labelsOverride = null) {
   const appKeys  = G_APP_KEYS[sport] || [];
   if (!appKeys.length) return;
   const appNames = sport === 'MAG' ? MAG_APPARATUS_NAME : (sport === 'ACRO' ? ACRO_APPARATUS_NAME : APPARATUS_NAME);
-  const lbl    = appKeys.map(k => appNames[k] || k);
+  const lbl    = labelsOverride || appKeys.map(k => appNames[k] || k);
   const colors = appKeys.map(k => G_COLOR[k]);
   const avgVals = appKeys.map(k => _profRepScore(statsRow, k) || 0);
   const pbVals  = appKeys.map(k => { const b = _STAT_OFFSET[k]; return b !== undefined ? (statsRow[b] || 0) : 0; });
@@ -3765,11 +3765,7 @@ function drawClubRadar(statsRow, sport, accent) {
     });
     return;
   }
-  _profRenderStrengthChart(c, false, statsRow, true, sport);
-  if (_profStrengthChart) {
-    _profStrengthChart.data.labels = labels;
-    _profStrengthChart.update('none');
-  }
+  _profRenderStrengthChart(c, false, statsRow, true, sport, labels);
 }
 
 async function onClubRadarLevelChange(levelValue) {
