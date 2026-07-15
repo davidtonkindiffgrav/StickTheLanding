@@ -1,6 +1,12 @@
 [
   {
     "sport": "wag",
+    "comp_id": "btyc-wag-junior-invite-2026",
+    "name": "BTYC WAG Junior Invite",
+    "date": "2026-07-12"
+  },
+  {
+    "sport": "wag",
     "comp_id": "senior-victorian-championships-2026",
     "name": "Senior Victorian Championships",
     "date": "2026-05-22"
