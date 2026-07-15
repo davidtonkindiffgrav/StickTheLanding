@@ -429,6 +429,9 @@ def _clean_name(name):
     Both are stripped here so they never end up parsed as part of the name.
     """
     name = re.sub(r"^[\*#\s]+|[\*#\s]+$", "", name)
+    # Some result sheets render hyphenated surnames as "Word - Word" instead of
+    # "Word-Word" (e.g. "Brand - Starkey"). Collapse it back to a tight hyphen.
+    name = re.sub(r"(?<=[A-Za-z])\s+-\s+(?=[A-Za-z])", "-", name)
     # PDF text extraction sometimes inserts spaces mid-word. A token starting with
     # a lowercase letter is always a broken fragment — join it to the previous token.
     tokens = name.split(" ")
