@@ -3176,9 +3176,23 @@ async function renderAthleteProfile(athleteName) {
     if (s != null && s > bestScore) { bestScore = s; bestKey = k; }
   }
 
-  // Distinct club codes + past affiliations (clubs ≠ current)
+  // Distinct club codes + past affiliations (clubs ≠ current), one chip per club spanning its season range
   const distinctClubs = [...new Set(histClubRows.map(r => r[0]))];
-  const pastAffils    = histClubRows.filter(r => r[0] !== currentClub);
+  const pastAffilsByClub = new Map();
+  for (const r of histClubRows) {
+    if (r[0] === currentClub) continue;
+    if (!pastAffilsByClub.has(r[0])) pastAffilsByClub.set(r[0], { seasons: [], firstSeen: r[2] });
+    const entry = pastAffilsByClub.get(r[0]);
+    entry.seasons.push(r[1]);
+    if (r[2] < entry.firstSeen) entry.firstSeen = r[2];
+  }
+  const pastAffils = [...pastAffilsByClub.entries()]
+    .sort((a, b) => a[1].firstSeen < b[1].firstSeen ? -1 : a[1].firstSeen > b[1].firstSeen ? 1 : 0)
+    .map(([club, e]) => {
+      const seasons = [...new Set(e.seasons)].sort();
+      const seasonLabel = seasons.length > 1 ? `${seasons[0]}–${seasons[seasons.length - 1]}` : seasons[0];
+      return [club, seasonLabel];
+    });
 
   // Level filter availability
   const hasCompulsory = profRows.some(r => r.level !== null && r.level <= 6);
