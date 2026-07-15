@@ -1449,7 +1449,8 @@ html[data-theme="light"] .clubA {
 .clubA-reclist { display:flex; flex-direction:column; gap:6px; }
 .clubA-rec { display:grid; grid-template-columns: 46px 1fr auto; align-items:center; gap:8px;
   border:1px solid var(--cA-line); border-radius: 9px; padding: 7px 10px 7px 9px; background: var(--cA-panel); position:relative; overflow:hidden; }
-.clubA-rec .ap { font: 700 8.5px/1.2 'JetBrains Mono',monospace; text-transform:uppercase; letter-spacing:.04em; color:var(--cA-muted); }
+.clubA-rec .ap { font: 700 8.5px/1.2 'JetBrains Mono',monospace; text-transform:uppercase; letter-spacing:.04em; color:var(--cA-muted); display:flex; flex-direction:column; align-items:flex-start; gap:3px; }
+.clubA-rec-icon { width:16px; height:16px; }
 .clubA-rec .who { font-size: 11px; font-weight: 600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 .clubA-rec .meta { font-size: 8.5px; color: var(--cA-muted); margin-top: 1px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 .clubA-rec .sc { font: 700 16px 'JetBrains Mono',monospace; letter-spacing:-0.02em; text-align:right; }

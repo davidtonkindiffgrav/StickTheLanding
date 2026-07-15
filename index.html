@@ -2596,6 +2596,15 @@ initClubDirectory();
 const G_APP_KEYS = { WAG: ['VT','UB','BB','FX'], MAG: ['VT','FX','PH','SR','PB','HB'], ACRO: [] };
 const G_COL      = { VT:'vault', UB:'bars', BB:'beam', FX:'floor', PH:'pommel', SR:'rings', PB:'pbars', HB:'hbar' };
 const G_COLOR    = { VT:'#4e8ef7', UB:'#a855f7', BB:'#14b8a6', FX:'#f97316', PH:'#ef4444', SR:'#eab308', PB:'#8b5cf6', HB:'#22c55e' };
+const G_ICON_FILE  = { VT:'VT', UB:'UB', BB:'BB', FX:'FL', PH:'PH', SR:'SR', PB:'PB', HB:'HB' };
+const G_COL_TO_APP = Object.fromEntries(Object.entries(G_COL).map(([app, col]) => [col, app]));
+// Accepts either a 2-letter apparatus code (VT/UB/...) or a db column name (vault/bars/...).
+function appIconHtml(codeOrCol, extraClass = '') {
+  const code = G_ICON_FILE[codeOrCol] ? codeOrCol : G_COL_TO_APP[codeOrCol];
+  if (!code) return '';
+  const cls = extraClass ? `profile-pb-icon ${extraClass}` : 'profile-pb-icon';
+  return `<span class="${cls}" style="background-color:${G_COLOR[code]};-webkit-mask-image:url(assets/images/${G_ICON_FILE[code]}.png);mask-image:url(assets/images/${G_ICON_FILE[code]}.png)"></span>`;
+}
 const TICK = { color: '#8888aa', font: { size: 11 } };
 const GRID = { color: '#2e2e42' };
 const LEG  = { color: '#e8e8f0', padding: 12, font: { size: 12 } };
@@ -3205,14 +3214,10 @@ async function renderAthleteProfile(athleteName) {
     ? `<span class="profile-field-label">Best Apparatus</span> <strong style="color:${G_COLOR[bestKey]}">${esc(appNames[bestKey] || bestKey)}</strong>`
     : '';
 
-  const PB_ICON = { VT:'VT', UB:'UB', BB:'BB', FX:'FL', PH:'PH', SR:'SR', PB:'PB', HB:'HB' };
-
   const pbItems = appKeys.map(k => {
     const pb      = statsRow[_STAT_OFFSET[k]];
     const fullName = appNames[k] || k;
-    const icon = PB_ICON[k]
-      ? `<span class="profile-pb-icon" style="background-color:${G_COLOR[k]};-webkit-mask-image:url(assets/images/${PB_ICON[k]}.png);mask-image:url(assets/images/${PB_ICON[k]}.png)"></span>`
-      : `<span class="profile-pb-dot" style="background:${G_COLOR[k]}"></span>`;
+    const icon = appIconHtml(k) || `<span class="profile-pb-dot" style="background:${G_COLOR[k]}"></span>`;
     return `<div class="profile-pb-item">
       ${icon}
       <span class="profile-pb-key"><span class="pb-name-full">${esc(fullName)}</span><span class="pb-name-short">${esc(k)}</span></span>
@@ -3958,7 +3963,7 @@ function renderClubDashboard(bodyLoading) {
 
     const recordRows = data.records.map(r => `
       <div class="clubA-rec" style="border-left:3px solid ${accent}">
-        <div class="ap">${esc(r.apparatus)}</div>
+        <div class="ap">${appIconHtml(r.col, 'clubA-rec-icon')}<span>${esc(r.apparatus)}</span></div>
         <div>
           <div class="who">${esc(r.athlete)} · ${esc(clubLevelLabel(r.level, sport))}</div>
           <div class="meta">${esc(r.comp)}, ${esc(r.year)}</div>
