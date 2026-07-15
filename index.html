@@ -921,7 +921,14 @@ function openRosterModal() {
   const meta = CLUBS_LIST.find(c => c.code === CLUB_STATE.code);
   document.getElementById("roster-modal-title").textContent = `${meta.name} Roster`;
   document.getElementById("roster-modal-count").textContent = `${data.roster.length} total`;
-  document.getElementById("roster-modal-list").innerHTML = data.roster.map(a => clubRosterRowHtml(a, sport)).join('');
+  const list = document.getElementById("roster-modal-list");
+  list.innerHTML = data.roster.map(a => clubRosterRowHtml(a, sport)).join('');
+  list.querySelectorAll('.clubA-rrow').forEach(row => {
+    row.addEventListener('click', () => {
+      closeRosterModal();
+      openAthleteProfile(row.dataset.athlete);
+    });
+  });
   const input = document.getElementById("roster-modal-filter");
   input.value = "";
   document.getElementById("roster-modal-empty").style.display = "none";
@@ -3532,7 +3539,7 @@ function lastFirst(name) {
 function clubRosterRowHtml(a, sport) {
   const initials = a.name.split(' ').map(p => p[0]).filter(Boolean).join('').slice(0, 2).toUpperCase();
   return `
-    <div class="clubA-rrow" data-name="${esc(a.name.toLowerCase())}">
+    <div class="clubA-rrow" data-name="${esc(a.name.toLowerCase())}" data-athlete="${esc(a.name)}">
       <span class="clubA-av" style="background:${avatarColor(a.name)}">${esc(initials)}</span>
       <span class="nm">${esc(lastFirst(a.name))}</span>
       <span class="lv">${esc(clubLevelLabel(a.level, sport))}</span>
@@ -4091,7 +4098,7 @@ function renderClubDashboard(bodyLoading) {
     img.addEventListener('error', () => { img.parentElement.textContent = img.dataset.fallback; }, { once: true });
   });
   el.querySelectorAll('.clubA-rrow').forEach(row => {
-    row.addEventListener('click', () => openAthleteProfile(row.dataset.name));
+    row.addEventListener('click', () => openAthleteProfile(row.dataset.athlete));
   });
   if (!bodyLoading && data && data.athleteCount) {
     drawClubRadar(data.radarStats, sport, accent);
