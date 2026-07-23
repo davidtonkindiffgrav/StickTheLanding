@@ -2,5 +2,6 @@ User-agent: *
 Allow: /
 Disallow: /data/
 Disallow: /news/posts/_template/
+Disallow: /team-picker/
 
 Sitemap: https://stickthelanding.com.au/sitemap.xml

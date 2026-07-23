@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="robots" content="noindex,nofollow" />
+  <script>!function(){document.documentElement.dataset.theme=localStorage.getItem('stl-theme')||(matchMedia('(prefers-color-scheme:dark)').matches?'dark':'light')}()</script>
+  <title>Team Picker - Stick The Landing</title>
+  <link rel="apple-touch-icon" sizes="180x180" href="/assets/favicons/apple-touch-icon.png" />
+  <link rel="icon" type="image/png" sizes="32x32" href="/assets/favicons/favicon-32x32.png" />
+  <link rel="icon" type="image/png" sizes="16x16" href="/assets/favicons/favicon-16x16.png" />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/assets/style.css" />
+  <link rel="stylesheet" href="team-picker.css" />
+  <script src="/sql/sql-httpvfs.js"></script>
+</head>
+<body>
+
+  <div class="tp-wrap" id="app">
+    <div class="tp-header">
+      <div>
+        <h1>Team Picker <span class="tp-badge">WAG · Beta</span></h1>
+        <div id="tp-club-name"></div>
+      </div>
+    </div>
+
+    <div class="tp-controls">
+      <div>
+        <label for="tp-level-select">Level</label>
+        <select id="tp-level-select"><option value="">Loading…</option></select>
+      </div>
+      <div>
+        <label for="tp-basis-select">Stats basis</label>
+        <select id="tp-basis-select"></select>
+      </div>
+      <label class="tp-toggle">
+        <input type="checkbox" id="tp-toggle-counts" checked />
+        Flag thin data
+      </label>
+      <div id="tp-status"></div>
+    </div>
+
+    <p class="tp-legend">"(n=X)" only appears on a score backed by fewer than 3 results at this level, treat those as less reliable until there's more history. A dash means no data at all for that apparatus at this level. Bold scores in the Team panel are that gymnast's best apparatus in the lineup.</p>
+
+    <div class="tp-columns">
+      <section class="tp-panel">
+        <h2>Level Pool</h2>
+        <div style="overflow-x:auto">
+          <table class="tp-table">
+            <thead>
+              <tr>
+                <th>Gymnast</th>
+                <th><span class="tp-app-icon vt" title="Vault"></span>VT</th>
+                <th><span class="tp-app-icon ub" title="Bars"></span>UB</th>
+                <th><span class="tp-app-icon bb" title="Beam"></span>BB</th>
+                <th><span class="tp-app-icon fx" title="Floor"></span>FX</th>
+                <th>AA</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="tp-pool-body"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="tp-panel">
+        <h2>Team <span id="tp-team-count" class="tp-sub">0 of 5</span></h2>
+        <div style="overflow-x:auto">
+          <table class="tp-table">
+            <thead>
+              <tr>
+                <th>Gymnast</th>
+                <th><span class="tp-app-icon vt" title="Vault"></span>VT</th>
+                <th><span class="tp-app-icon ub" title="Bars"></span>UB</th>
+                <th><span class="tp-app-icon bb" title="Beam"></span>BB</th>
+                <th><span class="tp-app-icon fx" title="Floor"></span>FX</th>
+                <th>AA</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="tp-team-body"></tbody>
+          </table>
+        </div>
+
+        <div class="tp-fill-row">
+          <button class="tp-btn" id="tp-fill-aa">Autofill: Best AA</button>
+          <button class="tp-btn" id="tp-fill-avg">Autofill: Best Average</button>
+          <button class="tp-btn" id="tp-fill-apparatus">Autofill: Apparatus Strength</button>
+        </div>
+
+        <div id="tp-prediction"></div>
+
+        <div class="tp-copy-row">
+          <button class="tp-btn" id="tp-copy">Copy team to clipboard</button>
+          <button class="tp-btn" id="tp-copy-names">Copy names only</button>
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <div id="tp-toast"></div>
+
+  <script src="access-keys.js"></script>
+  <script src="team-picker.js"></script>
+</body>
+</html>
