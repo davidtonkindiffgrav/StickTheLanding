@@ -21,6 +21,7 @@ let athletesByLevel = new Map();   // level -> array of athlete objects
 let currentLevel = null;
 let currentBasis = 'recent3';
 let showCounts = true;
+let predictionBasis = 'allTime';   // 'allTime' (Average) or 'pb' (Best), independent of currentBasis
 let team = [];                     // array of athlete objects, order matters
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -335,7 +336,7 @@ function renderPrediction() {
     el.innerHTML = '';
     return;
   }
-  const pred = computeTeamPrediction(team, currentBasis);
+  const pred = computeTeamPrediction(team, predictionBasis);
   const appRows = APPS.map(app => `
     <div class="tp-pred-row">
       <span class="tp-pred-label">${appIcon(app)}${APP_LABEL[app]}<span class="tp-pred-who">${contributorList(pred.perApp[app].counting)}</span></span>
@@ -343,6 +344,12 @@ function renderPrediction() {
     </div>`).join('');
 
   el.innerHTML = `
+    <div class="tp-pred-toggle">
+      <span class="tp-sub">Predicted scores based on:</span>
+      <button class="tp-btn tp-pred-toggle-btn${predictionBasis === 'allTime' ? ' active' : ''}" data-basis="allTime">Average</button>
+      <button class="tp-btn tp-pred-toggle-btn${predictionBasis === 'pb' ? ' active' : ''}" data-basis="pb">Best</button>
+    </div>
+
     <div class="tp-pred-block">
       <h3>Team score <span class="tp-sub">(best 3 of ${team.length}, counted separately on each apparatus)</span></h3>
       ${appRows}
@@ -363,6 +370,13 @@ function renderPrediction() {
 
     ${pred.incomplete ? '<p class="tp-warn">Team incomplete or missing scores on some apparatus, predictions are based on what data is available.</p>' : ''}
   `;
+
+  el.querySelectorAll('.tp-pred-toggle-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      predictionBasis = btn.dataset.basis;
+      renderPrediction();
+    });
+  });
 }
 
 function escHtml(s) {
@@ -416,9 +430,9 @@ function buildClipboardText() {
     lines.push(`${idx + 1}. ${a.name}  ${parts}  AA ${fmtScore(a.stats.AA[currentBasis])}`);
   });
   if (team.length) {
-    const pred = computeTeamPrediction(team, currentBasis);
+    const pred = computeTeamPrediction(team, predictionBasis);
     lines.push('');
-    lines.push(`Team score (best 3 of ${team.length}, counted separately on each apparatus):`);
+    lines.push(`Team score (best 3 of ${team.length}, counted separately on each apparatus, predicted using: ${predictionBasis === 'pb' ? 'Best' : 'Average'}):`);
     for (const app of APPS) {
       lines.push(`  ${APP_LABEL[app]}: ${contributorList(pred.perApp[app].counting)} = ${fmtScore(pred.perApp[app].subtotal)}`);
     }
@@ -526,9 +540,14 @@ async function init() {
     team = autoFillBestAverage(athletesByLevel.get(currentLevel) || []);
     renderAll();
   });
-  document.getElementById('tp-fill-apparatus').addEventListener('click', () => {
+  document.getElementById('tp-fill-apparatus-peak').addEventListener('click', () => {
     if (currentLevel === null) return;
-    team = autoFillApparatusStrength(athletesByLevel.get(currentLevel) || [], currentBasis);
+    team = autoFillApparatusStrength(athletesByLevel.get(currentLevel) || [], 'pb');
+    renderAll();
+  });
+  document.getElementById('tp-fill-apparatus-avg').addEventListener('click', () => {
+    if (currentLevel === null) return;
+    team = autoFillApparatusStrength(athletesByLevel.get(currentLevel) || [], 'allTime');
     renderAll();
   });
   document.getElementById('tp-copy').addEventListener('click', copyTeamToClipboard);

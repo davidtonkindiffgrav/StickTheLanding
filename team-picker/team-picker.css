@@ -217,6 +217,19 @@ table.tp-table th {
 
 .tp-team-actions { display: flex; gap: 4px; }
 
+.tp-pred-toggle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+
+.tp-pred-toggle-btn.active {
+  color: var(--accent);
+  border-color: var(--accent);
+  background: var(--accent-glow);
+}
+
 .tp-fill-row {
   display: flex;
   gap: 8px;
