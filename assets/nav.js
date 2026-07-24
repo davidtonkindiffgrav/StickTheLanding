@@ -107,7 +107,7 @@
       if (PATH === '/' && typeof openSearchFromLanding === 'function') {
         openSearchFromLanding();
       } else {
-        window.location.href = '/';
+        window.location.href = '/#search';
       }
     });
   }

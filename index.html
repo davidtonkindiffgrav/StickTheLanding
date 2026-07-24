@@ -4270,7 +4270,10 @@ function renderClubDashboard(bodyLoading) {
 })();
 </script>
 
-<script>window.addEventListener('load', function () { if (location.hash === '#contact') showContact('nav'); });</script>
+<script>window.addEventListener('load', function () {
+  if (location.hash === '#contact') showContact('nav');
+  if (location.hash === '#search') openSearchFromLanding();
+});</script>
 <script src="/assets/nav.js" defer></script>
 </body>
 </html>
