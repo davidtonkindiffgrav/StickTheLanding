@@ -3043,10 +3043,16 @@ function _profRenderTimeChart(canvasEl, type, rows, mode, animate = true) {
 }
 
 function _profRenderStrengthChart(canvasEl, showPB, statsRow, animate = true, sport = currentSport, labelsOverride = null) {
-  const appKeys  = G_APP_KEYS[sport] || [];
-  if (!appKeys.length) return;
+  const allAppKeys = G_APP_KEYS[sport] || [];
+  if (!allAppKeys.length) return;
   const appNames = sport === 'MAG' ? MAG_APPARATUS_NAME : (sport === 'ACRO' ? ACRO_APPARATUS_NAME : APPARATUS_NAME);
-  const lbl    = labelsOverride || appKeys.map(k => appNames[k] || k);
+  const allLbl = labelsOverride || allAppKeys.map(k => appNames[k] || k);
+  // Apparatus with no real result (never competed, not just a low score) get dropped from the
+  // polygon entirely rather than plotted as 0, a specialist with 3 of 6 apparatus gets a genuine
+  // triangle instead of a misleading 6-axis shape with three zero-collapsed points.
+  const keepIdx = allAppKeys.map((k, i) => (_profRepScore(statsRow, k) || 0) > 0 ? i : -1).filter(i => i !== -1);
+  const appKeys = keepIdx.map(i => allAppKeys[i]);
+  const lbl     = keepIdx.map(i => allLbl[i]);
   const colors = appKeys.map(k => G_COLOR[k]);
   const avgVals = appKeys.map(k => _profRepScore(statsRow, k) || 0);
   const pbVals  = appKeys.map(k => { const b = _STAT_OFFSET[k]; return b !== undefined ? (statsRow[b] || 0) : 0; });
@@ -3061,11 +3067,16 @@ function _profRenderStrengthChart(canvasEl, showPB, statsRow, animate = true, sp
   const top    = allVals.length ? Math.ceil(Math.max(...allVals) + 0.5) : 15;
   const range  = top - minVal;
   const step   = range <= 4 ? 0.5 : 1;
-  if (!animate && _profStrengthChart && _profStrengthChart.data.datasets.length === datasets.length) {
-    _profStrengthChart.data.datasets.forEach((ds, i) => { ds.data = datasets[i].data; });
+  if (!animate && _profStrengthChart && _profStrengthChart.data.datasets.length === datasets.length && _profStrengthChart.data.labels.length === lbl.length) {
+    _profStrengthChart.data.labels = lbl;
+    _profStrengthChart.data.datasets.forEach((ds, i) => {
+      ds.data = datasets[i].data;
+      ds.pointBackgroundColor = datasets[i].pointBackgroundColor;
+    });
     _profStrengthChart.options.scales.r.min = minVal;
     _profStrengthChart.options.scales.r.max = top;
     _profStrengthChart.options.scales.r.ticks.stepSize = step;
+    _profStrengthChart.options.scales.r.pointLabels.color = colors;
     _profStrengthChart.update('none');
     return;
   }
