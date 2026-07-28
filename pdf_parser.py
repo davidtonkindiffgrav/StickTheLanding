@@ -1204,6 +1204,21 @@ def parse_team_results(text_pages, pdf_path, sport="WAG"):
                 if hdr_m:
                     page_level = int(hdr_m.group(1))
 
+        # Fallback: "/ All Levels" team file with no level anywhere in its own
+        # content (e.g. TEAM_Women_S3A_LAll.pdf combining D1 + Under into one
+        # team ranking). Borrow level/division from sibling MEET_*.pdf files in
+        # the same folder — Under siblings have division=None so they're
+        # excluded, matching the "combined team counts as the numbered
+        # division" convention already used for "L7D1,7U" style filenames.
+        if page_level is None and re.search(r"all\s*levels", text, re.IGNORECASE):
+            sib_pairs = set()
+            for sib in Path(pdf_path).parent.glob("MEET_*.pdf"):
+                sib_meta = parse_filename_meta(sib, sport=sport)
+                if sib_meta.get("level") is not None and sib_meta.get("division") is not None:
+                    sib_pairs.add((sib_meta["level"], sib_meta["division"]))
+            if len(sib_pairs) == 1:
+                page_level, page_div = sib_pairs.pop()
+
         if page_level is None:
             continue
 

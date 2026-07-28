@@ -1,5 +1,17 @@
 [
   {
+    "sport": "mag",
+    "comp_id": "btyc-mag-junior-invitational-2026",
+    "name": "BTYC MAG Junior Invitational",
+    "date": "2026-07-26"
+  },
+  {
+    "sport": "wag",
+    "comp_id": "y-invitational-2026",
+    "name": "Y Invitational",
+    "date": "2026-07-25"
+  },
+  {
     "sport": "wag",
     "comp_id": "knox-wag-junior-invitational-2026",
     "name": "Knox WAG Junior Invitational",
