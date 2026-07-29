@@ -3222,6 +3222,9 @@ async function renderAthleteProfile(athleteName) {
   const hasCompulsory = profRows.some(r => r.level !== null && r.level <= 6);
   const hasOptional   = profRows.some(r => r.level !== null && r.level > 6);
   const showLevelFilter = hasCompulsory && hasOptional;
+  const compulsoryCount = profRows.filter(r => r.level !== null && r.level <= 6).length;
+  const optionalCount   = profRows.filter(r => r.level !== null && r.level > 6).length;
+  const pulseCompulsory = showLevelFilter && compulsoryCount > optionalCount;
 
   // ── Build HTML ────────────────────────────────────────────────────────────
   const imgSrc     = image || SILO;
@@ -3304,7 +3307,7 @@ async function renderAthleteProfile(athleteName) {
           <button class="filter-btn" data-ptab="aa">All Around</button>
         </div>
         ${showLevelFilter ? `<div class="profile-inner-tabs" id="prof-tab-level">
-          <button class="filter-btn" data-plevel="compulsory">Compulsory</button>
+          <button class="filter-btn${pulseCompulsory ? ' pulse-attn' : ''}" data-plevel="compulsory">Compulsory</button>
           <button class="filter-btn active" data-plevel="optional">Optionals</button>
         </div>` : ''}
       </div>
@@ -3451,6 +3454,7 @@ async function renderAthleteProfile(athleteName) {
       if (!btn) return;
       el.querySelectorAll('#prof-tab-level button').forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
+      el.querySelector('[data-plevel="compulsory"]')?.classList.remove('pulse-attn');
       profLevelFilter = btn.dataset.plevel;
       profDrawGraph();
     });

@@ -353,6 +353,11 @@
     }
     .filter-btn:hover { border-color: var(--accent); color: var(--text); }
     .filter-btn.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+    .filter-btn.pulse-attn { animation: stl-btn-pulse 1.6s ease-in-out infinite; }
+    @keyframes stl-btn-pulse {
+      0%, 100%  { box-shadow: 0 0 0 0 rgba(var(--accent-rgb), 0.55); }
+      50%       { box-shadow: 0 0 0 6px rgba(var(--accent-rgb), 0); }
+    }
 
     /* ── FILTER ROW (dropdown selects) ────────────────────────────────────── */
     .filter-row { display: flex; gap: 12px; margin-bottom: 16px; align-items: flex-end; }
