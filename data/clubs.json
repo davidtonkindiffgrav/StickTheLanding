@@ -611,8 +611,8 @@
     },
     {
       "code": "MAC",
-      "name": "MAC (Unknown Club Data)",
-      "region": "Unknown",
+      "name": "Melbourne City Gymnastics",
+      "region": "Metro South",
       "aliases": [
         "MAG ACADEMY",
         "MA1",
@@ -626,7 +626,7 @@
         "MA9",
         "MCG"
       ],
-      "logo": null
+      "logo": "assets/logos/MAC.png"
     },
     {
       "code": "MAF",
