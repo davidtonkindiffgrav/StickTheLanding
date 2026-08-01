@@ -243,8 +243,11 @@
           <select class="filter-select" id="sel-region"><option value="all">All</option></select>
         </div>
       </div>
-      <p class="standings-note">Clubs may enter multiple squads in the same event. All squads from the same club are counted together - points and wins from every squad contribute to the club's total.</p>
-      <h3 class="standings-subtitle">By High Score</h3>
+      <p class="standings-note">These rankings are a rough guide, not a precise measure, since they don't track individual gymnasts moving between a club's squads across the season. Clubs may enter multiple squads in the same division, in which case they're combined into one entry (best score and average across all of them), but squads in other divisions are ranked separately since they never competed against each other. Click a club to see its full results on its stats page.</p>
+      <div class="filter-bar" id="team-score-toggle">
+        <button class="filter-btn active" data-basis="high">By High Score</button>
+        <button class="filter-btn" data-basis="avg">By Average</button>
+      </div>
       <div class="card table-card" style="margin-bottom:24px">
         <table class="leaderboard" id="team-highscore-table">
           <thead>
@@ -252,8 +255,7 @@
               <th style="width:52px">#</th>
               <th style="width:48px"></th>
               <th data-sort="str">Club <span class="sort-icon">↕</span></th>
-              <th data-sort="num" title="Best single team score across all competitions">High Score <span class="sort-icon">↕</span></th>
-              <th data-sort="num" title="Average team score across all competitions">Avg Score <span class="sort-icon">↕</span></th>
+              <th data-sort="num" id="team-score-th">High Score <span class="sort-icon">↕</span></th>
               <th data-sort="num">Comps <span class="sort-icon">↕</span></th>
             </tr>
           </thead>
@@ -573,6 +575,7 @@ let activeDivision  = null;
 let activeRegion    = null;
 let activeView      = "clubs";
 let activeApparatus = "AA";
+let teamScoreBasis  = "high"; // "high" or "avg", controls which score the Team Standings table ranks and shows
 
 const APPARATUS_COL   = { AA: "total", VT: "vault", UB: "bars",   BB: "beam",   FX: "floor" };
 const APPARATUS_D_COL = {              VT: "vault_d", UB: "bars_d", BB: "beam_d", FX: "floor_d" };
@@ -1061,6 +1064,7 @@ function attachSort(tableEl) {
       });
       const si = th.querySelector(".sort-icon");
       if (si) { si.className = "sort-icon " + (sortDir === 1 ? "asc" : "desc"); si.textContent = ""; }
+      tbody.querySelectorAll("tr.promo-divider").forEach(r => r.remove());
       const rows = [...tbody.querySelectorAll("tr")];
       rows.sort((a, b) => {
         const ac = a.cells[colIdx], bc = b.cells[colIdx];
@@ -1104,6 +1108,12 @@ function clubName(code) {
 // ─────────────────────────────────────────────────────────────────────────────
 const POINTS_MAP = { 1: 6, 2: 5, 3: 4, 4: 3, 5: 2, 6: 1 };
 
+// GV rule: a WAG Level 3/4 team scoring at/above the cutoff twice in a season
+// must move up a division. Team-total (AA) scores only.
+const TEAM_PROMOTION_CUTOFF = {
+  WAG: { 3: { 2: 109.5, 3: 105.0 }, 4: { 2: 109.5, 3: 103.5 } },
+};
+
 function buildTeamStandings(rows, apparatus = "AA") {
   const scoreField = appCol()[apparatus] || "total";
   const clubs = {};
@@ -1111,11 +1121,13 @@ function buildTeamStandings(rows, apparatus = "AA") {
     const score = r[scoreField];
     if (score == null || score === 0) continue;
     const club = r.club || "Unknown";
-    if (!clubs[club]) clubs[club] = {
-      club, wins: 0, seconds: 0, thirds: 0, points: 0,
-      totalScore: 0, highScore: 0, highScoreDetail: "", count: 0, comps: new Set(),
+    const divLabel = r.division != null ? `Div ${r.division}` : (r.age_group || null);
+    const key = `${club}||${divLabel || ""}`;
+    if (!clubs[key]) clubs[key] = {
+      club, divLabel, division: r.division, wins: 0, seconds: 0, thirds: 0, points: 0,
+      totalScore: 0, highScore: 0, highScoreDetail: "", count: 0, comps: new Set(), overCutoffComps: new Set(),
     };
-    const c = clubs[club];
+    const c = clubs[key];
     const detail = `${r.competition} · ${levelDivDisplay(r.level, r.division, r.age_group)}`;
     c.count++;
     c.totalScore += score;
@@ -1125,11 +1137,14 @@ function buildTeamStandings(rows, apparatus = "AA") {
     if (r.rank === 3) c.thirds++;
     c.points += POINTS_MAP[r.rank] || 0;
     if (r.competition) c.comps.add(r.competition);
+    const cutoff = TEAM_PROMOTION_CUTOFF[currentSport]?.[r.level]?.[r.division];
+    if (cutoff != null && score >= cutoff && r.competition) c.overCutoffComps.add(r.competition);
   }
   return Object.values(clubs).map(c => ({
     ...c,
     avgScore: c.count ? c.totalScore / c.count : 0,
     comps: c.comps.size,
+    mustMoveUp: c.overCutoffComps.size >= 2,
   }));
 }
 
@@ -1138,7 +1153,7 @@ async function renderClubs() {
   updateTableContextHeader();
   if (activeLevel === null) {
     document.getElementById("team-highscore-tbody").innerHTML =
-      `<tr><td colspan="6" style="text-align:center;color:var(--muted);padding:36px 12px">
+      `<tr><td colspan="5" style="text-align:center;color:var(--muted);padding:36px 12px">
         Select a Level above - teams rank within their own competitive group.</td></tr>`;
     return;
   }
@@ -1175,25 +1190,53 @@ async function renderClubs() {
       : clubRegion[s.club] === activeRegion);
   }
 
-  const byHighScore = [...standings].sort((a, b) => b.highScore - a.highScore);
+  const isHigh = teamScoreBasis === "high";
+  const scoreTh = document.getElementById("team-score-th");
+  scoreTh.childNodes[0].textContent = isHigh ? "High Score " : "Average Score ";
+  scoreTh.title = isHigh ? "Best single team score across all competitions" : "Average team score across all competitions";
+
+  const sorted = [...standings].sort((a, b) => isHigh ? b.highScore - a.highScore : b.avgScore - a.avgScore);
   const hsTbody = document.getElementById("team-highscore-tbody");
-  if (!byHighScore.length) {
-    hsTbody.innerHTML = `<tr><td colspan="6" class="no-data">No team data for this filter.</td></tr>`;
+  if (!sorted.length) {
+    hsTbody.innerHTML = `<tr><td colspan="5" class="no-data">No team data for this filter.</td></tr>`;
   } else {
-    hsTbody.innerHTML = byHighScore.map((s, i) => {
-      const rank = i + 1;
+    const showPromo = currentSport === "WAG" && isHigh && activeApparatus === "AA" && [3, 4].includes(activeLevel);
+    const levelCutoffs = showPromo ? (TEAM_PROMOTION_CUTOFF.WAG[activeLevel] || {}) : {};
+    const divisionsInScope = activeDivision != null ? [activeDivision] : Object.keys(levelCutoffs).map(Number);
+    const cutoffQueue = divisionsInScope
+      .filter(d => levelCutoffs[d] != null)
+      .map(d => ({ division: d, cutoff: levelCutoffs[d] }))
+      .sort((a, b) => b.cutoff - a.cutoff);
+
+    const html = [];
+    let rank = 0;
+    for (const s of sorted) {
+      const score = isHigh ? s.highScore : s.avgScore;
+      while (cutoffQueue.length && score < cutoffQueue[0].cutoff) {
+        const { division, cutoff } = cutoffQueue.shift();
+        html.push(`<tr class="promo-divider"><td colspan="5">Division ${division} Max Score: ${cutoff.toFixed(2)}</td></tr>`);
+      }
+      rank++;
       const badge = rank <= 3
         ? `<span class="rank-badge rank-${rank}">${rank}</span>`
         : `<span class="rank-badge rank-n">${rank}</span>`;
-      return `<tr>
+      const scoreTip = isHigh && s.highScoreDetail
+        ? ` title="${esc(s.highScoreDetail)}" data-tip="${esc(s.highScoreDetail)}" style="cursor:pointer"` : "";
+      const flagged = showPromo && s.mustMoveUp;
+      const promoTip = flagged
+        ? `This team has been flagged for possible promotion to a higher Division. This assumes the same group of gymnasts competed for each qualifying score.`
+        : "";
+      const rowTip = flagged ? ` title="${promoTip}" data-tip="${promoTip}"` : "";
+      const arrow = flagged ? ` <i class="fas fa-angle-double-up promo-arrow"></i>` : "";
+      html.push(`<tr class="club-dir-row${flagged ? " promo-flag" : ""}" data-code="${esc(s.club)}" style="cursor:pointer"${rowTip}>
         <td>${badge}</td>
         <td class="logo-cell">${clubLogo(s.club, "club-logo-sm")}</td>
-        <td><strong>${clubDisplay(s.club)}</strong></td>
-        <td class="score score-hi"${s.highScoreDetail ? ` title="${esc(s.highScoreDetail)}" data-tip="${esc(s.highScoreDetail)}" style="cursor:pointer"` : ""}>${s.highScore.toFixed(3)}</td>
-        <td class="score">${s.avgScore.toFixed(3)}</td>
+        <td><strong>${clubName(s.club)}</strong>${s.divLabel ? ` <small style="color:var(--muted)">(${esc(s.divLabel)})</small>` : ""}</td>
+        <td class="score score-hi"${scoreTip}>${score.toFixed(3)}${arrow}</td>
         <td class="score">${s.comps}</td>
-      </tr>`;
-    }).join("");
+      </tr>`);
+    }
+    hsTbody.innerHTML = html.join("");
   }
   attachSort(document.getElementById("team-highscore-table"));
   injectAd('ad-slot-clubs');
@@ -2404,6 +2447,20 @@ document.querySelectorAll("#apparatus-nav button[data-apparatus]").forEach(btn =
   });
 });
 
+document.getElementById("team-highscore-table").addEventListener("click", e => {
+  if (e.target.closest("[data-tip]")) return;
+  const row = e.target.closest(".club-dir-row");
+  if (row && row.dataset.code) openClubProfile(row.dataset.code);
+});
+
+document.getElementById("team-score-toggle").addEventListener("click", e => {
+  const btn = e.target.closest(".filter-btn");
+  if (!btn) return;
+  teamScoreBasis = btn.dataset.basis;
+  document.querySelectorAll("#team-score-toggle .filter-btn").forEach(b => b.classList.toggle("active", b === btn));
+  render();
+});
+
 document.getElementById("cal-sport-filter").addEventListener("click", e => {
   const btn = e.target.closest(".filter-btn");
   if (!btn) return;
@@ -2442,8 +2499,13 @@ async function renderAcroClubs() {
   const routineType = activeApparatus || "All-Around";
   titleEl.textContent = "Club Standings";
   updateTableContextHeader();
+  const isHigh = teamScoreBasis === "high";
+  const scoreTh = document.getElementById("team-score-th");
+  scoreTh.childNodes[0].textContent = isHigh ? "High Score " : "Average Score ";
+  scoreTh.title = isHigh ? "Best single team score across all competitions" : "Average team score across all competitions";
+
   if (activeLevel === null) {
-    tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;color:var(--muted);padding:36px 12px">
+    tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;color:var(--muted);padding:36px 12px">
       Select a Level above to see club standings.</td></tr>`;
     return;
   }
@@ -2465,23 +2527,25 @@ async function renderAcroClubs() {
   }
   const standings = Object.values(clubs)
     .map(c => ({ ...c, comps: c.comps.size, avgScore: c.count ? c.totalScore / c.count : 0 }))
-    .sort((a, b) => b.highScore - a.highScore);
+    .sort((a, b) => isHigh ? b.highScore - a.highScore : b.avgScore - a.avgScore);
   if (!standings.length) {
-    tbody.innerHTML = `<tr><td colspan="6" class="no-data">No results for this filter.</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="5" class="no-data">No results for this filter.</td></tr>`;
     return;
   }
   tbody.innerHTML = standings.map((s, i) => {
     const rank = i + 1;
     const badge = rank <= 3 ? `<span class="rank-badge rank-${rank}">${rank}</span>` : `<span class="rank-badge rank-n">${rank}</span>`;
-    const hiTip = s.highScoreComp ? ` title="${esc(s.highScoreComp)}" data-tip="${esc(s.highScoreComp)}" style="cursor:pointer"` : "";
+    const score = isHigh ? s.highScore : s.avgScore;
+    const scoreTip = isHigh && s.highScoreComp
+      ? ` title="${esc(s.highScoreComp)}" data-tip="${esc(s.highScoreComp)}" style="cursor:pointer"` : "";
     const code = CLUBS_BY_NAME[s.club] || s.club;
     const logoCell = code ? `<td class="logo-cell">${clubLogo(code, "club-logo-sm")}</td>` : `<td></td>`;
-    const nameCell = code ? `<strong>${clubDisplay(code)}</strong>` : `<strong>${esc(s.club)}</strong>`;
-    return `<tr>
+    const nameCell = code ? `<strong>${clubName(code)}</strong>` : `<strong>${esc(s.club)}</strong>`;
+    const rowAttrs = code ? ` class="club-dir-row" data-code="${esc(code)}" style="cursor:pointer"` : "";
+    return `<tr${rowAttrs}>
       <td>${badge}</td>${logoCell}
       <td>${nameCell}</td>
-      <td class="score score-hi"${hiTip}>${s.highScore > 0 ? s.highScore.toFixed(3) : "-"}</td>
-      <td class="score">${s.avgScore > 0 ? s.avgScore.toFixed(3) : "-"}</td>
+      <td class="score score-hi"${scoreTip}>${score > 0 ? score.toFixed(3) : "-"}</td>
       <td class="score">${s.comps}</td>
     </tr>`;
   }).join("");

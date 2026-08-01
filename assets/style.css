@@ -189,6 +189,10 @@
     nav button:hover { color: var(--text); }
     nav button.active { color: var(--accent); border-bottom-color: var(--accent); }
 
+    #app-nav, #apparatus-nav { position: sticky; z-index: 150; }
+    #app-nav { top: 56px; }
+    #apparatus-nav { top: 104px; }
+
     /* ── MAIN CONTENT ──────────────────────────────────────────────────────── */
     main { padding: 28px 32px; max-width: 1200px; margin: 0 auto; }
 
@@ -237,6 +241,25 @@
     }
     .leaderboard tr:last-child td { border-bottom: none; }
     .leaderboard tr:hover td { background: var(--surface2); }
+
+    .leaderboard tr.promo-divider td {
+      text-align: center;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      font-size: 0.72rem;
+      color: var(--muted);
+      background: var(--surface2);
+      padding: 6px 12px;
+    }
+    .leaderboard tr.promo-divider:hover td { background: var(--surface2); }
+    @keyframes promo-row-pulse {
+      0%, 100% { background-color: transparent; }
+      50%      { background-color: rgba(245, 158, 11, 0.14); }
+    }
+    .leaderboard tr.promo-flag td { animation: promo-row-pulse 3.2s ease-in-out infinite; }
+    .leaderboard tr.promo-flag:hover td { background-color: rgba(245, 158, 11, 0.2); animation-play-state: paused; }
+    .promo-arrow { color: #f5a623; margin-left: 6px; font-size: 0.78rem; cursor: pointer; }
 
     .rank-badge {
       display: inline-flex;
