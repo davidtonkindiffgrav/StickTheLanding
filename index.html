@@ -279,6 +279,10 @@
           <select class="filter-select" id="sel-athlete-division"><option value="all">All</option></select>
         </div>
       </div>
+      <div class="filter-bar" id="athlete-score-toggle">
+        <button class="filter-btn active" data-basis="high">By High Score</button>
+        <button class="filter-btn" data-basis="avg">By Average</button>
+      </div>
       <div class="card table-card">
         <table class="leaderboard" id="athlete-table">
           <thead>
@@ -289,7 +293,6 @@
               <th>Club</th>
               <th>Div</th>
               <th>Comps</th>
-              <th>Avg Score</th>
               <th>Best Score</th>
               <th>Wins</th>
             </tr>
@@ -576,6 +579,7 @@ let activeRegion    = null;
 let activeView      = "clubs";
 let activeApparatus = "AA";
 let teamScoreBasis  = "high"; // "high" or "avg", controls which score the Team Standings table ranks and shows
+let athleteScoreBasis = "high"; // same toggle, for the Individual Rankings table
 
 const APPARATUS_COL   = { AA: "total", VT: "vault", UB: "bars",   BB: "beam",   FX: "floor" };
 const APPARATUS_D_COL = {              VT: "vault_d", UB: "bars_d", BB: "beam_d", FX: "floor_d" };
@@ -1114,6 +1118,19 @@ const TEAM_PROMOTION_CUTOFF = {
   WAG: { 3: { 2: 109.5, 3: 105.0 }, 4: { 2: 109.5, 3: 103.5 } },
 };
 
+// Same GV rule, applied to individual AA scores at Levels 5+ (Levels 3/4 are
+// team-only, no individual field). Levels 7+ only have Divisions 1 and 2.
+const INDIVIDUAL_PROMOTION_CUTOFF = {
+  WAG: {
+    5:  { 2: 36.0, 3: 34.0 },
+    6:  { 2: 36.0, 3: 34.0 },
+    7:  { 2: 44.0 },
+    8:  { 2: 44.0 },
+    9:  { 2: 44.0 },
+    10: { 2: 44.0 },
+  },
+};
+
 function buildTeamStandings(rows, apparatus = "AA") {
   const scoreField = appCol()[apparatus] || "total";
   const clubs = {};
@@ -1257,7 +1274,7 @@ function buildAthleteStandings(rows, apparatus = "AA") {
     if (!athletes[key]) athletes[key] = {
       athlete: r.athlete, club: r.club || "", level: r.level, division: r.division, age_group: r.age_group,
       comps: new Set(), bestScore: 0, bestScoreDetail: "", bestD: null, bestE: null,
-      wins: 0, winDetails: [], totalScore: 0, scoreCount: 0,
+      wins: 0, winDetails: [], totalScore: 0, scoreCount: 0, overCutoffComps: new Set(),
     };
     const a = athletes[key];
     if (r.competition) a.comps.add(r.competition);
@@ -1272,10 +1289,11 @@ function buildAthleteStandings(rows, apparatus = "AA") {
       a.age_group = r.age_group;
     }
     if (r.rank === 1) { a.wins++; a.winDetails.push(`${r.competition || "?"} (${s.toFixed(3)})`); }
+    const cutoff = INDIVIDUAL_PROMOTION_CUTOFF[currentSport]?.[r.level]?.[r.division];
+    if (cutoff != null && s >= cutoff && r.competition) a.overCutoffComps.add(r.competition);
   }
   return Object.values(athletes)
-    .map(a => ({ ...a, comps: a.comps.size, avgScore: a.scoreCount ? a.totalScore / a.scoreCount : 0 }))
-    .sort((a, b) => b.bestScore - a.bestScore || b.wins - a.wins);
+    .map(a => ({ ...a, comps: a.comps.size, avgScore: a.scoreCount ? a.totalScore / a.scoreCount : 0, mustMoveUp: a.overCutoffComps.size >= 2 }));
 }
 
 async function renderAthletes() {
@@ -1331,6 +1349,11 @@ async function renderAthletes() {
     ? (a.age_group || "-")
     : (a.division ? "D" + a.division : "-");
 
+  const isHigh = athleteScoreBasis === "high";
+  const sorted = [...standings].sort((a, b) => isHigh
+    ? (b.bestScore - a.bestScore || b.wins - a.wins)
+    : (b.avgScore - a.avgScore || b.wins - a.wins));
+
   // Update table header for apparatus vs AA view
   const showDiv = activeLevel === null || activeLevel < 101;
   if (isAA) {
@@ -1341,8 +1364,7 @@ async function renderAthletes() {
       <th data-sort="str">Club <span class="sort-icon">↕</span></th>
       ${showDiv ? `<th data-sort="str">Div <span class="sort-icon">↕</span></th>` : ""}
       <th data-sort="num">Comps <span class="sort-icon">↕</span></th>
-      <th data-sort="num">Avg Score <span class="sort-icon">↕</span></th>
-      <th data-sort="num">Best Score <span class="sort-icon">↕</span></th>
+      <th data-sort="num" id="athlete-score-th">Best Score <span class="sort-icon">↕</span></th>
       <th data-sort="num">Wins <span class="sort-icon">↕</span></th>`;
   } else {
     thead.innerHTML = `
@@ -1354,50 +1376,77 @@ async function renderAthletes() {
       <th data-sort="num">Comps <span class="sort-icon">↕</span></th>
       <th data-sort="num">D <span class="sort-icon">↕</span></th>
       <th data-sort="num">E <span class="sort-icon">↕</span></th>
-      <th data-sort="num">Avg Score <span class="sort-icon">↕</span></th>
-      <th data-sort="num">Best Score <span class="sort-icon">↕</span></th>`;
+      <th data-sort="num" id="athlete-score-th">Best Score <span class="sort-icon">↕</span></th>`;
   }
+  const scoreTh = document.getElementById("athlete-score-th");
+  scoreTh.childNodes[0].textContent = isHigh ? "Best Score " : "Average Score ";
+  scoreTh.title = isHigh ? "Best single score across all competitions" : "Average score across all competitions";
 
-  const aaCols = showDiv ? 9 : 8;
-  const appCols = showDiv ? 10 : 9;
+  const aaCols = showDiv ? 8 : 7;
+  const appCols = showDiv ? 9 : 8;
   if (!standings.length) {
     tbody.innerHTML = `<tr><td colspan="${isAA ? aaCols : appCols}" class="no-data">No data for this filter.</td></tr>`;
     return;
   }
 
-  tbody.innerHTML = standings.map((a, i) => {
-    const rank = i + 1;
+  const showPromo = currentSport === "WAG" && isAA && isHigh && !!INDIVIDUAL_PROMOTION_CUTOFF.WAG[activeLevel];
+  const levelCutoffs = showPromo ? (INDIVIDUAL_PROMOTION_CUTOFF.WAG[activeLevel] || {}) : {};
+  const divisionsInScope = activeDivision != null ? [activeDivision] : Object.keys(levelCutoffs).map(Number);
+  const cutoffQueue = divisionsInScope
+    .filter(d => levelCutoffs[d] != null)
+    .map(d => ({ division: d, cutoff: levelCutoffs[d] }))
+    .sort((a, b) => b.cutoff - a.cutoff);
+
+  const html = [];
+  let rank = 0;
+  for (const a of sorted) {
+    const score = isHigh ? a.bestScore : a.avgScore;
+    if (showPromo) {
+      while (cutoffQueue.length && score < cutoffQueue[0].cutoff) {
+        const { division, cutoff } = cutoffQueue.shift();
+        html.push(`<tr class="promo-divider"><td colspan="${aaCols}">Division ${division} Max AA Score: ${cutoff.toFixed(2)}</td></tr>`);
+      }
+    }
+    rank++;
     const badge = rank <= 3
       ? `<span class="rank-badge rank-${rank}">${rank}</span>`
       : `<span class="rank-badge rank-n">${rank}</span>`;
+    const flagged = showPromo && a.mustMoveUp;
+    const promoTip = flagged ? `This athlete has been flagged for possible promotion to a higher Division.` : "";
+    const rowClass = flagged ? ` class="promo-flag"` : "";
+    const rowTip = flagged ? ` title="${promoTip}" data-tip="${promoTip}"` : "";
+    const arrow = flagged ? ` <i class="fas fa-angle-double-up promo-arrow"></i>` : "";
+    const scoreTip = isHigh && a.bestScoreDetail
+      ? ` title="${esc(a.bestScoreDetail)}" data-tip="${esc(a.bestScoreDetail)}" style="cursor:pointer"` : "";
+    const scoreDisplay = isHigh ? score.toFixed(3) : (score > 0 ? score.toFixed(3) : "-");
     if (isAA) {
-      return `<tr>
+      html.push(`<tr${rowClass}${rowTip}>
         <td>${badge}</td>
         <td><strong>${esc(a.athlete)}</strong></td>
         <td class="logo-cell">${clubLogo(a.club, "club-logo-sm")}</td>
-        <td>${clubDisplay(a.club)}</td>
+        <td>${clubName(a.club)}</td>
         ${showDiv ? `<td data-val="${a.division || a.age_group || ''}">${divCell(a)}</td>` : ""}
         <td class="score">${a.comps}</td>
-        <td class="score">${a.avgScore > 0 ? a.avgScore.toFixed(3) : "-"}</td>
-        <td class="score score-hi"${a.bestScoreDetail ? ` title="${esc(a.bestScoreDetail)}" data-tip="${esc(a.bestScoreDetail)}" style="cursor:pointer"` : ""}>${a.bestScore.toFixed(3)}</td>
+        <td class="score score-hi"${scoreTip}>${scoreDisplay}${arrow}</td>
         <td><span class="stat-chip gold"${a.winDetails.length ? ` title="${esc(a.winDetails.join("\n"))}" data-tip="${esc(a.winDetails.join("&#10;"))}"` : ""} style="cursor:${a.winDetails.length ? "pointer" : "default"}">${a.wins}</span></td>
-      </tr>`;
+      </tr>`);
+      continue;
     }
     const dVal = a.bestD != null ? a.bestD.toFixed(3) : "-";
     const eVal = a.bestE != null ? a.bestE.toFixed(3) : "-";
-    return `<tr>
+    html.push(`<tr>
       <td>${badge}</td>
       <td><strong>${esc(a.athlete)}</strong></td>
       <td class="logo-cell">${clubLogo(a.club, "club-logo-sm")}</td>
-      <td>${clubDisplay(a.club)}</td>
+      <td>${clubName(a.club)}</td>
       ${showDiv ? `<td data-val="${a.division || a.age_group || ''}">${divCell(a)}</td>` : ""}
       <td class="score">${a.comps}</td>
       <td class="score">${dVal}</td>
       <td class="score">${eVal}</td>
-      <td class="score">${a.avgScore > 0 ? a.avgScore.toFixed(3) : "-"}</td>
-      <td class="score score-hi"${a.bestScoreDetail ? ` title="${esc(a.bestScoreDetail)}" data-tip="${esc(a.bestScoreDetail)}" style="cursor:pointer"` : ""}>${a.bestScore.toFixed(3)}</td>
-    </tr>`;
-  }).join("");
+      <td class="score score-hi"${scoreTip}>${scoreDisplay}</td>
+    </tr>`);
+  }
+  tbody.innerHTML = html.join("");
   attachSort(document.getElementById("athlete-table"));
   injectAd('ad-slot-athletes');
 }
@@ -2336,6 +2385,7 @@ function buildLevelFilters() {
       if (el) el.style.display = '';
     });
     document.getElementById("region-filter-bar").style.display = "none";
+    document.getElementById("athlete-score-toggle").style.display = "none";
 
     // Auto-select first level
     const firstSel = document.getElementById("sel-level");
@@ -2344,6 +2394,7 @@ function buildLevelFilters() {
   }
 
   // WAG / MAG
+  document.getElementById("athlete-score-toggle").style.display = "";
   const levels = [...new Set(LEVEL_DIVS.map(ld => ld.level))].sort((a, b) => a - b);
   const athleteLevels = levels.filter(l => l > 4);
   activeLevel = null;
@@ -2458,6 +2509,14 @@ document.getElementById("team-score-toggle").addEventListener("click", e => {
   if (!btn) return;
   teamScoreBasis = btn.dataset.basis;
   document.querySelectorAll("#team-score-toggle .filter-btn").forEach(b => b.classList.toggle("active", b === btn));
+  render();
+});
+
+document.getElementById("athlete-score-toggle").addEventListener("click", e => {
+  const btn = e.target.closest(".filter-btn");
+  if (!btn) return;
+  athleteScoreBasis = btn.dataset.basis;
+  document.querySelectorAll("#athlete-score-toggle .filter-btn").forEach(b => b.classList.toggle("active", b === btn));
   render();
 });
 

@@ -1028,9 +1028,18 @@ def parse_filename_meta(path, sport=None):
             "age_group":  None,
             "event_type": event_type,
         }
+
+    # WAG "Under" files (e.g. "L5U") are an age-split half of Division 1, not a
+    # separate division: some comps run Division 1 as Over/Under instead of a
+    # numbered split. Team events already got this via the "LAll" sibling
+    # fallback below; apply the same convention here for individual results.
+    division = int(div_m.group(1)) if div_m else None
+    if sport == "WAG" and division is None and re.search(r"Under|(?<=\d)U(?![a-zA-Z\d])", name, re.IGNORECASE):
+        division = 1
+
     return {
         "level":      level,
-        "division":   int(div_m.group(1)) if div_m else None,
+        "division":   division,
         "age_group":  age_group,
         "event_type": event_type,
     }
