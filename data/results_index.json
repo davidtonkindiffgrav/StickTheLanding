@@ -1,5 +1,11 @@
 [
   {
+    "sport": "wag",
+    "comp_id": "casey-cup-2026",
+    "name": "Casey Cup",
+    "date": "2026-07-29"
+  },
+  {
     "sport": "mag",
     "comp_id": "btyc-mag-junior-invitational-2026",
     "name": "BTYC MAG Junior Invitational",

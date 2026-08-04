@@ -444,11 +444,30 @@ def build_competitions_index(sport: str, con: sqlite3.Connection, results_index:
         "SELECT id, name, date, season FROM competitions ORDER BY date DESC, name"
     ).fetchall()
 
-    # PDF files per competition name {name: [(file_path, source_url), ...]}
+    # PDF files per (competition name, year) {(name, year): [(file_path, source_url), ...]}.
+    # Keyed by year too, not just name, so recurring competitions (e.g. "Casey Cup"
+    # held every year) don't have every year's PDFs lumped under every row. Deduped
+    # by source_url: older ingestion runs stored file_path without a year prefix,
+    # creating literal duplicate rows for the same file under a different primary
+    # key (competition_name, file_path) - source_url is always the full
+    # "pdfs/<year>/..." repo path actually used as the href, so it's the reliable
+    # identity *and* year source here, regardless of which file_path format a row has.
     pdf_map = {}
+    seen_urls = set()
     try:
-        for r in con.execute("SELECT competition_name, file_path, source_url FROM pdf_manifest ORDER BY competition_name, file_path").fetchall():
-            pdf_map.setdefault(r[0], []).append((r[1], r[2]))
+        pdf_rows = con.execute(
+            "SELECT competition_name, file_path, source_url FROM pdf_manifest "
+            "ORDER BY competition_name, file_path"
+        ).fetchall()
+        for name, fp, src in pdf_rows:
+            dedupe_key = (name, src)
+            if src:
+                if dedupe_key in seen_urls:
+                    continue
+                seen_urls.add(dedupe_key)
+            m = re.match(r"^pdfs/(\d{4})/", src or "")
+            year = m.group(1) if m else None
+            pdf_map.setdefault((name, year), []).append((fp, src))
     except Exception:
         pass
 
@@ -464,7 +483,7 @@ def build_competitions_index(sport: str, con: sqlite3.Connection, results_index:
         rows_html = []
         for c in by_season[season]:
             date_disp = fmt_date(c["date"] or "")
-            pdfs      = pdf_map.get(c["name"], [])
+            pdfs      = pdf_map.get((c["name"], season), [])
             n_pdfs    = len(pdfs)
 
             if pdfs:
