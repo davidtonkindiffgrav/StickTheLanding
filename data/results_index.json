@@ -7,12 +7,6 @@
   },
   {
     "sport": "wag",
-    "comp_id": "jets-july-invitational-2026",
-    "name": "Jets July Invitational",
-    "date": "2026-07-25"
-  },
-  {
-    "sport": "wag",
     "comp_id": "y-invitational-2026",
     "name": "Y Invitational",
     "date": "2026-07-25"
@@ -21,6 +15,12 @@
     "sport": "wag",
     "comp_id": "casey-cup-2026",
     "name": "Casey Cup",
+    "date": "2026-07-25"
+  },
+  {
+    "sport": "wag",
+    "comp_id": "jets-july-invitational-2026",
+    "name": "Jets July Invitational",
     "date": "2026-07-25"
   },
   {
