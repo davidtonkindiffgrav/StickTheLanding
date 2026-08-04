@@ -123,6 +123,11 @@ def create_schema(con: sqlite3.Connection) -> None:
             con.execute(f"ALTER TABLE events ADD COLUMN {col}")
         except Exception:
             pass
+    for col in ("team_name TEXT",):
+        try:
+            con.execute(f"ALTER TABLE results ADD COLUMN {col}")
+        except Exception:
+            pass
     try:
         con.execute("ALTER TABLE competitions ADD COLUMN date TEXT")
     except Exception:
@@ -227,16 +232,17 @@ def insert_event(con: sqlite3.Connection, competition_id: str, ev: dict) -> int:
 def insert_result(con: sqlite3.Connection, event_id: int, r: dict) -> None:
     con.execute(
         "INSERT INTO results "
-        "(event_id, rank, athlete, club, vault, vault_d, vault_e, bars, bars_d, bars_e, "
+        "(event_id, rank, athlete, club, team_name, vault, vault_d, vault_e, bars, bars_d, bars_e, "
         "beam, beam_d, beam_e, floor, floor_d, floor_e, total, "
         "pommel, pommel_d, pommel_e, rings, rings_d, rings_e, "
         "pbars, pbars_d, pbars_e, hbar, hbar_d, hbar_e) "
-        "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+        "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
         (
             event_id,
             r.get("rank"),
             r.get("athlete"),
             r.get("club"),
+            r.get("team_name"),
             r.get("vault"),  r.get("vault_d"),  r.get("vault_e"),
             r.get("bars"),   r.get("bars_d"),   r.get("bars_e"),
             r.get("beam"),   r.get("beam_d"),   r.get("beam_e"),

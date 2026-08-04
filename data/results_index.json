@@ -13,14 +13,14 @@
   },
   {
     "sport": "wag",
-    "comp_id": "y-invitational-2026",
-    "name": "Y Invitational",
+    "comp_id": "jets-july-invitational-2026",
+    "name": "Jets July Invitational",
     "date": "2026-07-25"
   },
   {
     "sport": "wag",
-    "comp_id": "jets-july-invitational-2026",
-    "name": "Jets July Invitational",
+    "comp_id": "y-invitational-2026",
+    "name": "Y Invitational",
     "date": "2026-07-25"
   },
   {
@@ -49,14 +49,14 @@
   },
   {
     "sport": "mag",
-    "comp_id": "senior-victorian-championships-apparatus-2026",
-    "name": "Senior Victorian Championships - Apparatus",
+    "comp_id": "senior-victorian-championships-2026",
+    "name": "Senior Victorian Championships",
     "date": "2026-05-22"
   },
   {
     "sport": "mag",
-    "comp_id": "senior-victorian-championships-2026",
-    "name": "Senior Victorian Championships",
+    "comp_id": "senior-victorian-championships-apparatus-2026",
+    "name": "Senior Victorian Championships - Apparatus",
     "date": "2026-05-22"
   },
   {
@@ -223,6 +223,12 @@
   },
   {
     "sport": "wag",
+    "comp_id": "metro-south-regional-championships-2025",
+    "name": "Metro South Regional Championships",
+    "date": "2025-09-13"
+  },
+  {
+    "sport": "wag",
     "comp_id": "metro-west-regional-championships-2025",
     "name": "Metro West Regional Championships",
     "date": "2025-09-13"
@@ -231,12 +237,6 @@
     "sport": "wag",
     "comp_id": "south-east-regional-championships-2025",
     "name": "South East Regional Championships",
-    "date": "2025-09-13"
-  },
-  {
-    "sport": "wag",
-    "comp_id": "metro-south-regional-championships-2025",
-    "name": "Metro South Regional Championships",
     "date": "2025-09-13"
   },
   {
@@ -277,14 +277,14 @@
   },
   {
     "sport": "wag",
-    "comp_id": "mlc-junior-star-classic-2025",
-    "name": "MLC Junior Star Classic",
+    "comp_id": "geelong-ymca-invite-2025",
+    "name": "Geelong YMCA Invite",
     "date": "2025-07-19"
   },
   {
     "sport": "wag",
-    "comp_id": "geelong-ymca-invite-2025",
-    "name": "Geelong YMCA Invite",
+    "comp_id": "mlc-junior-star-classic-2025",
+    "name": "MLC Junior Star Classic",
     "date": "2025-07-19"
   },
   {
@@ -511,26 +511,26 @@
   },
   {
     "sport": "wag",
-    "comp_id": "ymca-geelong-invitational-2024",
-    "name": "YMCA Geelong Invitational",
-    "date": "2024-07-13"
-  },
-  {
-    "sport": "wag",
     "comp_id": "niddrie-invitational-2024",
     "name": "Niddrie Invitational",
     "date": "2024-07-13"
   },
   {
     "sport": "wag",
-    "comp_id": "metro-west-regional-championships-2024",
-    "name": "Metro West Regional Championships",
-    "date": "2024-07-09"
+    "comp_id": "ymca-geelong-invitational-2024",
+    "name": "YMCA Geelong Invitational",
+    "date": "2024-07-13"
   },
   {
     "sport": "wag",
     "comp_id": "metro-south-regional-championships-2024",
     "name": "Metro South Regional Championships",
+    "date": "2024-07-09"
+  },
+  {
+    "sport": "wag",
+    "comp_id": "metro-west-regional-championships-2024",
+    "name": "Metro West Regional Championships",
     "date": "2024-07-09"
   },
   {

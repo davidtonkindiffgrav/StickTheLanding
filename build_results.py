@@ -87,13 +87,20 @@ def fetch_rows(con, comp_id: str, sport: str):
         """, (comp_id,)).fetchall()
     return con.execute("""
         SELECT e.level, e.division, e.event_type,
-               r.rank, r.athlete, r.club,
+               r.rank, r.athlete, r.club, r.team_name,
                r.vault, r.bars, r.beam, r.floor, r.total,
                r.pommel, r.rings, r.pbars, r.hbar
         FROM events e JOIN results r ON r.event_id = e.id
         WHERE e.competition_id = ?
         ORDER BY e.level, e.division, e.event_type, r.rank
     """, (comp_id,)).fetchall()
+
+
+def fetch_club_names(con) -> dict:
+    try:
+        return {r["code"]: r["name"] for r in con.execute("SELECT code, name FROM clubs")}
+    except sqlite3.OperationalError:
+        return {}
 
 
 # ── Data grouping ─────────────────────────────────────────────────────────────
@@ -181,7 +188,8 @@ def table_cols(event_type: str, sport: str) -> list:
 
 # ── HTML rendering ─────────────────────────────────────────────────────────────
 
-def render_table(rows: list, event_type: str, sport: str) -> str:
+def render_table(rows: list, event_type: str, sport: str, club_names: dict = None) -> str:
+    club_names = club_names or {}
     cols       = table_cols(event_type, sport)
     is_team    = event_type == "Team"
     is_acro    = sport == "ACRO"
@@ -222,11 +230,19 @@ def render_table(rows: list, event_type: str, sport: str) -> str:
         rank_cell = f'<td class="rank{rank_cls}">{rank or "-"}</td>'
 
         if is_team:
-            name_cell = f'<td class="name">{r.get("club") or r.get(athlete_key) or "-"}</td>'
+            club_code = r.get("club") or ""
+            full_name = club_names.get(club_code, club_code) or r.get(athlete_key) or "-"
+            squad     = r.get("team_name")
+            if squad and squad != full_name:
+                name_cell = f'<td class="name">{squad}<span class="name-sub">{full_name}</span></td>'
+            else:
+                name_cell = f'<td class="name">{full_name}</td>'
             club_cell = ""
         else:
+            club_code = r.get("club") or ""
+            full_name = club_names.get(club_code, club_code) or "-"
             name_cell = f'<td class="name">{r.get(athlete_key) or "-"}</td>'
-            club_cell = f'<td class="club">{r.get("club") or "-"}</td>'
+            club_cell = f'<td class="club">{full_name}</td>'
 
         score_cells = []
         for col, _ in cols:
@@ -250,7 +266,7 @@ def render_table(rows: list, event_type: str, sport: str) -> str:
     )
 
 
-def render_page(comp: sqlite3.Row, tree: dict, sport: str) -> str:
+def render_page(comp: sqlite3.Row, tree: dict, sport: str, club_names: dict = None) -> str:
     comp_id   = comp["id"]
     name      = comp["name"]
     date_str  = comp["date"] or ""
@@ -297,7 +313,7 @@ def render_page(comp: sqlite3.Row, tree: dict, sport: str) -> str:
                                       if not _is_mixed_club(r.get("club") or "")]
                 if etype == "Team" and isinstance(lvl, int) and lvl in (3, 4, 5):
                     rows_to_render = [r for r in rows_to_render if (r.get("total") or 0) >= 40]
-                tbl      = render_table(rows_to_render, etype, sport)
+                tbl      = render_table(rows_to_render, etype, sport, club_names)
                 blocks.append(
                     f'<div class="event-block" id="{block_id}">'
                     f'<h3 class="event-heading">{lbl}</h3>{tbl}</div>'
@@ -614,7 +630,8 @@ def build_one(comp: sqlite3.Row, sport: str, con: sqlite3.Connection) -> Path:
         return None
 
     tree = build_tree(rows, sport)
-    html = render_page(comp, tree, sport)
+    club_names = fetch_club_names(con)
+    html = render_page(comp, tree, sport, club_names)
 
     out_dir = RESULTS_DIR / sport.lower() / comp["id"]
     out_dir.mkdir(parents=True, exist_ok=True)
@@ -885,6 +902,14 @@ body.results-page {
   min-width: 160px;
 }
 
+.results-table td.name .name-sub {
+  display: block;
+  font-size: 0.72rem;
+  font-weight: 500;
+  color: #8d92ac;
+  margin-top: 2px;
+}
+
 .results-table td.club {
   color: #8d92ac;
   font-size: 0.82rem;
@@ -1095,6 +1120,7 @@ body.results-page {
   html:not([data-theme="dark"]) .results-table td.rank.silver { color: #78828c; }
   html:not([data-theme="dark"]) .results-table td.rank.bronze { color: #a0522d; }
   html:not([data-theme="dark"]) .results-table td.name { color: #1a1a2a; }
+  html:not([data-theme="dark"]) .results-table td.name .name-sub { color: #7a7e96; }
   html:not([data-theme="dark"]) .results-table td.club { color: #5a5a78; }
   html:not([data-theme="dark"]) .results-table td.score { color: #9296b4; }
   html:not([data-theme="dark"]) .results-table td.score:last-child { color: #1a1a2a; }
@@ -1149,6 +1175,7 @@ html[data-theme="light"] .results-table td.rank.gold   { color: #b8860b; }
 html[data-theme="light"] .results-table td.rank.silver { color: #78828c; }
 html[data-theme="light"] .results-table td.rank.bronze { color: #a0522d; }
 html[data-theme="light"] .results-table td.name { color: #1a1a2a; }
+html[data-theme="light"] .results-table td.name .name-sub { color: #7a7e96; }
 html[data-theme="light"] .results-table td.club { color: #5a5a78; }
 html[data-theme="light"] .results-table td.score { color: #9296b4; }
 html[data-theme="light"] .results-table td.score:last-child { color: #1a1a2a; }

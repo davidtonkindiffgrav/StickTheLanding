@@ -202,6 +202,14 @@ body.results-page {
   min-width: 160px;
 }
 
+.results-table td.name .name-sub {
+  display: block;
+  font-size: 0.72rem;
+  font-weight: 500;
+  color: #8d92ac;
+  margin-top: 2px;
+}
+
 .results-table td.club {
   color: #8d92ac;
   font-size: 0.82rem;
@@ -412,6 +420,7 @@ body.results-page {
   html:not([data-theme="dark"]) .results-table td.rank.silver { color: #78828c; }
   html:not([data-theme="dark"]) .results-table td.rank.bronze { color: #a0522d; }
   html:not([data-theme="dark"]) .results-table td.name { color: #1a1a2a; }
+  html:not([data-theme="dark"]) .results-table td.name .name-sub { color: #7a7e96; }
   html:not([data-theme="dark"]) .results-table td.club { color: #5a5a78; }
   html:not([data-theme="dark"]) .results-table td.score { color: #9296b4; }
   html:not([data-theme="dark"]) .results-table td.score:last-child { color: #1a1a2a; }
@@ -466,6 +475,7 @@ html[data-theme="light"] .results-table td.rank.gold   { color: #b8860b; }
 html[data-theme="light"] .results-table td.rank.silver { color: #78828c; }
 html[data-theme="light"] .results-table td.rank.bronze { color: #a0522d; }
 html[data-theme="light"] .results-table td.name { color: #1a1a2a; }
+html[data-theme="light"] .results-table td.name .name-sub { color: #7a7e96; }
 html[data-theme="light"] .results-table td.club { color: #5a5a78; }
 html[data-theme="light"] .results-table td.score { color: #9296b4; }
 html[data-theme="light"] .results-table td.score:last-child { color: #1a1a2a; }
