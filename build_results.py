@@ -1011,6 +1011,110 @@ body.results-page {
   .div-section       { margin-bottom: 28px; }
   .event-block       { margin-bottom: 24px; }
 }
+
+/* ── LIGHT THEME ───────────────────────────────────────────────────────────── */
+
+@media (prefers-color-scheme: light) {
+  html:not([data-theme="dark"]) body.results-page { background: #f4f4f8; color: #1a1a2a; }
+  html:not([data-theme="dark"]) .comp-header { background: #ffffff; border-bottom-color: #d4d4e8; }
+  html:not([data-theme="dark"]) .comp-back { color: #5a5a78; }
+  html:not([data-theme="dark"]) .comp-back:hover { color: #1a1a2a; }
+  html:not([data-theme="dark"]) .comp-name { color: #1a1a2a; }
+  html:not([data-theme="dark"]) .comp-date { color: #5a5a78; }
+  html:not([data-theme="dark"]) .tabs-bar { background: #ffffff; border-color: #d4d4e8; }
+  html:not([data-theme="dark"]) .rtab { color: #5a5a78; }
+  html:not([data-theme="dark"]) .rtab:hover { color: #1a1a2a; background: rgba(0,0,0,0.05); }
+  html:not([data-theme="dark"]) .rtab.active { color: #6b5ce7; background: rgba(107,92,231,0.1); border-color: rgba(107,92,231,0.3); }
+  html:not([data-theme="dark"]) .div-heading { color: #5a5a78; border-bottom-color: #d4d4e8; }
+  html:not([data-theme="dark"]) .event-heading { color: #1a1a2a; }
+  html:not([data-theme="dark"]) .table-wrap { border-color: #d4d4e8; }
+  html:not([data-theme="dark"]) .results-table thead th { background: #eef0f7; color: #5a5a78; border-bottom-color: #d4d4e8; }
+  html:not([data-theme="dark"]) .results-table thead th.sortable:hover { color: #1a1a2a; }
+  html:not([data-theme="dark"]) .results-table thead th.sortable[data-dir="asc"],
+  html:not([data-theme="dark"]) .results-table thead th.sortable[data-dir="desc"] { color: #6b5ce7; }
+  html:not([data-theme="dark"]) .results-table tbody tr { border-bottom-color: #eceef5; }
+  html:not([data-theme="dark"]) .results-table tbody tr:hover { background: rgba(0,0,0,0.03); }
+  html:not([data-theme="dark"]) .results-table td { background: #ffffff; color: #3a3a52; }
+  html:not([data-theme="dark"]) .results-table td.rank { color: #b0b4cc; }
+  html:not([data-theme="dark"]) .results-table td.rank.gold   { color: #b8860b; }
+  html:not([data-theme="dark"]) .results-table td.rank.silver { color: #78828c; }
+  html:not([data-theme="dark"]) .results-table td.rank.bronze { color: #a0522d; }
+  html:not([data-theme="dark"]) .results-table td.name { color: #1a1a2a; }
+  html:not([data-theme="dark"]) .results-table td.club { color: #5a5a78; }
+  html:not([data-theme="dark"]) .results-table td.score { color: #9296b4; }
+  html:not([data-theme="dark"]) .results-table td.score:last-child { color: #1a1a2a; }
+  html:not([data-theme="dark"]) .results-table td.score.gold   { color: #b8860b; }
+  html:not([data-theme="dark"]) .results-table td.score.silver { color: #3d5a76; }
+  html:not([data-theme="dark"]) .results-table td.score.bronze { color: #a0522d; }
+  html:not([data-theme="dark"]) .ci-season { color: #4a4a68; border-bottom-color: #d4d4e8; }
+  html:not([data-theme="dark"]) .ci-row { background: #ffffff; border-color: #d4d4e8; }
+  html:not([data-theme="dark"]) .ci-row:hover { border-color: #b0b4cc; }
+  html:not([data-theme="dark"]) .ci-result-link:hover { background: #f4f4f8; }
+  html:not([data-theme="dark"]) .ci-name { color: #1a1a2a; }
+  html:not([data-theme="dark"]) .ci-date { color: #5a5a78; }
+  html:not([data-theme="dark"]) .ci-arrow { color: #b0b4cc; }
+  html:not([data-theme="dark"]) .ci-result-link:hover .ci-arrow { color: #6b5ce7; }
+  html:not([data-theme="dark"]) .ci-pdfs summary { color: #5a5a78; }
+  html:not([data-theme="dark"]) .ci-pdfs summary:hover { color: #1a1a2a; }
+  html:not([data-theme="dark"]) .ci-pdf-list a { color: #5a5a78; }
+  html:not([data-theme="dark"]) .ci-pdf-list a:hover { color: #6b5ce7; }
+  html:not([data-theme="dark"]) .results-footer { background: #ffffff; color: #5a5a78; border-top-color: #d4d4e8; }
+  html:not([data-theme="dark"]) .results-footer a { color: #5a5a78; }
+  html:not([data-theme="dark"]) .results-footer a:hover { color: #1a1a2a; }
+  html:not([data-theme="dark"]) .comp-sport-badge[style*="#c9a4ff"] { color: #7c3aed !important; border-color: #7c3aed !important; }
+  html:not([data-theme="dark"]) .comp-sport-badge[style*="#5ee6a8"] { color: #1a8e63 !important; border-color: #1a8e63 !important; }
+  html:not([data-theme="dark"]) .comp-sport-badge[style*="#fb923c"] { color: #c2650f !important; border-color: #c2650f !important; }
+}
+
+html[data-theme="light"] body.results-page { background: #f4f4f8; color: #1a1a2a; }
+html[data-theme="light"] .comp-header { background: #ffffff; border-bottom-color: #d4d4e8; }
+html[data-theme="light"] .comp-back { color: #5a5a78; }
+html[data-theme="light"] .comp-back:hover { color: #1a1a2a; }
+html[data-theme="light"] .comp-name { color: #1a1a2a; }
+html[data-theme="light"] .comp-date { color: #5a5a78; }
+html[data-theme="light"] .tabs-bar { background: #ffffff; border-color: #d4d4e8; }
+html[data-theme="light"] .rtab { color: #5a5a78; }
+html[data-theme="light"] .rtab:hover { color: #1a1a2a; background: rgba(0,0,0,0.05); }
+html[data-theme="light"] .rtab.active { color: #6b5ce7; background: rgba(107,92,231,0.1); border-color: rgba(107,92,231,0.3); }
+html[data-theme="light"] .div-heading { color: #5a5a78; border-bottom-color: #d4d4e8; }
+html[data-theme="light"] .event-heading { color: #1a1a2a; }
+html[data-theme="light"] .table-wrap { border-color: #d4d4e8; }
+html[data-theme="light"] .results-table thead th { background: #eef0f7; color: #5a5a78; border-bottom-color: #d4d4e8; }
+html[data-theme="light"] .results-table thead th.sortable:hover { color: #1a1a2a; }
+html[data-theme="light"] .results-table thead th.sortable[data-dir="asc"],
+html[data-theme="light"] .results-table thead th.sortable[data-dir="desc"] { color: #6b5ce7; }
+html[data-theme="light"] .results-table tbody tr { border-bottom-color: #eceef5; }
+html[data-theme="light"] .results-table tbody tr:hover { background: rgba(0,0,0,0.03); }
+html[data-theme="light"] .results-table td { background: #ffffff; color: #3a3a52; }
+html[data-theme="light"] .results-table td.rank { color: #b0b4cc; }
+html[data-theme="light"] .results-table td.rank.gold   { color: #b8860b; }
+html[data-theme="light"] .results-table td.rank.silver { color: #78828c; }
+html[data-theme="light"] .results-table td.rank.bronze { color: #a0522d; }
+html[data-theme="light"] .results-table td.name { color: #1a1a2a; }
+html[data-theme="light"] .results-table td.club { color: #5a5a78; }
+html[data-theme="light"] .results-table td.score { color: #9296b4; }
+html[data-theme="light"] .results-table td.score:last-child { color: #1a1a2a; }
+html[data-theme="light"] .results-table td.score.gold   { color: #b8860b; }
+html[data-theme="light"] .results-table td.score.silver { color: #3d5a76; }
+html[data-theme="light"] .results-table td.score.bronze { color: #a0522d; }
+html[data-theme="light"] .ci-season { color: #4a4a68; border-bottom-color: #d4d4e8; }
+html[data-theme="light"] .ci-row { background: #ffffff; border-color: #d4d4e8; }
+html[data-theme="light"] .ci-row:hover { border-color: #b0b4cc; }
+html[data-theme="light"] .ci-result-link:hover { background: #f4f4f8; }
+html[data-theme="light"] .ci-name { color: #1a1a2a; }
+html[data-theme="light"] .ci-date { color: #5a5a78; }
+html[data-theme="light"] .ci-arrow { color: #b0b4cc; }
+html[data-theme="light"] .ci-result-link:hover .ci-arrow { color: #6b5ce7; }
+html[data-theme="light"] .ci-pdfs summary { color: #5a5a78; }
+html[data-theme="light"] .ci-pdfs summary:hover { color: #1a1a2a; }
+html[data-theme="light"] .ci-pdf-list a { color: #5a5a78; }
+html[data-theme="light"] .ci-pdf-list a:hover { color: #6b5ce7; }
+html[data-theme="light"] .results-footer { background: #ffffff; color: #5a5a78; border-top-color: #d4d4e8; }
+html[data-theme="light"] .results-footer a { color: #5a5a78; }
+html[data-theme="light"] .results-footer a:hover { color: #1a1a2a; }
+html[data-theme="light"] .comp-sport-badge[style*="#c9a4ff"] { color: #7c3aed !important; border-color: #7c3aed !important; }
+html[data-theme="light"] .comp-sport-badge[style*="#5ee6a8"] { color: #1a8e63 !important; border-color: #1a8e63 !important; }
+html[data-theme="light"] .comp-sport-badge[style*="#fb923c"] { color: #c2650f !important; border-color: #c2650f !important; }
 """
 
 if __name__ == "__main__":
