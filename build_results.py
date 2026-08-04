@@ -478,8 +478,9 @@ def build_competitions_index(sport: str, con: sqlite3.Connection, results_index:
         season = row["season"] or (row["date"][:4] if row["date"] else "Unknown")
         by_season[str(season)].append(row)
 
+    seasons_sorted = sorted(by_season.keys(), reverse=True)
     sections = []
-    for season in sorted(by_season.keys(), reverse=True):
+    for season_idx, season in enumerate(seasons_sorted):
         rows_html = []
         for c in by_season[season]:
             date_disp = fmt_date(c["date"] or "")
@@ -525,9 +526,15 @@ def build_competitions_index(sport: str, con: sqlite3.Connection, results_index:
                     f'{pdf_block}'
                     f'</div>'
                 )
+        open_attr = " open" if season_idx == 0 else ""
         sections.append(
-            f'<h2 class="ci-season">{season}</h2>'
+            f'<details class="ci-season-group"{open_attr}>'
+            f'<summary class="ci-season">'
+            f'<span class="ci-season-label">{season}</span>'
+            f'<span class="ci-season-count">{len(by_season[season])}</span>'
+            f'</summary>'
             f'<div class="ci-list">{"".join(rows_html)}</div>'
+            f'</details>'
         )
 
     years     = sorted(by_season.keys())
@@ -906,16 +913,45 @@ body.results-page {
   padding: 32px 24px 64px;
 }
 
+.ci-season-group { margin: 28px 0 0; }
+.ci-season-group:first-child { margin-top: 0; }
+
 .ci-season {
+  display: flex;
+  align-items: center;
+  gap: 8px;
   font: 700 0.85rem/1 'JetBrains Mono', monospace;
   letter-spacing: 0.1em;
   text-transform: uppercase;
   color: #c5c9e0;
-  margin: 36px 0 10px;
+  margin: 0 0 10px;
   padding-bottom: 8px;
   border-bottom: 1px solid #1e2135;
+  cursor: pointer;
+  user-select: none;
+  list-style: none;
 }
-.ci-season:first-child { margin-top: 0; }
+.ci-season::-webkit-details-marker { display: none; }
+.ci-season::before {
+  content: '▸';
+  font-size: 0.7rem;
+  color: #5d6285;
+  flex-shrink: 0;
+  transition: transform 0.15s;
+}
+.ci-season-group[open] > .ci-season::before { transform: rotate(90deg); }
+.ci-season:hover { color: #f2f3fa; }
+.ci-season-label { flex: 1; }
+.ci-season-count {
+  font: 600 0.68rem/1 'JetBrains Mono', monospace;
+  letter-spacing: normal;
+  text-transform: none;
+  color: #5d6285;
+  background: #14162a;
+  border: 1px solid #1e2135;
+  border-radius: 10px;
+  padding: 2px 8px;
+}
 
 .ci-list { display: flex; flex-direction: column; gap: 4px; }
 
@@ -1066,6 +1102,9 @@ body.results-page {
   html:not([data-theme="dark"]) .results-table td.score.silver { color: #3d5a76; }
   html:not([data-theme="dark"]) .results-table td.score.bronze { color: #a0522d; }
   html:not([data-theme="dark"]) .ci-season { color: #4a4a68; border-bottom-color: #d4d4e8; }
+  html:not([data-theme="dark"]) .ci-season::before { color: #9296b4; }
+  html:not([data-theme="dark"]) .ci-season:hover { color: #1a1a2a; }
+  html:not([data-theme="dark"]) .ci-season-count { color: #5a5a78; background: #eef0f7; border-color: #d4d4e8; }
   html:not([data-theme="dark"]) .ci-row { background: #ffffff; border-color: #d4d4e8; }
   html:not([data-theme="dark"]) .ci-row:hover { border-color: #b0b4cc; }
   html:not([data-theme="dark"]) .ci-result-link:hover { background: #f4f4f8; }
@@ -1117,6 +1156,9 @@ html[data-theme="light"] .results-table td.score.gold   { color: #b8860b; }
 html[data-theme="light"] .results-table td.score.silver { color: #3d5a76; }
 html[data-theme="light"] .results-table td.score.bronze { color: #a0522d; }
 html[data-theme="light"] .ci-season { color: #4a4a68; border-bottom-color: #d4d4e8; }
+html[data-theme="light"] .ci-season::before { color: #9296b4; }
+html[data-theme="light"] .ci-season:hover { color: #1a1a2a; }
+html[data-theme="light"] .ci-season-count { color: #5a5a78; background: #eef0f7; border-color: #d4d4e8; }
 html[data-theme="light"] .ci-row { background: #ffffff; border-color: #d4d4e8; }
 html[data-theme="light"] .ci-row:hover { border-color: #b0b4cc; }
 html[data-theme="light"] .ci-result-link:hover { background: #f4f4f8; }
