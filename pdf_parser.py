@@ -1249,8 +1249,9 @@ def parse_team_results(text_pages, pdf_path, sport="WAG"):
                 if not club:
                     continue
                 events_by_ld[key].append({
-                    "rank":   _parse_rank(rank_str),
-                    "club":   club,
+                    "rank":      _parse_rank(rank_str),
+                    "club":      club,
+                    "team_name": raw_name.strip(),
                     "floor":  _parse_score(s1),
                     "pommel": _parse_score(s2),
                     "rings":  _parse_score(s3),
@@ -1265,8 +1266,9 @@ def parse_team_results(text_pages, pdf_path, sport="WAG"):
                     continue
                 rank_str, raw_name, total, s1, s2, s3, s4 = m.groups()
                 events_by_ld[key].append({
-                    "rank":  _parse_rank(rank_str),
-                    "club":  _gym_code_from_team_name(raw_name),
+                    "rank":      _parse_rank(rank_str),
+                    "club":      _gym_code_from_team_name(raw_name),
+                    "team_name": raw_name.strip(),
                     "vault": _parse_score(s1),
                     "bars":  _parse_score(s2),
                     "beam":  _parse_score(s3),
