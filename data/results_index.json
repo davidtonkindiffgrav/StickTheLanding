@@ -13,6 +13,12 @@
   },
   {
     "sport": "wag",
+    "comp_id": "jets-july-invitational-2026",
+    "name": "Jets July Invitational",
+    "date": "2026-07-25"
+  },
+  {
+    "sport": "wag",
     "comp_id": "knox-wag-junior-invitational-2026",
     "name": "Knox WAG Junior Invitational",
     "date": "2026-07-18"

@@ -127,8 +127,17 @@
 
   <div class="v3-news" id="v3-news-grid">
 
-    <a class="v3-card big" href="news/posts/2026-08-03-Chamford-Profile/">
-      <div class="thumb" style="background-image:url('news/posts/2026-08-03-Chamford-Profile/hero.jpg');background-size:cover;background-position:center"></div>
+    <a class="v3-card big" href="news/posts/2026-08-04-Jets-July-Invitational/">
+      <div class="thumb" style="background-image:url('news/posts/2026-08-04-Jets-July-Invitational/hero.jpg');background-size:cover;background-position:center"></div>
+      <div class="row-thumb" style="background-image:url('news/posts/2026-08-04-Jets-July-Invitational/hero.jpg');background-size:cover;background-position:center"></div>
+      <div class="body">
+        <div class="head"><span class="cat neutral">Results</span><span class="date">04.08.26</span></div>
+        <h4>Jets July Invitational 2026: MAGA Sweeps Six Divisions as BTYC Rules the All-Around</h4>
+        <p>MLC's team posts the field's top score in Level 7 Division 1, and two gymnasts move closer to a division promotion after clearing the cutoff score for the second time this season.</p>
+      </div>
+    </a>
+
+    <a class="v3-card" href="news/posts/2026-08-03-Chamford-Profile/">
       <div class="row-thumb" style="background-image:url('news/posts/2026-08-03-Chamford-Profile/hero.jpg');background-size:cover;background-position:center"></div>
       <div class="body">
         <div class="head"><span class="cat neutral">Club Profile</span><span class="date">03.08.26</span></div>
@@ -161,15 +170,6 @@
         <div class="head"><span class="cat neutral">Results</span><span class="date">28.07.26</span></div>
         <h4>Y Invitational 2026: Strive's Pippa McLeod Edges Training Partner Allira Brown by 0.025 in the Tightest Finish of the Weekend</h4>
         <p>Strive sweeps the top four in Level 6 Division 3, host Geelong YMCA Gym Club dominates its own floor with four team titles and the Level 7 Division 1 and Level 7 Under all-around crowns, and Niddrie sweeps the Level 6 Division 1 podium.</p>
-      </div>
-    </a>
-
-    <a class="v3-card" href="news/posts/2026-07-25-Eureka-Profile/">
-      <div class="row-thumb" style="background-image:url('news/posts/2026-07-25-Eureka-Profile/hero.jpg');background-size:cover;background-position:center"></div>
-      <div class="body">
-        <div class="head"><span class="cat neutral">Club Profile</span><span class="date">25.07.26</span></div>
-        <h4>Inside Eureka Gymnastics: The Regional Circuit</h4>
-        <p>A Level 10 gymnast, a 2026 Level 9 state title, and a State Team reserve, all from a Ballarat club that closed once, moved twice, and is about to host its own regional invitational again.</p>
       </div>
     </a>
 
@@ -4352,12 +4352,25 @@ function renderClubDashboard(bodyLoading) {
   // Populate landing stats pills from data/stats.json (covers both WAG + MAG DBs)
   fetch("data/stats.json").then(r => r.json()).then(s => {
     const fmtNum = n => n >= 1000 ? (n / 1000).toFixed(1).replace(/\.0$/, "") + "k" : String(n);
+    const reduceMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const countUp = (el, target, duration = 2000) => {
+      if (!el || !target) return;
+      if (reduceMotion) { el.textContent = fmtNum(target); return; }
+      const start = performance.now();
+      const tick = now => {
+        const progress = Math.min((now - start) / duration, 1);
+        const eased = 1 - Math.pow(1 - progress, 3);
+        el.textContent = fmtNum(Math.round(target * eased));
+        if (progress < 1) requestAnimationFrame(tick);
+      };
+      requestAnimationFrame(tick);
+    };
     const ga = document.querySelector("#landing-view .v3-stat.a .n");
     const gb = document.querySelector("#landing-view .v3-stat.b .n");
     const gc = document.querySelector("#landing-view .v3-stat.c .n");
-    if (ga && s.gymnasts)     ga.textContent = fmtNum(s.gymnasts);
-    if (gb && s.competitions) gb.textContent = s.competitions;
-    if (gc && s.routines)     gc.textContent = fmtNum(s.routines);
+    countUp(ga, s.gymnasts);
+    countUp(gb, s.competitions);
+    countUp(gc, s.routines);
   }).catch(() => {});
 
   // ── Hash router: runs on direct/fresh URL load AND on in-page hash changes

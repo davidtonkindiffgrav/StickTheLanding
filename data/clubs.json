@@ -161,7 +161,8 @@
       "aliases": [
         "BUGS",
         "BUGSWHI",
-        "BUGSBLU"
+        "BUGSBLU",
+        "BUGS GYMNASTICS"
       ],
       "logo": null
     },
@@ -218,7 +219,8 @@
       "aliases": [
         "CYC GREEN",
         "CYC BLUE",
-        "CYC INDIVIDUAL"
+        "CYC INDIVIDUAL",
+        "CYC GYMNASTICS"
       ],
       "logo": null
     },
@@ -542,7 +544,10 @@
         "JETSDC",
         "JETS DC",
         "JETSB",
-        "JETSG"
+        "JETSG",
+        "JETS GISBORNE",
+        "JETS DIAMOND CREEK",
+        "JETS SHEPPARTON"
       ],
       "_venues": [
         "Diamond Creek",
@@ -1101,7 +1106,8 @@
         "WYNDHAM CITY",
         "Wyndham Gem",
         "Wyndham Nic 1",
-        "Wyndham Nic 2"
+        "Wyndham Nic 2",
+        "WYNDHAM GYMNASTICS"
       ],
       "logo": null
     },
