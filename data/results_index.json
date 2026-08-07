@@ -6,6 +6,12 @@
     "date": "2026-08-01"
   },
   {
+    "sport": "wag",
+    "comp_id": "niddrie-invitational-5-7-2026",
+    "name": "Niddrie Invitational 5-7",
+    "date": "2026-08-01"
+  },
+  {
     "sport": "mag",
     "comp_id": "btyc-mag-junior-invitational-2026",
     "name": "BTYC MAG Junior Invitational",
@@ -43,8 +49,8 @@
   },
   {
     "sport": "wag",
-    "comp_id": "niddrie-invitational-2026",
-    "name": "Niddrie Invitational",
+    "comp_id": "niddrie-invitational-3-4-2026",
+    "name": "Niddrie Invitational 3-4",
     "date": "2026-07-11"
   },
   {
