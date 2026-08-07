@@ -62,6 +62,7 @@ def load_overrides() -> dict:
         "hosts": {k: v for k, v in data.get("hosts", {}).items() if not k.startswith("_")},
         "by_competition": {k: v for k, v in data.get("by_competition", {}).items() if not k.startswith("_")},
         "by_athlete": by_athlete,
+        "name_corrections": {k: v for k, v in data.get("name_corrections", {}).items() if not k.startswith("_")},
     }
 
 
