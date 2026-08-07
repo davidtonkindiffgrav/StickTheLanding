@@ -556,6 +556,9 @@ def build_competitions_index(sport: str, con: sqlite3.Connection, results_index:
     years     = sorted(by_season.keys())
     year_range = f"{years[0]}–{years[-1]}" if len(years) > 1 else years[0]
     n_comps   = sum(len(v) for v in by_season.values())
+    og_image = {
+        "WAG": f"{BASE_URL}/assets/images/wagresults.jpg",
+    }.get(sport, f"{BASE_URL}/assets/favicons/android-chrome-512x512.png")
     meta_desc = (
         f"Results from {n_comps} {sport_full} competitions across the "
         f"{year_range} Victorian season — invitational, regional championships, "
@@ -575,7 +578,7 @@ def build_competitions_index(sport: str, con: sqlite3.Connection, results_index:
   <meta property="og:title"       content="{sport_full} Competitions — Stick The Landing" />
   <meta property="og:description" content="{meta_desc}" />
   <meta property="og:url"         content="{BASE_URL}/competitions/{sport.lower()}/" />
-  <meta property="og:image"       content="{BASE_URL}/assets/favicons/android-chrome-512x512.png" />
+  <meta property="og:image"       content="{og_image}" />
   <meta name="twitter:card"       content="summary" />
   <link rel="canonical"           href="{BASE_URL}/competitions/{sport.lower()}/" />
   <link rel="apple-touch-icon" sizes="180x180" href="/assets/favicons/apple-touch-icon.png" />
