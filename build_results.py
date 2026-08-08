@@ -338,11 +338,11 @@ def render_page(comp: sqlite3.Row, tree: dict, sport: str, club_names: dict = No
   <meta name="color-scheme" content="light dark" />
   <script>!function(){{document.documentElement.dataset.theme=localStorage.getItem('stl-theme')||(matchMedia('(prefers-color-scheme:dark)').matches?'dark':'light')}}()</script>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>{name} Results — Stick The Landing</title>
+  <title>{name} Results | Stick The Landing</title>
   <meta name="description" content="{meta_desc}" />
   <meta property="og:type"        content="website" />
   <meta property="og:site_name"   content="Stick The Landing" />
-  <meta property="og:title"       content="{name} Results — Stick The Landing" />
+  <meta property="og:title"       content="{name} Results | Stick The Landing" />
   <meta property="og:description" content="{meta_desc}" />
   <meta property="og:url"         content="{BASE_URL}/results/{sport.lower()}/{comp_id}/" />
   <meta property="og:image"       content="{BASE_URL}/assets/favicons/android-chrome-512x512.png" />
@@ -561,7 +561,7 @@ def build_competitions_index(sport: str, con: sqlite3.Connection, results_index:
     }.get(sport, f"{BASE_URL}/assets/favicons/android-chrome-512x512.png")
     meta_desc = (
         f"Results from {n_comps} {sport_full} competitions across the "
-        f"{year_range} Victorian season — invitational, regional championships, "
+        f"{year_range} Victorian season: invitational, regional championships, "
         f"state trials, and Victorian Championships."
     )
     html = f"""<!DOCTYPE html>
@@ -571,11 +571,11 @@ def build_competitions_index(sport: str, con: sqlite3.Connection, results_index:
   <meta name="color-scheme" content="light dark" />
   <script>!function(){{document.documentElement.dataset.theme=localStorage.getItem('stl-theme')||(matchMedia('(prefers-color-scheme:dark)').matches?'dark':'light')}}()</script>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>{sport_full} Competitions — Stick The Landing</title>
+  <title>{sport_full} Competitions | Stick The Landing</title>
   <meta name="description" content="{meta_desc}" />
   <meta property="og:type"        content="website" />
   <meta property="og:site_name"   content="Stick The Landing" />
-  <meta property="og:title"       content="{sport_full} Competitions — Stick The Landing" />
+  <meta property="og:title"       content="{sport_full} Competitions | Stick The Landing" />
   <meta property="og:description" content="{meta_desc}" />
   <meta property="og:url"         content="{BASE_URL}/competitions/{sport.lower()}/" />
   <meta property="og:image"       content="{og_image}" />

@@ -42,7 +42,7 @@ fetch('photos.json')
     checkDeepLink();
   })
   .catch(() => {
-    grid.innerHTML = '<p class="gallery-loading">No photos loaded yet — add images to <code>photos/full/</code> and run <code>generate_manifest.py</code>.</p>';
+    grid.innerHTML = '<p class="gallery-loading">No photos loaded yet. Add images to <code>photos/full/</code> and run <code>generate_manifest.py</code>.</p>';
   });
 
 // ── Grid ──
@@ -118,7 +118,7 @@ lbDl.addEventListener('click', e => {
       a.click();
       setTimeout(() => URL.revokeObjectURL(url), 15000);
     })
-    .catch(() => showToast('Download failed — try right-clicking the image.'));
+    .catch(() => showToast('Download failed. Try right-clicking the image.'));
 });
 
 // Copy direct image link
