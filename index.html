@@ -24,7 +24,7 @@
   <script type="application/ld+json">
   {"@context":"https://schema.org","@type":"WebSite","name":"Stick The Landing","url":"https://stickthelanding.com.au","description":"Season leaderboards for Victorian artistic gymnastics - WAG and MAG competition scores across every level, apparatus, and round of the Victorian season."}
   </script>
-  <script src="sql/sql-httpvfs.js"></script>
+  <script src="sql/sql-wasm.js?v=1.14.1"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
   <link rel="apple-touch-icon" sizes="180x180" href="/assets/favicons/apple-touch-icon.png" />
   <link rel="icon" type="image/png" sizes="32x32" href="/assets/favicons/favicon-32x32.png" />
@@ -608,21 +608,32 @@ let _browseCompId     = null;
 // ─────────────────────────────────────────────────────────────────────────────
 // DB init (lazy - only called when a sport is entered)
 // ─────────────────────────────────────────────────────────────────────────────
+// Downloads the whole .db file for a sport once and opens it as an in-memory
+// sql.js database. GitHub Pages' CDN corrupts partial byte-range reads of
+// these files (gzips the range and reports Content-Range against the
+// compressed length), so we no longer do lazy page-at-a-time reads - a single
+// whole-file fetch sidesteps that entirely and every query after the initial
+// load is purely in-memory, no further network involved.
+let _sqlJsPromise = null;
+function _getSqlJs() {
+  if (!_sqlJsPromise) {
+    _sqlJsPromise = initSqlJs({ locateFile: (f) => new URL("sql/" + f + "?v=1.14.1", location.href).toString() });
+  }
+  return _sqlJsPromise;
+}
+
 // Loads a sql.js DB handle for the given sport, independent of the global DB/currentSport.
 // Used both by initDB() (the site's primary sport) and the club page's lazy alt-sport loader.
 async function loadSportDbHandle(sport) {
-  const workerUrl = new URL("sql/sqlite.worker.js", location.href).toString();
-  const wasmUrl   = new URL("sql/sql-wasm.wasm",   location.href).toString();
+  const cfgResp = await fetch(new URL(`data/dbconfig_${sport}.json`, location.href).toString(), { cache: "no-cache" });
+  const dbCfg   = await cfgResp.json();
+  const dbUrl   = new URL(`data/stick_${sport}.db?v=${dbCfg.fileLength}.${dbCfg.rev || 0}`, location.href).toString();
 
-  const cfgResp   = await fetch(new URL(`data/dbconfig_${sport}.json`, location.href).toString(), { cache: "no-cache" });
-  const dbCfg     = await cfgResp.json();
-  const dbUrl     = new URL(`data/stick_${sport}.db?v=${dbCfg.fileLength}.${dbCfg.rev || 0}`, location.href).toString();
-  dbCfg.url       = dbUrl;
-  const worker    = await createDbWorker(
-    [{ from: "inline", config: dbCfg }],
-    workerUrl, wasmUrl
-  );
-  return worker.db;
+  const [SQL, resp] = await Promise.all([_getSqlJs(), fetch(dbUrl)]);
+  if (!resp.ok) throw new Error("Failed to fetch database: " + resp.status);
+  const buf   = await resp.arrayBuffer();
+  const rawDb = new SQL.Database(new Uint8Array(buf));
+  return { exec: (sql, params) => rawDb.exec(sql, params || []) };
 }
 
 async function initDB() {

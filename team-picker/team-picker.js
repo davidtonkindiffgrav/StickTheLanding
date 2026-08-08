@@ -48,15 +48,28 @@ function renderAccessDenied() {
 // ─────────────────────────────────────────────────────────────────────────
 // DB loading (root-relative paths, this page lives at /team-picker/, not /)
 // ─────────────────────────────────────────────────────────────────────────
+// Downloads the whole WAG .db file once and opens it as an in-memory sql.js
+// database. See index.html's loadSportDbHandle for why this isn't a lazy
+// Range-based loader anymore (GitHub Pages corrupts partial byte-range reads
+// of these files).
+let _sqlJsPromise = null;
+function _getSqlJs() {
+  if (!_sqlJsPromise) {
+    _sqlJsPromise = initSqlJs({ locateFile: (f) => new URL('/sql/' + f + '?v=1.14.1', location.href).toString() });
+  }
+  return _sqlJsPromise;
+}
+
 async function loadWagDbHandle() {
-  const workerUrl = new URL('/sql/sqlite.worker.js', location.href).toString();
-  const wasmUrl = new URL('/sql/sql-wasm.wasm', location.href).toString();
   const cfgResp = await fetch(new URL('/data/dbconfig_WAG.json', location.href).toString(), { cache: 'no-cache' });
   const dbCfg = await cfgResp.json();
   const dbUrl = new URL(`/data/stick_WAG.db?v=${dbCfg.fileLength}.${dbCfg.rev || 0}`, location.href).toString();
-  dbCfg.url = dbUrl;
-  const worker = await createDbWorker([{ from: 'inline', config: dbCfg }], workerUrl, wasmUrl);
-  return worker.db;
+
+  const [SQL, resp] = await Promise.all([_getSqlJs(), fetch(dbUrl)]);
+  if (!resp.ok) throw new Error('Failed to fetch database: ' + resp.status);
+  const buf = await resp.arrayBuffer();
+  const rawDb = new SQL.Database(new Uint8Array(buf));
+  return { exec: (sql, params) => rawDb.exec(sql, params || []) };
 }
 
 function _execRows(resultSet) {

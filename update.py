@@ -730,8 +730,6 @@ def _finalize(con, dbconfig_file: Path, sport: str = "WAG") -> None:
             pass
     with open(dbconfig_file, "w", encoding="utf-8") as f:
         json.dump({
-            "serverMode": "full",
-            "requestChunkSize": 1024,
             "fileLength": file_size,
             "rev": prev_rev + 1,
         }, f)
