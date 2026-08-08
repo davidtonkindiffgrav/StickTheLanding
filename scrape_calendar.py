@@ -80,15 +80,12 @@ def _detect_sport(name, excerpt):
     text = (name + " " + excerpt).upper()
     has_wag = "WAG" in text or "WOMEN" in text
     has_mag = "MAG" in text or "MEN'S ARTISTIC" in text or "MEN'S GYM" in text
-    has_acro = "ACRO" in text
     if has_wag and has_mag:
         return "ALL"
     if has_wag:
         return "WAG"
     if has_mag:
         return "MAG"
-    if has_acro:
-        return "ACRO"
     return "ALL"
 
 

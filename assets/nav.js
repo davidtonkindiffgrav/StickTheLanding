@@ -56,7 +56,6 @@
           a('/', 'Home') +
           '<a class="stl-nav-link wag" href="/#wag" id="stl-wag">WAG</a>' +
           '<a class="stl-nav-link mag" href="/#mag" id="stl-mag">MAG</a>' +
-          '<a class="stl-nav-link acro" href="/#acro" id="stl-acro">ACRO</a>' +
           a('/news/', 'News') +
           a('/galleries/', 'Galleries') +
           a('/about/', 'About') +
@@ -123,7 +122,7 @@
   }
 
   if (PATH === '/') {
-    ['wag', 'mag', 'acro'].forEach(function (s) {
+    ['wag', 'mag'].forEach(function (s) {
       var el = document.getElementById('stl-' + s);
       if (el) {
         el.addEventListener('click', function (e) {

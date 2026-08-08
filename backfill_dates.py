@@ -18,7 +18,6 @@ from date_extractor import resolve_comp_date
 DATABASES = [
     ("data/stick_WAG.db", "WAG"),
     ("data/stick_MAG.db", "MAG"),
-    ("data/stick_ACRO.db", "ACRO"),
 ]
 
 PDF_ROOT = Path("pdfs")

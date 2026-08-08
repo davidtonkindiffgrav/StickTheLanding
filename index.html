@@ -75,12 +75,6 @@
       </div>
       <div class="bottom"><span class="name">Men's Artistic</span><span class="arrow">→</span></div>
     </button>
-    <button class="v3-sport acro" onclick="enterSport('ACRO')">
-      <div class="top">
-        <div class="code">ACRO</div>
-      </div>
-      <div class="bottom"><span class="name">Acrobatic</span><span class="arrow">→</span></div>
-    </button>
     <a class="v3-sport game" href="/stickit/">
       <div class="top">
         <div class="code"><i class="fas fa-gamepad"></i></div>
@@ -177,7 +171,7 @@
 
 
   <div class="v3-about">
-    <strong>About Stick The Landing.</strong> An independent, free resource for the Victorian gymnastics community. We collate competition results across WAG, MAG, and ACRO, every level, into live season standings, athlete profiles, and competition reports, updated throughout the year. Every score is collated from official Gymnastics Victoria result publications. If you spot a discrepancy, <button class="link-btn" onclick="showContact('landing')">contact us</button> and we'll fix it. <a href="/about/">Learn more about the project.</a>
+    <strong>About Stick The Landing.</strong> An independent, free resource for the Victorian gymnastics community. We collate competition results across WAG and MAG, every level, into live season standings, athlete profiles, and competition reports, updated throughout the year. Every score is collated from official Gymnastics Victoria result publications. If you spot a discrepancy, <button class="link-btn" onclick="showContact('landing')">contact us</button> and we'll fix it. <a href="/about/">Learn more about the project.</a>
   </div>
 
   <footer class="v3-foot">
@@ -467,7 +461,6 @@
       <button class="filter-btn active" data-cal-sport="ALL">All</button>
       <button class="filter-btn" data-cal-sport="WAG">WAG</button>
       <button class="filter-btn" data-cal-sport="MAG">MAG</button>
-      <button class="filter-btn" data-cal-sport="ACRO">ACRO</button>
     </div>
     <div id="cal-event-list"><p class="no-data">Loading events…</p></div>
   </main>
@@ -577,12 +570,10 @@ const MAG_APPARATUS_COL   = { AA:"total", VT:"vault", FX:"floor", PH:"pommel", S
 const MAG_APPARATUS_COL_D = {           VT:"vault_d", FX:"floor_d", PH:"pommel_d", SR:"rings_d", PB:"pbars_d", HB:"hbar_d" };
 const MAG_APPARATUS_COL_E = {           VT:"vault_e", FX:"floor_e", PH:"pommel_e", SR:"rings_e", PB:"pbars_e", HB:"hbar_e" };
 const MAG_APPARATUS_NAME  = { AA:"All Around", VT:"Vault", FX:"Floor", PH:"Pommel Horse", SR:"Still Rings", PB:"Parallel Bars", HB:"Horizontal Bar" };
-const ACRO_APPARATUS_COL  = { "All-Around": "total", "Balance": "total", "Dynamic": "total", "Combined": "total" };
-const ACRO_APPARATUS_NAME = { "All-Around": "All-Around", "Balance": "Balance", "Dynamic": "Dynamic", "Combined": "Combined" };
-function appCol()  { if (currentSport === "ACRO") return ACRO_APPARATUS_COL;  return currentSport === "MAG" ? MAG_APPARATUS_COL   : APPARATUS_COL; }
+function appCol()  { return currentSport === "MAG" ? MAG_APPARATUS_COL   : APPARATUS_COL; }
 function appDCol() { return currentSport === "MAG" ? MAG_APPARATUS_COL_D : APPARATUS_D_COL; }
 function appECol() { return currentSport === "MAG" ? MAG_APPARATUS_COL_E : APPARATUS_E_COL; }
-function appName() { if (currentSport === "ACRO") return ACRO_APPARATUS_NAME; return currentSport === "MAG" ? MAG_APPARATUS_NAME  : APPARATUS_NAME; }
+function appName() { return currentSport === "MAG" ? MAG_APPARATUS_NAME  : APPARATUS_NAME; }
 let _compList      = [];
 let _resultsIndex  = new Set(); // "sport/comp_id" keys for built static pages
 let _contactFrom   = "landing";
@@ -683,7 +674,6 @@ async function enterSport(sport) {
           code, name, region, logo, founded, description, links,
           venues: venuesByCode[code] || [],
         });
-        if (sport === "ACRO") CLUBS_BY_NAME[name] = code;
       }
       INTERSTATE = new Set(CLUBS_LIST.filter(c => c.region === "Interstate").map(c => c.code));
     }
@@ -704,8 +694,8 @@ async function enterSport(sport) {
   shell.style.display = "block";
 
   // Update header and tab labels
-  document.querySelector('[data-view="clubs"]').textContent    = sport === "ACRO" ? "Club Standings"      : "Team Standings";
-  document.querySelector('[data-view="athletes"]').textContent = sport === "ACRO" ? "Partnerships"        : "Individual Rankings";
+  document.querySelector('[data-view="clubs"]').textContent    = "Team Standings";
+  document.querySelector('[data-view="athletes"]').textContent = "Individual Rankings";
 
   rebuildApparatusNav(sport);
   renderSeasonButtons();
@@ -775,17 +765,6 @@ function renderSeasonButtons() {
 }
 
 async function reloadLevelDivs() {
-  if (currentSport === "ACRO") {
-    const ldRows = _execRows(await DB.exec(
-      `SELECT DISTINCT e.level, e.category
-       FROM events e JOIN competitions c ON e.competition_id = c.id
-       WHERE c.sport = ? AND c.season = ?
-       ORDER BY e.level, e.category`,
-      [currentSport, currentSeason]
-    ));
-    LEVEL_DIVS = ldRows.map(([level, category]) => ({ level, category }));
-    return;
-  }
   const ldRows = _execRows(await DB.exec(
     `SELECT DISTINCT e.level, e.division, e.age_group
      FROM events e
@@ -980,9 +959,7 @@ function buildContextLabel() {
 
   // Level
   if (activeLevel !== null) {
-    if (currentSport === "ACRO") {
-      parts.push(String(activeLevel).replace(/^Level\s+(\d+)$/i, "Level $1"));
-    } else if (typeof activeLevel === "number" && activeLevel >= 101) {
+    if (typeof activeLevel === "number" && activeLevel >= 101) {
       parts.push(intLevelLabel(activeLevel, true) || `Level ${activeLevel}`);
     } else {
       parts.push(`Level ${activeLevel}`);
@@ -1594,51 +1571,6 @@ async function openDrill(comp) {
   document.getElementById("drill-events").innerHTML  = `<p style="color:var(--muted);padding:12px">Loading…</p>`;
   document.getElementById("drill-overlay").classList.add("open");
 
-  if (currentSport === "ACRO") {
-    const raw = _execRows(await DB.exec(`
-      SELECT e.id, e.level, e.category, e.event_type,
-             r.rank, r.athletes, r.club, r.total, r.diff, r.exec_score, r.art, r.pen,
-             r.bal, r.dyn, r.com
-      FROM events e
-      LEFT JOIN results r ON r.event_id = e.id
-      WHERE e.competition_id = ?
-      ORDER BY e.id, r.rank
-    `, [comp.id]));
-    const evMap = new Map();
-    for (const [eid, level, category, event_type,
-                rank, athletes, club, total, diff, exec_score, art, pen, bal, dyn, com] of raw) {
-      if (!evMap.has(eid)) evMap.set(eid, { level, category, event_type, results: [] });
-      if (rank !== null) evMap.get(eid).results.push({ rank, athletes, club, total, diff, exec_score, art, pen, bal, dyn, com });
-    }
-    const events = [...evMap.values()];
-    const fmt = v => v != null ? v.toFixed(3) : "-";
-    document.getElementById("drill-meta").textContent = `${events.length} event(s) · ACRO · ${currentSeason}`;
-    document.getElementById("drill-events").innerHTML = events.map(ev => {
-      const isAA = ev.event_type === "All-Around";
-      const title = [ev.level, ev.category, ev.event_type].filter(Boolean).join(" · ");
-      const header = isAA
-        ? `<tr><th>#</th><th>Partnership</th><th>Club</th><th data-sort="num">Bal <span class="sort-icon">↕</span></th><th data-sort="num">Dyn <span class="sort-icon">↕</span></th><th data-sort="num">Com <span class="sort-icon">↕</span></th><th data-sort="num">Total <span class="sort-icon">↕</span></th></tr>`
-        : `<tr><th>#</th><th>Partnership</th><th>Club</th><th data-sort="num">Diff <span class="sort-icon">↕</span></th><th data-sort="num">Exec <span class="sort-icon">↕</span></th><th data-sort="num">Art <span class="sort-icon">↕</span></th><th data-sort="num">Pen <span class="sort-icon">↕</span></th><th data-sort="num">Total <span class="sort-icon">↕</span></th></tr>`;
-      const trows = ev.results.map(r => {
-        const names = (r.athletes || "").split("|").map(n => esc(acroAthleteDisplay(n))).join(" / ");
-        const scoreCells = isAA
-          ? `<td class="score">${fmt(r.bal)}</td><td class="score">${fmt(r.dyn)}</td><td class="score">${fmt(r.com)}</td>`
-          : `<td class="score">${fmt(r.diff)}</td><td class="score">${fmt(r.exec_score)}</td><td class="score">${fmt(r.art)}</td><td class="score">${fmt(r.pen)}</td>`;
-        return `<tr><td>${rankBadge(r.rank)}</td><td><strong>${names}</strong></td><td>${esc(r.club || "")}</td>${scoreCells}<td class="score">${fmt(r.total)}</td></tr>`;
-      }).join("");
-      const colspan = isAA ? 7 : 8;
-      return `<div class="event-section">
-        <h4>${esc(title)}</h4>
-        <table class="leaderboard">
-          <thead>${header}</thead>
-          <tbody>${trows || `<tr><td colspan="${colspan}" style="color:var(--muted);padding:12px">No results parsed</td></tr>`}</tbody>
-        </table>
-      </div>`;
-    }).join("");
-    document.getElementById("drill-events").querySelectorAll("table.leaderboard").forEach(t => attachSort(t));
-    return;
-  }
-
   const raw = _execRows(await DB.exec(`
     SELECT e.id, e.level, e.division, e.age_group, e.event_type,
            r.rank, r.athlete, r.club, r.total,
@@ -1832,16 +1764,11 @@ async function loadAthleteList() {
 }
 
 async function ensureAthleteList() {
-  if (currentSport === "ACRO" || ATHLETE_LIST.length > 0) return;
+  if (ATHLETE_LIST.length > 0) return;
   await loadAthleteList();
 }
 
 async function openSearchPanel() {
-  // ACRO has no individual athletes - switch to WAG before opening search
-  if (currentSport === "ACRO") {
-    DB = null; CLUBS = {}; CLUBS_LIST = []; CLUBS_BY_NAME = {};
-    await enterSport("WAG");
-  }
   await ensureAthleteList();
   document.getElementById("search-sport-select").value = currentSport || "WAG";
   document.getElementById("search-overlay").classList.add("open");
@@ -2282,10 +2209,7 @@ function buildRegionFilters() {
 function rebuildApparatusNav(sport) {
   const nav = document.getElementById("apparatus-nav");
   let buttons, defaultApp;
-  if (sport === "ACRO") {
-    defaultApp = "All-Around";
-    buttons = [["All-Around","AA"],["Balance","Balance"],["Dynamic","Dynamic"],["Combined","Combined"]];
-  } else if (sport === "MAG") {
+  if (sport === "MAG") {
     defaultApp = "AA";
     buttons = [["AA","AA"],["FX","Floor"],["PH","Pommel"],["SR","Rings"],["VT","Vault"],["PB","P-Bars"],["HB","H-Bar"]];
   } else {
@@ -2336,49 +2260,6 @@ function buildLevelFilters() {
   function _syncSel(id, val) {
     const el = document.getElementById(id);
     if (el && [...el.options].some(o => o.value === String(val))) el.value = String(val);
-  }
-
-  if (currentSport === "ACRO") {
-    activeLevel = null;
-
-    const acroLevelLabel = lvl => lvl.replace(/^Level\s+(\d+)$/i, "L$1");
-    const acroLevelSort  = (a, b) => {
-      const na = parseInt((a.match(/^Level\s+(\d+)$/i) || [])[1], 10);
-      const nb = parseInt((b.match(/^Level\s+(\d+)$/i) || [])[1], 10);
-      if (!isNaN(na) && !isNaN(nb)) return na - nb;
-      return !isNaN(na) ? -1 : !isNaN(nb) ? 1 : a.localeCompare(b);
-    };
-
-    const levels = [...new Set(LEVEL_DIVS.map(ld => ld.level))].sort(acroLevelSort);
-    const applyLevel = val => {
-      activeLevel = val;
-      _syncSel("sel-level", val);
-      _syncSel("sel-athlete-level", val);
-      render();
-    };
-
-    const categories = [...new Set(LEVEL_DIVS.map(ld => ld.category).filter(Boolean))].sort();
-    const applyDiv = val => {
-      activeDivision = val === "all" ? null : val;
-      _syncSel("sel-division", val);
-      _syncSel("sel-athlete-division", val);
-      render();
-    };
-
-    ['sel-level','sel-athlete-level'].forEach(id => _fillLevelSel(id, levels, acroLevelLabel, applyLevel));
-    ['sel-division','sel-athlete-division'].forEach(id => _fillDivSel(id, categories, v => v, applyDiv));
-
-    ['division-filter-bar','athlete-division-filter-bar'].forEach(id => {
-      const el = document.getElementById(id);
-      if (el) el.style.display = '';
-    });
-    document.getElementById("region-filter-bar").style.display = "none";
-    document.getElementById("athlete-score-toggle").style.display = "none";
-
-    // Auto-select first level
-    const firstSel = document.getElementById("sel-level");
-    if (firstSel && firstSel.options.length) applyLevel(firstSel.options[0].value);
-    return;
   }
 
   // WAG / MAG
@@ -2521,183 +2402,8 @@ document.getElementById("cal-sport-filter").addEventListener("click", e => {
 // ─────────────────────────────────────────────────────────────────────────────
 // Render dispatcher
 // ─────────────────────────────────────────────────────────────────────────────
-// ─────────────────────────────────────────────────────────────────────────────
-// ACRO helpers
-// ─────────────────────────────────────────────────────────────────────────────
-function acroAthleteDisplay(name) {
-  return name.split(" ").map(word =>
-    word.split("-").map(part => part.charAt(0).toUpperCase() + part.slice(1).toLowerCase()).join("-")
-  ).join(" ");
-}
-
-function partnershipKey(athletes, club) {
-  const norm = athletes.split("|")
-    .map(n => n.toLowerCase().replace(/-/g, " ").trim().split(/\s+/).sort().join(" "))
-    .sort().join("|");
-  return `${norm}||${club}`;
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// ACRO render functions
-// ─────────────────────────────────────────────────────────────────────────────
-async function renderAcroClubs() {
-  const titleEl = document.getElementById("team-title");
-  const tbody   = document.getElementById("team-highscore-tbody");
-  const routineType = activeApparatus || "All-Around";
-  titleEl.textContent = "Club Standings";
-  updateTableContextHeader();
-  const isHigh = teamScoreBasis === "high";
-  const scoreTh = document.getElementById("team-score-th");
-  scoreTh.childNodes[0].textContent = isHigh ? "High Score " : "Average Score ";
-  scoreTh.title = isHigh ? "Best single team score across all competitions" : "Average team score across all competitions";
-
-  if (activeLevel === null) {
-    tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;color:var(--muted);padding:36px 12px">
-      Select a Level above to see club standings.</td></tr>`;
-    return;
-  }
-  const catClauseC = activeDivision != null ? "AND e.category=?" : "";
-  const catParamsC = activeDivision != null ? [currentSeason, activeLevel, activeDivision, routineType] : [currentSeason, activeLevel, routineType];
-  const raw = _execRows(await DB.exec(`
-    SELECT r.club, r.rank, r.total, c.name
-    FROM results r JOIN events e ON r.event_id = e.id JOIN competitions c ON e.competition_id = c.id
-    WHERE c.sport='ACRO' AND c.season=? AND e.level=? ${catClauseC} AND e.event_type=?
-  `, catParamsC));
-  const clubs = {};
-  for (const [club, rank, total, comp] of raw) {
-    if (!club) continue;
-    if (!clubs[club]) clubs[club] = { club, wins:0, totalScore:0, highScore:0, highScoreComp:"", count:0, comps:new Set() };
-    const c = clubs[club];
-    if (total != null) { c.totalScore += total; c.count++; if (total > c.highScore) { c.highScore = total; c.highScoreComp = comp || ""; } }
-    if (rank === 1) c.wins++;
-    if (comp) c.comps.add(comp);
-  }
-  const standings = Object.values(clubs)
-    .map(c => ({ ...c, comps: c.comps.size, avgScore: c.count ? c.totalScore / c.count : 0 }))
-    .sort((a, b) => isHigh ? b.highScore - a.highScore : b.avgScore - a.avgScore);
-  if (!standings.length) {
-    tbody.innerHTML = `<tr><td colspan="5" class="no-data">No results for this filter.</td></tr>`;
-    return;
-  }
-  tbody.innerHTML = standings.map((s, i) => {
-    const rank = i + 1;
-    const badge = rank <= 3 ? `<span class="rank-badge rank-${rank}">${rank}</span>` : `<span class="rank-badge rank-n">${rank}</span>`;
-    const score = isHigh ? s.highScore : s.avgScore;
-    const scoreTip = isHigh && s.highScoreComp
-      ? ` title="${esc(s.highScoreComp)}" data-tip="${esc(s.highScoreComp)}" style="cursor:pointer"` : "";
-    const code = CLUBS_BY_NAME[s.club] || s.club;
-    const logoCell = code ? `<td class="logo-cell">${clubLogo(code, "club-logo-sm")}</td>` : `<td></td>`;
-    const nameCell = code ? `<strong>${clubName(code)}</strong>` : `<strong>${esc(s.club)}</strong>`;
-    const rowAttrs = code ? ` class="club-dir-row" data-code="${esc(code)}" style="cursor:pointer"` : "";
-    return `<tr${rowAttrs}>
-      <td>${badge}</td>${logoCell}
-      <td>${nameCell}</td>
-      <td class="score score-hi"${scoreTip}>${score > 0 ? score.toFixed(3) : "-"}</td>
-      <td class="score">${s.comps}</td>
-    </tr>`;
-  }).join("");
-  attachSort(document.getElementById("team-highscore-table"));
-  injectAd('ad-slot-clubs');
-}
-
-async function renderAcroPartnerships() {
-  const titleEl = document.getElementById("athlete-title");
-  const tbody   = document.getElementById("athlete-tbody");
-  const routineType = activeApparatus || "All-Around";
-  titleEl.textContent = "Partnership Rankings";
-  updateTableContextHeader();
-  if (activeLevel === null) {
-    tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;color:var(--muted);padding:36px 12px">
-      Select a Level above to see partnership rankings.</td></tr>`;
-    return;
-  }
-  const isAA = routineType === "All-Around";
-  const catClauseP = activeDivision != null ? "AND e.category=?" : "";
-  const catParamsP = activeDivision != null ? [currentSeason, activeLevel, activeDivision, routineType] : [currentSeason, activeLevel, routineType];
-  const raw = _execRows(await DB.exec(`
-    SELECT r.rank, r.athletes, r.club, r.total, r.diff, r.exec_score, r.art, r.pen,
-           r.bal, r.dyn, r.com, c.name
-    FROM results r JOIN events e ON r.event_id = e.id JOIN competitions c ON e.competition_id = c.id
-    WHERE c.sport='ACRO' AND c.season=? AND e.level=? ${catClauseP} AND e.event_type=?
-    ORDER BY r.total DESC
-  `, catParamsP));
-
-  const partnerships = {};
-  for (const [rank, athletes, club, total, diff, exec_score, art, pen, bal, dyn, com, competition] of raw) {
-    const key = partnershipKey(athletes, club);
-    if (!partnerships[key]) partnerships[key] = {
-      athletes, club, bestScore: 0, bestComp: "", wins: 0, totalScore: 0, count: 0, comps: new Set(),
-      bestBal: null, bestDyn: null, bestCom: null, bestDiff: null, bestExec: null, bestArt: null,
-    };
-    const p = partnerships[key];
-    if (total != null) {
-      if (total > p.bestScore) {
-        p.bestScore = total; p.bestComp = competition || "";
-        p.bestBal = bal; p.bestDyn = dyn; p.bestCom = com;
-        p.bestDiff = diff; p.bestExec = exec_score; p.bestArt = art;
-      }
-      p.totalScore += total; p.count++;
-    }
-    if (rank === 1) p.wins++;
-    if (competition) p.comps.add(competition);
-  }
-  const sorted = Object.values(partnerships)
-    .map(p => ({ ...p, comps: p.comps.size, avgScore: p.count ? p.totalScore / p.count : 0 }))
-    .sort((a, b) => b.bestScore - a.bestScore);
-
-  // Rebuild thead
-  const thead = document.querySelector("#athlete-table thead tr");
-  const fmt = v => v != null ? v.toFixed(3) : "-";
-  if (isAA) {
-    thead.innerHTML = `<th style="width:52px">#</th><th>Partnership</th><th>Club</th>
-      <th data-sort="num">Bal <span class="sort-icon">↕</span></th>
-      <th data-sort="num">Dyn <span class="sort-icon">↕</span></th>
-      <th data-sort="num">Com <span class="sort-icon">↕</span></th>
-      <th data-sort="num">Best Total <span class="sort-icon">↕</span></th>
-      <th data-sort="num">Comps <span class="sort-icon">↕</span></th>`;
-  } else {
-    thead.innerHTML = `<th style="width:52px">#</th><th>Partnership</th><th>Club</th>
-      <th data-sort="num">Diff <span class="sort-icon">↕</span></th>
-      <th data-sort="num">Exec <span class="sort-icon">↕</span></th>
-      <th data-sort="num">Art <span class="sort-icon">↕</span></th>
-      <th data-sort="num">Best Total <span class="sort-icon">↕</span></th>
-      <th data-sort="num">Comps <span class="sort-icon">↕</span></th>`;
-  }
-
-  if (!sorted.length) {
-    tbody.innerHTML = `<tr><td colspan="8" class="no-data">No results for this filter.</td></tr>`;
-    return;
-  }
-  tbody.innerHTML = sorted.map((p, i) => {
-    const rank = i + 1;
-    const badge = rank <= 3 ? `<span class="rank-badge rank-${rank}">${rank}</span>` : `<span class="rank-badge rank-n">${rank}</span>`;
-    const names = (p.athletes || "").split("|").map(n => esc(acroAthleteDisplay(n))).join(" / ");
-    const scoreCells = isAA
-      ? `<td class="score">${fmt(p.bestBal)}</td><td class="score">${fmt(p.bestDyn)}</td><td class="score">${fmt(p.bestCom)}</td>`
-      : `<td class="score">${fmt(p.bestDiff)}</td><td class="score">${fmt(p.bestExec)}</td><td class="score">${fmt(p.bestArt)}</td>`;
-    const pCode = CLUBS_BY_NAME[p.club] || p.club;
-    const pClub = pCode ? clubDisplay(pCode) : esc(p.club);
-    return `<tr>
-      <td>${badge}</td>
-      <td>${names}</td>
-      <td>${pClub}</td>
-      ${scoreCells}
-      <td class="score score-hi"${p.bestComp ? ` title="${esc(p.bestComp)}"` : ""}>${fmt(p.bestScore)}</td>
-      <td class="score">${p.comps}</td>
-    </tr>`;
-  }).join("");
-  attachSort(document.getElementById("athlete-table"));
-  injectAd('ad-slot-athletes');
-}
-
 function render() {
   if (!DB) return;
-  if (currentSport === "ACRO") {
-    if      (activeView === "clubs")          renderAcroClubs();
-    else if (activeView === "athletes")       renderAcroPartnerships();
-    else if (activeView === "club-directory") renderClubDirectory();
-    return;
-  }
   if (activeView === "clubs")          renderClubs();
   else if (activeView === "athletes")  renderAthletes();
   else if (activeView === "club-directory") renderClubDirectory();
@@ -2711,7 +2417,7 @@ initClubDirectory();
 // ─────────────────────────────────────────────────────────────────────────────
 // Shared chart constants - used by GRAPHS and ATHLETE PROFILE
 // ─────────────────────────────────────────────────────────────────────────────
-const G_APP_KEYS = { WAG: ['VT','UB','BB','FX'], MAG: ['VT','FX','PH','SR','PB','HB'], ACRO: [] };
+const G_APP_KEYS = { WAG: ['VT','UB','BB','FX'], MAG: ['VT','FX','PH','SR','PB','HB'] };
 const G_COL      = { VT:'vault', UB:'bars', BB:'beam', FX:'floor', PH:'pommel', SR:'rings', PB:'pbars', HB:'hbar' };
 const G_COLOR    = { VT:'#4e8ef7', UB:'#a855f7', BB:'#14b8a6', FX:'#f97316', PH:'#ef4444', SR:'#eab308', PB:'#8b5cf6', HB:'#22c55e' };
 const G_ICON_FILE  = { VT:'VT', UB:'UB', BB:'BB', FX:'FL', PH:'PH', SR:'SR', PB:'PB', HB:'HB' };
@@ -3157,7 +2863,7 @@ function _profRenderTimeChart(canvasEl, type, rows, mode, animate = true) {
 function _profRenderStrengthChart(canvasEl, showPB, statsRow, animate = true, sport = currentSport, labelsOverride = null) {
   const allAppKeys = G_APP_KEYS[sport] || [];
   if (!allAppKeys.length) return;
-  const appNames = sport === 'MAG' ? MAG_APPARATUS_NAME : (sport === 'ACRO' ? ACRO_APPARATUS_NAME : APPARATUS_NAME);
+  const appNames = sport === 'MAG' ? MAG_APPARATUS_NAME : APPARATUS_NAME;
   const allLbl = labelsOverride || allAppKeys.map(k => appNames[k] || k);
   // Apparatus with no real result (never competed, not just a low score) get dropped from the
   // polygon entirely rather than plotted as 0, a specialist with 3 of 6 apparatus gets a genuine
@@ -4370,7 +4076,7 @@ function renderClubDashboard(bodyLoading) {
     const parts = location.hash.replace("#", "").split("/");
     const sport = (parts[0] || "").toUpperCase();
     const view  = parts[1] || "";
-    if (!["WAG", "MAG", "ACRO"].includes(sport)) return;
+    if (!["WAG", "MAG"].includes(sport)) return;
 
     const applyRoute = () => {
       if (view === "athlete" && parts[2]) {

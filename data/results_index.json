@@ -84,12 +84,6 @@
     "date": "2026-05-07"
   },
   {
-    "sport": "acro",
-    "comp_id": "state-trial-2-2026",
-    "name": "State Trial 2",
-    "date": "2026-05-03"
-  },
-  {
     "sport": "wag",
     "comp_id": "wag-trial-1-and-border-challenge-trial-1-2026",
     "name": "WAG Trial 1 and Border Challenge Trial 1",
@@ -106,12 +100,6 @@
     "comp_id": "state-trial-1-2026",
     "name": "State Trial 1",
     "date": "2026-04-18"
-  },
-  {
-    "sport": "acro",
-    "comp_id": "state-trial-1-2026",
-    "name": "State Trial 1",
-    "date": "2026-04-16"
   },
   {
     "sport": "mag",
@@ -205,12 +193,6 @@
   },
   {
     "sport": "wag",
-    "comp_id": "junior-victorian-championships-2025",
-    "name": "Junior Victorian Championships",
-    "date": "2025-10-17"
-  },
-  {
-    "sport": "acro",
     "comp_id": "junior-victorian-championships-2025",
     "name": "Junior Victorian Championships",
     "date": "2025-10-17"
@@ -348,12 +330,6 @@
     "date": "2025-05-16"
   },
   {
-    "sport": "acro",
-    "comp_id": "senior-victorian-championships-2025",
-    "name": "Senior Victorian Championships",
-    "date": "2025-05-16"
-  },
-  {
     "sport": "wag",
     "comp_id": "casey-classic-2025",
     "name": "Casey Classic",
@@ -382,18 +358,6 @@
     "comp_id": "sgc-invite-2025",
     "name": "SGC Invite",
     "date": "2025-03-30"
-  },
-  {
-    "sport": "acro",
-    "comp_id": "trial-1-2025",
-    "name": "Trial 1",
-    "date": "2025-03-27"
-  },
-  {
-    "sport": "acro",
-    "comp_id": "trial-2-2025",
-    "name": "Trial 2",
-    "date": "2025-03-27"
   },
   {
     "sport": "wag",
@@ -588,18 +552,6 @@
     "date": "2024-05-05"
   },
   {
-    "sport": "acro",
-    "comp_id": "acr-state-team-trial-2-2024",
-    "name": "ACR State Team Trial 2",
-    "date": "2024-05-05"
-  },
-  {
-    "sport": "acro",
-    "comp_id": "acr-senior-victorian-championships-2024",
-    "name": "ACR Senior Victorian Championships",
-    "date": "2024-04-09"
-  },
-  {
     "sport": "wag",
     "comp_id": "warrnambool-invite-2024",
     "name": "Warrnambool Invite",
@@ -627,12 +579,6 @@
     "sport": "wag",
     "comp_id": "wag-2024-state-team-trial-2-2024",
     "name": "WAG 2024 State Team Trial 2",
-    "date": "2024-03-17"
-  },
-  {
-    "sport": "acro",
-    "comp_id": "acr-state-team-trial-1-2024",
-    "name": "ACR State Team Trial 1",
     "date": "2024-03-17"
   },
   {

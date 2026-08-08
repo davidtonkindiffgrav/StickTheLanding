@@ -40,7 +40,6 @@ MAG_INT_LEVELS = {
 # (db_column, display_label)
 WAG_AA_COLS  = [("vault","VT"), ("bars","UB"), ("beam","BB"), ("floor","FX"), ("total","Total")]
 MAG_AA_COLS  = [("floor","FX"), ("pommel","PH"), ("rings","SR"), ("vault","VT"), ("pbars","PB"), ("hbar","HB"), ("total","Total")]
-ACRO_AA_COLS = [("diff","D"), ("exec_score","E"), ("art","Art"), ("pen","Pen"), ("total","Total")]
 
 # For MAG apparatus-specific events: which DB column holds the score
 MAG_APP_COL  = {"FX":"floor","PH":"pommel","SR":"rings","VT":"vault","PB":"pbars","HB":"hbar"}
@@ -52,8 +51,8 @@ EVENT_LABEL  = {
     "VT":"Vault","PB":"Parallel Bars","HB":"High Bar",
 }
 
-SPORT_COLOUR = {"WAG":"#c9a4ff","MAG":"#5ee6a8","ACRO":"#fb923c"}
-SPORT_FULL   = {"WAG":"Women's Artistic Gymnastics","MAG":"Men's Artistic Gymnastics","ACRO":"Acrobatic Gymnastics"}
+SPORT_COLOUR = {"WAG":"#c9a4ff","MAG":"#5ee6a8"}
+SPORT_FULL   = {"WAG":"Women's Artistic Gymnastics","MAG":"Men's Artistic Gymnastics"}
 
 # ── DB helpers ─────────────────────────────────────────────────────────────────
 
@@ -76,15 +75,6 @@ def fetch_competitions(con, comp_id):
 
 
 def fetch_rows(con, comp_id: str, sport: str):
-    if sport == "ACRO":
-        return con.execute("""
-            SELECT e.level, e.category, e.event_type,
-                   r.rank, r.athletes, r.club,
-                   r.diff, r.exec_score, r.art, r.pen, r.total, r.bal, r.dyn, r.com
-            FROM events e JOIN results r ON r.event_id = e.id
-            WHERE e.competition_id = ?
-            ORDER BY e.level, e.category, e.event_type, r.rank
-        """, (comp_id,)).fetchall()
     return con.execute("""
         SELECT e.level, e.division, e.event_type,
                r.rank, r.athlete, r.club, r.team_name,
@@ -111,7 +101,7 @@ def build_tree(rows, sport: str) -> dict:
     for row in rows:
         r = dict(row)
         level   = r["level"]
-        div_key = r.get("category") if sport == "ACRO" else r.get("division")
+        div_key = r.get("division")
         etype   = r["event_type"]
         tree.setdefault(level, {}).setdefault(div_key, {}).setdefault(etype, []).append(r)
     return tree
@@ -119,8 +109,6 @@ def build_tree(rows, sport: str) -> dict:
 
 def sorted_levels(tree: dict, sport: str) -> list:
     keys = [k for k in tree if k is not None]
-    if sport == "ACRO":
-        return sorted(keys, key=str)
     return sorted(keys)
 
 
@@ -149,8 +137,6 @@ def fmt(v) -> str:
 
 
 def level_label(level, sport: str) -> str:
-    if sport == "ACRO":
-        return str(level)
     mapping = WAG_INT_LEVELS if sport == "WAG" else MAG_INT_LEVELS if sport == "MAG" else {}
     if level in mapping:
         return mapping[level]
@@ -174,8 +160,6 @@ def safe_id(value) -> str:
 # ── Table columns ─────────────────────────────────────────────────────────────
 
 def table_cols(event_type: str, sport: str) -> list:
-    if sport == "ACRO":
-        return ACRO_AA_COLS
     if event_type == "AA":
         return WAG_AA_COLS if sport == "WAG" else MAG_AA_COLS
     if event_type == "Team":
@@ -192,8 +176,6 @@ def render_table(rows: list, event_type: str, sport: str, club_names: dict = Non
     club_names = club_names or {}
     cols       = table_cols(event_type, sport)
     is_team    = event_type == "Team"
-    is_acro    = sport == "ACRO"
-    athlete_key = "athletes" if is_acro else "athlete"
 
     # Top-3 per apparatus column (skip 'total' — rank # already covers it)
     col_top3 = {}
@@ -231,7 +213,7 @@ def render_table(rows: list, event_type: str, sport: str, club_names: dict = Non
 
         if is_team:
             club_code = r.get("club") or ""
-            full_name = club_names.get(club_code, club_code) or r.get(athlete_key) or "-"
+            full_name = club_names.get(club_code, club_code) or r.get("athlete") or "-"
             squad     = r.get("team_name")
             if squad and squad != full_name:
                 name_cell = f'<td class="name">{squad}<span class="name-sub">{full_name}</span></td>'
@@ -241,7 +223,7 @@ def render_table(rows: list, event_type: str, sport: str, club_names: dict = Non
         else:
             club_code = r.get("club") or ""
             full_name = club_names.get(club_code, club_code) or "-"
-            name_cell = f'<td class="name">{r.get(athlete_key) or "-"}</td>'
+            name_cell = f'<td class="name">{r.get("athlete") or "-"}</td>'
             club_cell = f'<td class="club">{full_name}</td>'
 
         score_cells = []
@@ -645,7 +627,7 @@ def build_one(comp: sqlite3.Row, sport: str, con: sqlite3.Connection) -> Path:
 
 def main():
     parser = argparse.ArgumentParser(description="Build static result pages.")
-    parser.add_argument("--sport", choices=["WAG", "MAG", "ACRO"],
+    parser.add_argument("--sport", choices=["WAG", "MAG"],
                         help="Sport to build (default: all)")
     parser.add_argument("--comp", metavar="COMP_ID",
                         help="Build a single competition by ID")
@@ -653,7 +635,7 @@ def main():
                         help="Rebuild all pages even if they already exist")
     args = parser.parse_args()
 
-    sports = [args.sport] if args.sport else ["WAG", "MAG", "ACRO"]
+    sports = [args.sport] if args.sport else ["WAG", "MAG"]
 
     # Write CSS once
     CSS_PATH.write_text(RESULTS_CSS, encoding="utf-8")

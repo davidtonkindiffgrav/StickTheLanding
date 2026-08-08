@@ -37,13 +37,6 @@
       --header-bg: linear-gradient(135deg, #0f1a13 0%, #132a1e 50%, #1a4a30 100%);
     }
 
-    html[data-sport="ACRO"] {
-      --accent: #fb923c;
-      --accent-rgb: 251, 146, 60;
-      --accent-glow: rgba(251, 146, 60, 0.18);
-      --header-bg: linear-gradient(135deg, #1a130f 0%, #2e1a0a 50%, #4a2a06 100%);
-    }
-
     /* system preference fallback (no-JS); guarded so explicit dark selection wins */
     @media (prefers-color-scheme: light) {
       html:not([data-theme="dark"]) {
@@ -61,10 +54,6 @@
       html:not([data-theme="dark"])[data-sport="MAG"] {
         --accent-glow: rgba(52, 211, 153, 0.10);
         --header-bg: linear-gradient(135deg, #e4f5ee 0%, #cff0e0 50%, #b8e8d0 100%);
-      }
-      html:not([data-theme="dark"])[data-sport="ACRO"] {
-        --accent-glow: rgba(251, 146, 60, 0.10);
-        --header-bg: linear-gradient(135deg, #fff3e8 0%, #ffe8cc 50%, #ffd5aa 100%);
       }
       html:not([data-theme="dark"]) .ad-unit { background: rgba(0,0,0,0.03); }
       html:not([data-theme="dark"]) .header-logo-group h1 { color: #1a1a2a; }
@@ -88,10 +77,6 @@
     html[data-theme="light"][data-sport="MAG"] {
       --accent-glow: rgba(52, 211, 153, 0.10);
       --header-bg: linear-gradient(135deg, #e4f5ee 0%, #cff0e0 50%, #b8e8d0 100%);
-    }
-    html[data-theme="light"][data-sport="ACRO"] {
-      --accent-glow: rgba(251, 146, 60, 0.10);
-      --header-bg: linear-gradient(135deg, #fff3e8 0%, #ffe8cc 50%, #ffd5aa 100%);
     }
     html[data-theme="light"] .ad-unit { background: rgba(0,0,0,0.03); }
     html[data-theme="light"] .header-logo-group h1 { color: #1a1a2a; }
@@ -781,7 +766,6 @@
     #landing-view .v3-sport:hover { transform: translateY(-2px); }
     #landing-view .v3-sport.wag  { background-image: linear-gradient(to bottom, rgba(20,5,60,0.45) 0%, rgba(20,5,60,0.75) 100%), url('/assets/images/WAG_button.jpg'); }
     #landing-view .v3-sport.mag  { background-image: linear-gradient(to bottom, rgba(0,30,15,0.45) 0%, rgba(0,30,15,0.75) 100%), url('/assets/images/MAG_button.jpg'); }
-    #landing-view .v3-sport.acro { background-image: linear-gradient(to bottom, rgba(40,15,0,0.45) 0%, rgba(40,15,0,0.75) 100%), url('/assets/images/ACRO_button.jpg'); }
     #landing-view .v3-sport.game { background-image: linear-gradient(to bottom, rgba(26,13,46,0.45) 0%, rgba(59,26,106,0.75) 100%), url('/assets/images/stickit_playnow.jpg'); background-size: cover; background-position: center; background-color: #2a1045; }
     #landing-view .v3-sport.cal  { background: linear-gradient(135deg, #0d1f3c 0%, #1a3a6a 100%); }
     #landing-view .v3-sport.gal  {
@@ -1140,7 +1124,6 @@
   border-radius: 999px; letter-spacing: 0.06em; text-transform: uppercase; font-family: 'JetBrains Mono', monospace; }
 .cal-badge-wag  { background: rgba(124,109,250,0.18); color: #a99fff; }
 .cal-badge-mag  { background: rgba(52,211,153,0.18);  color: #6ee7b7; }
-.cal-badge-acro { background: rgba(251,146,60,0.18);  color: #fdba74; }
 .cal-badge-all  { background: rgba(245,197,24,0.15);  color: #fcd34d; }
 .cal-status-pill { font-size: 0.68rem; font-weight: 700; padding: 2px 8px; border-radius: 999px; }
 .cal-status-now  { background: rgba(245,197,24,0.2); color: var(--gold); }
@@ -1690,5 +1673,4 @@ html[data-theme="light"] #landing-view .v3-about .link-btn { color: #c47d00; }
 
 html[data-theme="light"] .cal-badge-wag  { background: rgba(107,92,231,0.1);  color: #5b4ac2; }
 html[data-theme="light"] .cal-badge-mag  { background: rgba(26,169,112,0.1);  color: #1a8e63; }
-html[data-theme="light"] .cal-badge-acro { background: rgba(217,119,6,0.1);   color: #b45309; }
 html[data-theme="light"] .cal-badge-all  { background: rgba(161,138,0,0.1);   color: #856e00; }

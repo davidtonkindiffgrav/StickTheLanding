@@ -10,7 +10,6 @@ STATIC_PAGES = [
     (f"{BASE}/news/",               "weekly",  "0.8"),
     (f"{BASE}/competitions/wag/",   "weekly",  "0.7"),
     (f"{BASE}/competitions/mag/",   "weekly",  "0.7"),
-    (f"{BASE}/competitions/acro/",  "weekly",  "0.7"),
     (f"{BASE}/about/",              "monthly", "0.5"),
     (f"{BASE}/contact/",            "monthly", "0.4"),
     (f"{BASE}/privacy/",            "monthly", "0.3"),
