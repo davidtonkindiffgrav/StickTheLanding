@@ -943,43 +943,12 @@
     }
     #landing-view .v3-foot .link-btn:hover { color: #8d92ac; }
 
-    /* ── COMING SOON MODAL ─────────────────────────────────────────────────── */
-    #coming-soon-modal {
-      display: none;
-      position: fixed; inset: 0;
-      background: rgba(0,0,0,0.72);
-      z-index: 300;
-      align-items: center;
-      justify-content: center;
-      padding: 24px;
-    }
-    #coming-soon-modal.open { display: flex; }
-    #coming-soon-box {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 18px;
-      padding: 40px 36px;
-      max-width: 420px;
-      width: 100%;
-      text-align: center;
-      position: relative;
-    }
-    #coming-soon-box .cs-icon { font-size: 3rem; margin-bottom: 16px; }
-    #coming-soon-box h2 { font-size: 1.5rem; margin-bottom: 12px; }
-    #coming-soon-box p { color: var(--muted); line-height: 1.65; margin-bottom: 28px; font-size: 0.93rem; }
     .modal-close {
       position: absolute; top: 14px; right: 16px;
       background: none; border: none; color: var(--muted);
       font-size: 1.2rem; cursor: pointer; padding: 4px 6px; line-height: 1;
     }
     .modal-close:hover { color: var(--text); }
-    .modal-dismiss {
-      background: var(--accent); color: #fff; border: none;
-      padding: 11px 32px; border-radius: 999px;
-      cursor: pointer; font-size: 0.93rem; font-weight: 700;
-      transition: opacity 0.15s; min-height: 44px;
-    }
-    .modal-dismiss:hover { opacity: 0.85; }
 
     /* ── LOADING OVERLAY ───────────────────────────────────────────────────── */
     #loading-overlay {
@@ -1085,7 +1054,6 @@
       /* App shell */
       .contact-main { padding: 24px 16px; }
       #drill-box { padding: 20px 16px; border-radius: 12px; }
-      #coming-soon-box { padding: 28px 20px; }
       h2 { font-size: 1.1rem; }
       .table-context-header { font-size: 1.15rem; }
       .comp-grid { grid-template-columns: 1fr; }

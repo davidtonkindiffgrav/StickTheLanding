@@ -528,17 +528,6 @@
   </div>
 </div>
 
-<!-- ══════════════════════════════════════════════ COMING SOON MODAL ═══ -->
-<div id="coming-soon-modal">
-  <div id="coming-soon-box">
-    <button class="modal-close" onclick="closeComingSoon()">&#x2715;</button>
-    <div class="cs-icon">🚧</div>
-    <h2>Coming Soon</h2>
-    <p>Results for this discipline are on their way. Check back soon!</p>
-    <button class="modal-dismiss" onclick="closeComingSoon()">Got it</button>
-  </div>
-</div>
-
 <!-- ══════════════════════════════════════════════ ROSTER MODAL ═══ -->
 <div id="roster-modal">
   <div id="roster-modal-box">
@@ -925,12 +914,6 @@ function fmtCompDate(dateStr) {
 // ─────────────────────────────────────────────────────────────────────────────
 // Modals / overlays
 // ─────────────────────────────────────────────────────────────────────────────
-function openComingSoon() {
-  document.getElementById("coming-soon-modal").classList.add("open");
-}
-function closeComingSoon() {
-  document.getElementById("coming-soon-modal").classList.remove("open");
-}
 function openRosterModal() {
   const { sport, sports } = CLUB_STATE;
   const data = sports[sport];
@@ -1803,11 +1786,6 @@ document.getElementById("close-drill").addEventListener("click", () => {
 document.getElementById("drill-overlay").addEventListener("click", e => {
   if (e.target === document.getElementById("drill-overlay"))
     document.getElementById("drill-overlay").classList.remove("open");
-});
-
-// Close coming soon modal on backdrop click
-document.getElementById("coming-soon-modal").addEventListener("click", e => {
-  if (e.target === document.getElementById("coming-soon-modal")) closeComingSoon();
 });
 
 // Roster modal: backdrop click to close, live filter by name
