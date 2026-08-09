@@ -1,6 +1,11 @@
 {
   "_comment": "Manual club assignment overrides. Applied after alias normalisation. Athlete-level entries take priority over competition-level entries. Competition names must match exactly as they appear in competitions.json.",
 
+  "ambiguous_codes": {
+    "_comment": "Raw PDF gym codes that have been confirmed to mean different clubs at different competitions (not a simple typo/colour variant). update.py cross-references each named athlete's existing result history against the candidate clubs and auto-resolves when the evidence is one-sided; otherwise it falls back to the clubs.json alias default and prints a [FLAG] line for manual review. Format: { \"RAW_CODE\": [\"CANDIDATE_CODE\", ...] }.",
+    "DGC": ["DOL", "DIA"]
+  },
+
   "hosts": {
     "_comment": "Maps competition name → hosting club code. Bare colour/team codes (WHI, BLU, RED etc.) in that competition are auto-assigned to the host.",
     "Knox WAG Senior Invite": "KNO",
@@ -132,7 +137,7 @@
     "Salina Simone": "Sallina Simone",
     "Masimo Spina": "Massimo Spina",
     "Mikayla Gorgioski": "Makayla Gorgioski",
-    "Lottie Studer": "Charlotte Studer",
+    "Charlotte Studer": "Lottie Studer",
     "Madi Teh": "Madison Teh",
     "Maddison Teh": "Madison Teh",
     "Makeala Teo": "Makaela Teo",

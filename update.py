@@ -63,6 +63,7 @@ def load_overrides() -> dict:
         "by_competition": {k: v for k, v in data.get("by_competition", {}).items() if not k.startswith("_")},
         "by_athlete": by_athlete,
         "name_corrections": {k: v for k, v in data.get("name_corrections", {}).items() if not k.startswith("_")},
+        "ambiguous_codes": {k: v for k, v in data.get("ambiguous_codes", {}).items() if not k.startswith("_")},
     }
 
 
@@ -90,28 +91,81 @@ def _strip_colour(raw: str, aliases: dict):
     return None
 
 
-def normalise_clubs(competitions: list, aliases: dict, overrides: dict) -> None:
+def normalise_clubs(competitions: list, aliases: dict, overrides: dict, con=None) -> list:
+    """
+    Resolve raw club codes to canonical codes and mutate `competitions` in place.
+
+    Codes listed in overrides["ambiguous_codes"] (e.g. "DGC", which has meant
+    both Dolphin and Diamond Gymnastics Club at different competitions) are not
+    trusted to the default alias. Instead, each named athlete's existing result
+    history is queried against the candidate clubs: if the evidence is entirely
+    one-sided, the code is auto-resolved and logged; otherwise it falls back to
+    the alias default and is flagged for manual review. Team-only results (no
+    athlete name) inherit the resolution from a same-competition, same-level,
+    same-division named-athlete result when one exists.
+
+    Returns a list of human-readable log lines describing every auto-resolution
+    and every unresolved flag, for the caller to print/review.
+    """
     by_comp        = overrides.get("by_competition", {})
     hosts          = overrides.get("hosts", {})
     name_corrections = overrides.get("name_corrections", {})
+    ambiguous_codes = overrides.get("ambiguous_codes", {})
     by_athlete = {
         (e["competition"], e["athlete"]): e["club"]
         for e in overrides.get("by_athlete", [])
     }
+    cur = con.cursor() if (con is not None and ambiguous_codes) else None
+    log = []
 
     for comp in competitions:
         comp_name     = comp.get("name", "")
         comp_overrides = by_comp.get(comp_name, {})
         host          = hosts.get(comp_name)
+        session_votes = {}   # (level, division) -> set of resolved codes, from named athletes
+        pending_team  = []   # (r, raw, key) ambiguous team-only results awaiting pass 2
+
         for ev in comp.get("events", []):
+            key = (ev.get("level"), ev.get("division"))
             for r in ev.get("results", []):
                 if r.get("athlete") in name_corrections:
                     r["athlete"] = name_corrections[r["athlete"]]
                 raw = (r.get("club") or "").upper()
-                if raw in aliases:
+                athlete = r.get("athlete")
+
+                if raw in ambiguous_codes and cur is not None:
+                    candidates = ambiguous_codes[raw]
+                    if athlete:
+                        tally = {}
+                        for code in candidates:
+                            cur.execute(
+                                "SELECT COUNT(*) FROM results WHERE athlete = ? AND club = ?",
+                                (athlete, code),
+                            )
+                            tally[code] = cur.fetchone()[0]
+                        supported = [c for c, n in tally.items() if n > 0]
+                        if len(supported) == 1:
+                            r["club"] = supported[0]
+                            session_votes.setdefault(key, set()).add(supported[0])
+                            log.append(
+                                f"[AUTO]  {comp_name}: {raw} -> {supported[0]} "
+                                f"(athlete {athlete}; history {tally})"
+                            )
+                        else:
+                            r["club"] = aliases.get(raw, raw)
+                            log.append(
+                                f"[FLAG]  {comp_name}: {raw} for athlete {athlete} "
+                                f"ambiguous (history {tally}) - defaulted to "
+                                f"{r['club']}, NEEDS REVIEW"
+                            )
+                    else:
+                        r["club"] = aliases.get(raw, raw)
+                        pending_team.append((r, raw, key))
+                elif raw in aliases:
                     r["club"] = aliases[raw]
                 elif _strip_colour(raw, aliases):
                     r["club"] = _strip_colour(raw, aliases)
+
                 resolved = r.get("club") or raw
                 if host and resolved in BARE_CODES:
                     r["club"] = host
@@ -121,6 +175,24 @@ def normalise_clubs(competitions: list, aliases: dict, overrides: dict) -> None:
                 athlete_key = (comp_name, r.get("athlete", ""))
                 if athlete_key in by_athlete:
                     r["club"] = by_athlete[athlete_key]
+
+        for r, raw, key in pending_team:
+            votes = session_votes.get(key, set())
+            if len(votes) == 1:
+                resolved = next(iter(votes))
+                r["club"] = resolved
+                log.append(
+                    f"[AUTO]  {comp_name}: {raw} (team, L{key[0]} D{key[1]}) "
+                    f"-> {resolved} (inherited from same session)"
+                )
+            else:
+                log.append(
+                    f"[FLAG]  {comp_name}: {raw} (team, L{key[0]} D{key[1]}) "
+                    f"could not auto-resolve (no same-session reference) "
+                    f"- defaulted to {r['club']}, NEEDS REVIEW"
+                )
+
+    return log
 
 
 # ---------------------------------------------------------------------------
@@ -569,7 +641,7 @@ def main():
     aliases   = load_club_aliases()
     overrides = load_overrides()
     new_comps = group_into_competitions(new_entries, sport=sport)
-    normalise_clubs(new_comps, aliases, overrides)
+    club_log  = normalise_clubs(new_comps, aliases, overrides, con=con)
     merge_to_db(con, new_comps)
     ingested_comp_ids = [c["id"] for c in new_comps]
 
@@ -600,6 +672,14 @@ def main():
 
     _finalize(con, dbconfig_file, sport)
     write_stats_json()
+
+    if club_log:
+        print("\n=== AMBIGUOUS CLUB CODES ===")
+        for line in club_log:
+            print(f"  {line}")
+        if any(line.startswith("[FLAG]") for line in club_log):
+            print("  Some codes could not be auto-resolved — check the club's "
+                  "Facebook page or other results before trusting those rows.")
 
     total_athletes = con.execute("SELECT COUNT(*) FROM results").fetchone()[0]
     total_comps    = con.execute("SELECT COUNT(*) FROM competitions").fetchone()[0]
