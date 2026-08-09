@@ -217,9 +217,8 @@ body.news-post {
 }
 .post-tldr strong { display: block; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.8px; color: var(--accent); margin-bottom: 6px; }
 .post-body { font-size: 1rem; line-height: 1.8; color: var(--text); }
-.post-body a { color: var(--accent); }
-.post-body a:visited { color: var(--muted); }
-.post-body a:hover { opacity: 0.8; }
+.post-body a { color: var(--text); text-decoration: underline; text-decoration-color: var(--border); text-underline-offset: 2px; }
+.post-body a:hover { color: var(--accent); text-decoration-color: var(--accent); }
 .post-body h3 { font-size: 1.15rem; font-weight: 700; color: var(--text); margin: 32px 0 12px; }
 .post-body h4 { font-size: 0.95rem; font-weight: 700; color: var(--text); margin: 24px 0 8px; letter-spacing: 0.03em; }
 .post-body p { margin-bottom: 20px; }
