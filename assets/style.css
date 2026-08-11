@@ -750,10 +750,10 @@
       text-transform: uppercase; letter-spacing: 0.1em; color: #8d92ac; margin-top: 6px;
     }
 
-    /* SPORT NAV — 1 row of 6 compact tiles */
+    /* SPORT NAV — 1 row of compact tiles */
     #landing-view .v3-sports {
       padding: 0 36px 20px;
-      display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px;
+      display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px;
     }
     #landing-view .v3-sport {
       position: relative; padding: 12px 14px; border-radius: 12px; overflow: hidden;
@@ -768,21 +768,6 @@
     #landing-view .v3-sport.mag  { background-image: linear-gradient(to bottom, rgba(0,30,15,0.45) 0%, rgba(0,30,15,0.75) 100%), url('/assets/images/MAG_button.jpg'); }
     #landing-view .v3-sport.game { background-image: linear-gradient(to bottom, rgba(26,13,46,0.45) 0%, rgba(59,26,106,0.75) 100%), url('/assets/images/stickit_playnow.jpg'); background-size: cover; background-position: center; background-color: #2a1045; }
     #landing-view .v3-sport.cal  { background: linear-gradient(135deg, #0d1f3c 0%, #1a3a6a 100%); }
-    #landing-view .v3-sport.gal  {
-      padding: 0;
-      background-image: linear-gradient(to bottom, rgba(5,15,30,0.35) 0%, rgba(5,15,30,0.82) 100%),
-                        url('/galleries/senior-vic-champs-2026/og-image.jpg');
-    }
-    #landing-view .v3-sport.gal .gal-cover {
-      display: flex; flex-direction: row; align-items: center;
-      flex: 1; padding: 12px 14px; text-decoration: none; color: inherit; gap: 10px;
-    }
-    #landing-view .v3-sport.gal .top { flex-shrink: 0; justify-content: flex-start; }
-    #landing-view .v3-sport.gal .lvls { display: none; }
-    #landing-view .v3-sport.gal .gal-title {
-      font-size: 12px; font-weight: 600; line-height: 1.3; opacity: 0.9;
-    }
-    #landing-view .v3-sport.gal .gal-links { display: none; }
     #landing-view .v3-sport .top { display: flex; flex-shrink: 0; align-items: center; }
     #landing-view .v3-sport .code {
       font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: 26px;
@@ -1055,10 +1040,6 @@
       #landing-view .v3-sport .code { font-size: 20px; }
       #landing-view .v3-sport .bottom { display: flex; justify-content: center; }
       #landing-view .v3-sport .name { font-size: 10px; text-align: center; }
-      #landing-view .v3-sport.gal .gal-cover { padding: 10px 6px; flex-direction: column; align-items: center; justify-content: center; gap: 1px; }
-      #landing-view .v3-sport.gal .top { justify-content: center; }
-      #landing-view .v3-sport.gal .gal-title { display: block; font-size: 10px; text-align: center; }
-      #landing-view .v3-sport.gal .gal-links { display: none; }
       #landing-view .v3-section-head { padding: 16px 18px 12px; }
       #landing-view .v3-section-head h3 { font-size: 22px !important; }
       #landing-view .v3-news { padding: 0 18px 16px; grid-template-columns: 1fr; gap: 10px; }

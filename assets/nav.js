@@ -57,7 +57,6 @@
           '<a class="stl-nav-link wag" href="/#wag" id="stl-wag">WAG</a>' +
           '<a class="stl-nav-link mag" href="/#mag" id="stl-mag">MAG</a>' +
           a('/news/', 'News') +
-          a('/galleries/', 'Galleries') +
           a('/about/', 'About') +
           '<div class="stl-nav-divider"></div>' +
           a('/contact/', 'Contact') +
