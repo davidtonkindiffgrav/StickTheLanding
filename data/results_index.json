@@ -1,6 +1,12 @@
 [
   {
     "sport": "wag",
+    "comp_id": "judge-s-invitational-2026",
+    "name": "Judge's Invitational",
+    "date": "2026-08-09"
+  },
+  {
+    "sport": "wag",
     "comp_id": "aerodynamix-invitational-2026",
     "name": "Aerodynamix Invitational",
     "date": "2026-08-01"
@@ -499,14 +505,14 @@
   },
   {
     "sport": "wag",
-    "comp_id": "metro-south-regional-championships-2024",
-    "name": "Metro South Regional Championships",
+    "comp_id": "metro-west-regional-championships-2024",
+    "name": "Metro West Regional Championships",
     "date": "2024-07-09"
   },
   {
     "sport": "wag",
-    "comp_id": "metro-west-regional-championships-2024",
-    "name": "Metro West Regional Championships",
+    "comp_id": "metro-south-regional-championships-2024",
+    "name": "Metro South Regional Championships",
     "date": "2024-07-09"
   },
   {
