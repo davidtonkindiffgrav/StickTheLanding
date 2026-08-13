@@ -76,7 +76,7 @@ def fetch_competitions(con, comp_id):
 
 def fetch_rows(con, comp_id: str, sport: str):
     return con.execute("""
-        SELECT e.level, e.division, e.event_type,
+        SELECT e.id AS event_id, e.level, e.division, e.event_type, e.source_file,
                r.rank, r.athlete, r.club, r.team_name,
                r.vault, r.bars, r.beam, r.floor, r.total,
                r.pommel, r.rings, r.pbars, r.hbar
@@ -84,6 +84,48 @@ def fetch_rows(con, comp_id: str, sport: str):
         WHERE e.competition_id = ?
         ORDER BY e.level, e.division, e.event_type, r.rank
     """, (comp_id,)).fetchall()
+
+
+# ── Pool splitting (same division run as two independently-ranked fields) ──────
+# A division sometimes maps to more than one source event: either a genuine
+# age-bracket split (e.g. "L7D1" vs "L7U", same session) or a big field split
+# across two sessions for scheduling (e.g. "L5D2" run in both S3A and S4A).
+# Each is ranked independently, so they must render as separate tables rather
+# than being merged into one — merging makes it look like duplicate 1st/2nd/3rd
+# placings. This derives a short sub-label per event_id so the page can tell
+# them apart; single-event divisions (the vast majority) are unaffected.
+
+def _parse_source_meta(source_file):
+    if not source_file:
+        return None, None
+    fname = source_file.replace("\\", "/").rsplit("/", 1)[-1]
+    m = re.match(r"^(?:MEET|TEAM)_Women_S(\w+)_(.+?)\.pdf$", fname, re.I)
+    if not m:
+        return None, None
+    return m.group(1), m.group(2)  # session, code
+
+
+def pool_labels_for_group(rows_by_event: dict) -> dict:
+    """rows_by_event: {event_id: [row_dict, ...]}. Returns {event_id: label_or_None}."""
+    if len(rows_by_event) <= 1:
+        return {eid: None for eid in rows_by_event}
+
+    meta = {}
+    for eid, rows in rows_by_event.items():
+        session, code = _parse_source_meta(rows[0].get("source_file") if rows else None)
+        meta[eid] = (session, code)
+
+    codes = {code for _, code in meta.values() if code}
+    labels = {}
+    if len(codes) == len(meta) and codes:
+        # distinct codes -> age-bracket split; the "U"-suffixed one is "Under"
+        for eid, (session, code) in meta.items():
+            labels[eid] = "Under" if code and code.upper().endswith("U") else None
+    else:
+        # same code, different session -> scheduling split, label by session
+        for eid, (session, code) in meta.items():
+            labels[eid] = f"Session {session}" if session else None
+    return labels
 
 
 def fetch_club_names(con) -> dict:
@@ -96,14 +138,15 @@ def fetch_club_names(con) -> dict:
 # ── Data grouping ─────────────────────────────────────────────────────────────
 
 def build_tree(rows, sport: str) -> dict:
-    """Returns {level: {div_key: {event_type: [row_dicts]}}}"""
+    """Returns {level: {div_key: {event_type: {event_id: [row_dicts]}}}}"""
     tree = {}
     for row in rows:
         r = dict(row)
         level   = r["level"]
         div_key = r.get("division")
         etype   = r["event_type"]
-        tree.setdefault(level, {}).setdefault(div_key, {}).setdefault(etype, []).append(r)
+        eid     = r["event_id"]
+        tree.setdefault(level, {}).setdefault(div_key, {}).setdefault(etype, {}).setdefault(eid, []).append(r)
     return tree
 
 
@@ -287,19 +330,24 @@ def render_page(comp: sqlite3.Row, tree: dict, sport: str, club_names: dict = No
 
             blocks = []
             for etype in etypes:
-                block_id = f"{panel_id}-{safe_id(div_key or 'x')}-{safe_id(etype)}"
-                lbl      = EVENT_LABEL.get(etype, etype)
-                rows_to_render = div_tree[etype]
-                if etype == "Team":
-                    rows_to_render = [r for r in rows_to_render
-                                      if not _is_mixed_club(r.get("club") or "")]
-                if etype == "Team" and isinstance(lvl, int) and lvl in (3, 4, 5):
-                    rows_to_render = [r for r in rows_to_render if (r.get("total") or 0) >= 40]
-                tbl      = render_table(rows_to_render, etype, sport, club_names)
-                blocks.append(
-                    f'<div class="event-block" id="{block_id}">'
-                    f'<h3 class="event-heading">{lbl}</h3>{tbl}</div>'
-                )
+                lbl = EVENT_LABEL.get(etype, etype)
+                rows_by_event = div_tree[etype]
+                labels = pool_labels_for_group(rows_by_event)
+                for j, eid in enumerate(sorted(rows_by_event.keys())):
+                    block_id = f"{panel_id}-{safe_id(div_key or 'x')}-{safe_id(etype)}" + (f"-{j+1}" if len(rows_by_event) > 1 else "")
+                    rows_to_render = rows_by_event[eid]
+                    if etype == "Team":
+                        rows_to_render = [r for r in rows_to_render
+                                          if not _is_mixed_club(r.get("club") or "")]
+                    if etype == "Team" and isinstance(lvl, int) and lvl in (3, 4, 5):
+                        rows_to_render = [r for r in rows_to_render if (r.get("total") or 0) >= 40]
+                    tbl = render_table(rows_to_render, etype, sport, club_names)
+                    pool = labels.get(eid)
+                    heading = f"{lbl} <span class=\"pool-tag\">{pool}</span>" if pool else lbl
+                    blocks.append(
+                        f'<div class="event-block" id="{block_id}">'
+                        f'<h3 class="event-heading">{heading}</h3>{tbl}</div>'
+                    )
 
             sections.append(
                 f'<div class="div-section">{div_heading}{"".join(blocks)}</div>'
@@ -824,6 +872,18 @@ body.results-page {
   letter-spacing: -0.01em;
 }
 
+.pool-tag {
+  font: 600 0.65rem/1 'JetBrains Mono', monospace;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #9a9fc7;
+  background: #1e2135;
+  border-radius: 4px;
+  padding: 3px 7px;
+  margin-left: 6px;
+  vertical-align: middle;
+}
+
 /* ── RESULTS TABLE ──────────────────────────────────────────────────────────── */
 
 .table-wrap {
@@ -1092,6 +1152,7 @@ body.results-page {
   html:not([data-theme="dark"]) .rtab.active { color: #6b5ce7; background: rgba(107,92,231,0.1); border-color: rgba(107,92,231,0.3); }
   html:not([data-theme="dark"]) .div-heading { color: #5a5a78; border-bottom-color: #d4d4e8; }
   html:not([data-theme="dark"]) .event-heading { color: #1a1a2a; }
+  html:not([data-theme="dark"]) .pool-tag { background: #eceef5; color: #5a5a78; }
   html:not([data-theme="dark"]) .table-wrap { border-color: #d4d4e8; }
   html:not([data-theme="dark"]) .results-table thead th { background: #eef0f7; color: #5a5a78; border-bottom-color: #d4d4e8; }
   html:not([data-theme="dark"]) .results-table thead th.sortable:hover { color: #1a1a2a; }
@@ -1147,6 +1208,7 @@ html[data-theme="light"] .rtab:hover { color: #1a1a2a; background: rgba(0,0,0,0.
 html[data-theme="light"] .rtab.active { color: #6b5ce7; background: rgba(107,92,231,0.1); border-color: rgba(107,92,231,0.3); }
 html[data-theme="light"] .div-heading { color: #5a5a78; border-bottom-color: #d4d4e8; }
 html[data-theme="light"] .event-heading { color: #1a1a2a; }
+html[data-theme="light"] .pool-tag { background: #eceef5; color: #5a5a78; }
 html[data-theme="light"] .table-wrap { border-color: #d4d4e8; }
 html[data-theme="light"] .results-table thead th { background: #eef0f7; color: #5a5a78; border-bottom-color: #d4d4e8; }
 html[data-theme="light"] .results-table thead th.sortable:hover { color: #1a1a2a; }
