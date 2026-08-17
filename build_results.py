@@ -105,6 +105,17 @@ def _parse_source_meta(source_file):
     return m.group(1), m.group(2)  # session, code
 
 
+# Old-style ProScore filenames (pre-dating the "MEET_Women_S3A_L5U.pdf"
+# convention) don't encode a session number, so _parse_source_meta can't
+# label them. These two events' own PDF pages print "Session: 4" and
+# "Session: 3" respectively (niddrie-invitational-5-7-2026, L5D1) with no
+# other split-cause given, confirmed by reading both source PDFs directly.
+_EVENT_SESSION_OVERRIDES = {
+    3867: "4",
+    3882: "3",
+}
+
+
 def pool_labels_for_group(rows_by_event: dict) -> dict:
     """rows_by_event: {event_id: [row_dict, ...]}. Returns {event_id: label_or_None}."""
     if len(rows_by_event) <= 1:
@@ -112,6 +123,9 @@ def pool_labels_for_group(rows_by_event: dict) -> dict:
 
     meta = {}
     for eid, rows in rows_by_event.items():
+        if eid in _EVENT_SESSION_OVERRIDES:
+            meta[eid] = (_EVENT_SESSION_OVERRIDES[eid], None)
+            continue
         session, code = _parse_source_meta(rows[0].get("source_file") if rows else None)
         meta[eid] = (session, code)
 

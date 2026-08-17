@@ -453,7 +453,7 @@ def parse_new_proscore(text_pages, pdf_path, sport="WAG"):
         d_scores = []
         e_scores = []
         _club_re = re.compile(
-            r"^(?:[A-Za-z]{2,6}\s*/\s*)?([A-Za-z]{2,12}(?:\s+[A-Za-z]{2,12}){0,2})(?:\s+\([A-Za-z/]+\))?(?:\d+)?(?:\s+(?:Exec:|ExNe[A-Za-z]*::?)|\s*$)"
+            r"^(?:[A-Za-z]{2,6}\s*/\s*)?([A-Za-z]{2,12}(?:\s+[A-Za-z]{1,12}){0,2})(?:\s+\([A-Za-z/]+\))?(?:\d+)?(?:\s+(?:Exec:|ExNe[A-Za-z]*::?)|\s*$)"
         )
         _skip_starts = ("ND:", "Final:", "Place:", "D/E:", "Diff:", "DN/DE:")
         if i + 1 < len(clean_lines):
@@ -505,7 +505,7 @@ def parse_new_proscore(text_pages, pdf_path, sport="WAG"):
             # Handles: "PIT Exec:" / "MYC (HPP)01 Exec:" / "HPP/PIT Exec:" / "EKGA ExNeDc::" / "BTY"
             if club is None:
                 m_club = re.match(
-                    r"^(?:[A-Za-z]{2,6}\s*/\s*)?([A-Za-z]{2,12}(?:\s+[A-Za-z]{2,12}){0,2})(?:\s+\([A-Za-z/]+\))?(?:\d+)?(?:\s+(?:Exec:|ExNe[A-Za-z]*::?)|\s*$)", l
+                    r"^(?:[A-Za-z]{2,6}\s*/\s*)?([A-Za-z]{2,12}(?:\s+[A-Za-z]{1,12}){0,2})(?:\s+\([A-Za-z/]+\))?(?:\d+)?(?:\s+(?:Exec:|ExNe[A-Za-z]*::?)|\s*$)", l
                 )
                 if m_club and not l.startswith(("ND:", "Final:", "Place:", "D/E:", "Diff:", "DN/DE:")):
                     club = m_club.group(1).upper()
