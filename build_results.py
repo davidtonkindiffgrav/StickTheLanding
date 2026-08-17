@@ -79,7 +79,8 @@ def fetch_rows(con, comp_id: str, sport: str):
         SELECT e.id AS event_id, e.level, e.division, e.event_type, e.source_file,
                r.rank, r.athlete, r.club, r.team_name,
                r.vault, r.bars, r.beam, r.floor, r.total,
-               r.pommel, r.rings, r.pbars, r.hbar
+               r.pommel, r.rings, r.pbars, r.hbar,
+               r.age_bracket, r.age_bracket_rank
         FROM events e JOIN results r ON r.event_id = e.id
         WHERE e.competition_id = ?
         ORDER BY e.level, e.division, e.event_type, r.rank
@@ -355,6 +356,28 @@ def render_page(comp: sqlite3.Row, tree: dict, sport: str, club_names: dict = No
                                           if not _is_mixed_club(r.get("club") or "")]
                     if etype == "Team" and isinstance(lvl, int) and lvl in (3, 4, 5):
                         rows_to_render = [r for r in rows_to_render if (r.get("total") or 0) >= 40]
+
+                    # A single field sometimes gets re-ranked into age brackets after
+                    # the fact (girls only competed once; Overs/Unders are just two
+                    # extra leaderboards over the same scores) — render 3 sub-tables
+                    # from the one event's rows instead of the usual single table.
+                    if any(r.get("age_bracket") for r in rows_to_render):
+                        sub_specs = [("Open / All Ages", None), ("Overs", "Over"), ("Unders", "Under")]
+                        for sub_lbl, bracket in sub_specs:
+                            if bracket is None:
+                                sub_rows = rows_to_render
+                            else:
+                                sub_rows = [dict(r, rank=r.get("age_bracket_rank"))
+                                            for r in rows_to_render if r.get("age_bracket") == bracket]
+                                sub_rows.sort(key=lambda r: (r.get("rank") is None, r.get("rank")))
+                            tbl = render_table(sub_rows, etype, sport, club_names)
+                            sub_id = f"{block_id}-{safe_id(sub_lbl)}"
+                            blocks.append(
+                                f'<div class="event-block" id="{sub_id}">'
+                                f'<h3 class="event-heading">{lbl} <span class="pool-tag">{sub_lbl}</span></h3>{tbl}</div>'
+                            )
+                        continue
+
                     tbl = render_table(rows_to_render, etype, sport, club_names)
                     pool = labels.get(eid)
                     heading = f"{lbl} <span class=\"pool-tag\">{pool}</span>" if pool else lbl

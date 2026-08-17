@@ -128,6 +128,11 @@ def create_schema(con: sqlite3.Connection) -> None:
             con.execute(f"ALTER TABLE results ADD COLUMN {col}")
         except Exception:
             pass
+    for col in ("age_bracket TEXT", "age_bracket_rank INTEGER"):
+        try:
+            con.execute(f"ALTER TABLE results ADD COLUMN {col}")
+        except Exception:
+            pass
     try:
         con.execute("ALTER TABLE competitions ADD COLUMN date TEXT")
     except Exception:
