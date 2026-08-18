@@ -228,6 +228,7 @@
       <div class="filter-bar" id="team-score-toggle">
         <button class="filter-btn active" data-basis="high">By High Score</button>
         <button class="filter-btn" data-basis="avg">By Average</button>
+        <button class="filter-btn" data-basis="median">By Median</button>
       </div>
       <div class="card table-card" style="margin-bottom:24px">
         <table class="leaderboard" id="team-highscore-table">
@@ -263,6 +264,7 @@
       <div class="filter-bar" id="athlete-score-toggle">
         <button class="filter-btn active" data-basis="high">By High Score</button>
         <button class="filter-btn" data-basis="avg">By Average</button>
+        <button class="filter-btn" data-basis="median">By Median</button>
       </div>
       <div class="card table-card">
         <table class="leaderboard" id="athlete-table">
@@ -1049,6 +1051,13 @@ function esc(str) {
   return String(str ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 }
 
+function median(arr) {
+  if (!arr || !arr.length) return 0;
+  const s = [...arr].sort((a, b) => a - b);
+  const mid = Math.floor(s.length / 2);
+  return s.length % 2 ? s[mid] : (s[mid - 1] + s[mid]) / 2;
+}
+
 function clubLogo(code, cls, preview = false) {
   const src = `assets/logos/${esc(code)}.png`;
   const img = `<img src="${src}" class="${cls}" loading="lazy" onerror="this.style.display='none'" alt="">`;
@@ -1100,12 +1109,13 @@ function buildTeamStandings(rows, apparatus = "AA") {
     const key = `${club}||${divLabel || ""}`;
     if (!clubs[key]) clubs[key] = {
       club, divLabel, division: r.division, wins: 0, seconds: 0, thirds: 0, points: 0,
-      totalScore: 0, highScore: 0, highScoreDetail: "", count: 0, comps: new Set(), overCutoffComps: new Set(),
+      totalScore: 0, scores: [], highScore: 0, highScoreDetail: "", count: 0, comps: new Set(), overCutoffComps: new Set(),
     };
     const c = clubs[key];
     const detail = `${r.competition} · ${levelDivDisplay(r.level, r.division, r.age_group)}`;
     c.count++;
     c.totalScore += score;
+    c.scores.push(score);
     if (score > c.highScore) { c.highScore = score; c.highScoreDetail = detail; }
     if (r.rank === 1) c.wins++;
     if (r.rank === 2) c.seconds++;
@@ -1118,6 +1128,7 @@ function buildTeamStandings(rows, apparatus = "AA") {
   return Object.values(clubs).map(c => ({
     ...c,
     avgScore: c.count ? c.totalScore / c.count : 0,
+    medianScore: median(c.scores),
     comps: c.comps.size,
     mustMoveUp: c.overCutoffComps.size >= 2,
   }));
@@ -1166,11 +1177,15 @@ async function renderClubs() {
   }
 
   const isHigh = teamScoreBasis === "high";
+  const scoreOf = s => teamScoreBasis === "high" ? s.highScore : teamScoreBasis === "median" ? s.medianScore : s.avgScore;
+  const scoreLabel = teamScoreBasis === "high" ? "High Score " : teamScoreBasis === "median" ? "Median Score " : "Average Score ";
+  const scoreTitle = teamScoreBasis === "high" ? "Best single team score across all competitions"
+    : teamScoreBasis === "median" ? "Median team score across all competitions" : "Average team score across all competitions";
   const scoreTh = document.getElementById("team-score-th");
-  scoreTh.childNodes[0].textContent = isHigh ? "High Score " : "Average Score ";
-  scoreTh.title = isHigh ? "Best single team score across all competitions" : "Average team score across all competitions";
+  scoreTh.childNodes[0].textContent = scoreLabel;
+  scoreTh.title = scoreTitle;
 
-  const sorted = [...standings].sort((a, b) => isHigh ? b.highScore - a.highScore : b.avgScore - a.avgScore);
+  const sorted = [...standings].sort((a, b) => scoreOf(b) - scoreOf(a));
   const hsTbody = document.getElementById("team-highscore-tbody");
   if (!sorted.length) {
     hsTbody.innerHTML = `<tr><td colspan="5" class="no-data">No team data for this filter.</td></tr>`;
@@ -1186,7 +1201,7 @@ async function renderClubs() {
     const html = [];
     let rank = 0;
     for (const s of sorted) {
-      const score = isHigh ? s.highScore : s.avgScore;
+      const score = scoreOf(s);
       while (cutoffQueue.length && score < cutoffQueue[0].cutoff) {
         const { division, cutoff } = cutoffQueue.shift();
         html.push(`<tr class="promo-divider"><td colspan="5">Division ${division} Max Score: ${cutoff.toFixed(2)}</td></tr>`);
@@ -1232,12 +1247,12 @@ function buildAthleteStandings(rows, apparatus = "AA") {
     if (!athletes[key]) athletes[key] = {
       athlete: r.athlete, club: r.club || "", level: r.level, division: r.division, age_group: r.age_group,
       comps: new Set(), bestScore: 0, bestScoreDetail: "", bestD: null, bestE: null,
-      wins: 0, winDetails: [], totalScore: 0, scoreCount: 0, overCutoffComps: new Set(),
+      wins: 0, winDetails: [], totalScore: 0, scores: [], scoreCount: 0, overCutoffComps: new Set(),
     };
     const a = athletes[key];
     if (r.competition) a.comps.add(r.competition);
     const s = score || 0;
-    if (s > 0) { a.totalScore += s; a.scoreCount++; }
+    if (s > 0) { a.totalScore += s; a.scores.push(s); a.scoreCount++; }
     if (s > a.bestScore) {
       a.bestScore = s;
       a.bestScoreDetail = r.competition || "";
@@ -1251,7 +1266,7 @@ function buildAthleteStandings(rows, apparatus = "AA") {
     if (cutoff != null && s >= cutoff && r.competition) a.overCutoffComps.add(r.competition);
   }
   return Object.values(athletes)
-    .map(a => ({ ...a, comps: a.comps.size, avgScore: a.scoreCount ? a.totalScore / a.scoreCount : 0, mustMoveUp: a.overCutoffComps.size >= 2 }));
+    .map(a => ({ ...a, comps: a.comps.size, avgScore: a.scoreCount ? a.totalScore / a.scoreCount : 0, medianScore: median(a.scores), mustMoveUp: a.overCutoffComps.size >= 2 }));
 }
 
 async function renderAthletes() {
@@ -1308,9 +1323,8 @@ async function renderAthletes() {
     : (a.division ? "D" + a.division : "-");
 
   const isHigh = athleteScoreBasis === "high";
-  const sorted = [...standings].sort((a, b) => isHigh
-    ? (b.bestScore - a.bestScore || b.wins - a.wins)
-    : (b.avgScore - a.avgScore || b.wins - a.wins));
+  const athleteScoreOf = a => athleteScoreBasis === "high" ? a.bestScore : athleteScoreBasis === "median" ? a.medianScore : a.avgScore;
+  const sorted = [...standings].sort((a, b) => (athleteScoreOf(b) - athleteScoreOf(a)) || (b.wins - a.wins));
 
   // Update table header for apparatus vs AA view
   const showDiv = activeLevel === null || activeLevel < 101;
@@ -1337,8 +1351,9 @@ async function renderAthletes() {
       <th data-sort="num" id="athlete-score-th">Best Score <span class="sort-icon">↕</span></th>`;
   }
   const scoreTh = document.getElementById("athlete-score-th");
-  scoreTh.childNodes[0].textContent = isHigh ? "Best Score " : "Average Score ";
-  scoreTh.title = isHigh ? "Best single score across all competitions" : "Average score across all competitions";
+  scoreTh.childNodes[0].textContent = athleteScoreBasis === "high" ? "Best Score " : athleteScoreBasis === "median" ? "Median Score " : "Average Score ";
+  scoreTh.title = athleteScoreBasis === "high" ? "Best single score across all competitions"
+    : athleteScoreBasis === "median" ? "Median score across all competitions" : "Average score across all competitions";
 
   const aaCols = showDiv ? 8 : 7;
   const appCols = showDiv ? 9 : 8;
@@ -1358,7 +1373,7 @@ async function renderAthletes() {
   const html = [];
   let rank = 0;
   for (const a of sorted) {
-    const score = isHigh ? a.bestScore : a.avgScore;
+    const score = athleteScoreOf(a);
     if (showPromo) {
       while (cutoffQueue.length && score < cutoffQueue[0].cutoff) {
         const { division, cutoff } = cutoffQueue.shift();
@@ -2777,21 +2792,23 @@ function _profDestroyCharts() {
   _profGraphChart = _profStrengthChart = null;
 }
 
-// Byte offset into the stats query result row for each apparatus key
-const _STAT_OFFSET = { VT: 0, UB: 3, BB: 6, FX: 9, PH: 12, SR: 15, PB: 18, HB: 21 };
+// Byte offset into the stats query result row for each apparatus key: [pb, avg, median, count]
+const _STAT_OFFSET = { VT: 0, UB: 4, BB: 8, FX: 12, PH: 16, SR: 20, PB: 24, HB: 28 };
 
-function _profRepScore(statsRow, k) {
+function _profRepScore(statsRow, k, mode = 'avg') {
   const base = _STAT_OFFSET[k];
   if (base === undefined) return null;
-  const pb = statsRow[base], avg = statsRow[base + 1], ct = statsRow[base + 2];
-  return ct >= 2 ? avg : (ct === 1 ? pb : null);
+  const pb = statsRow[base], avg = statsRow[base + 1], med = statsRow[base + 2], ct = statsRow[base + 3];
+  return ct >= 2 ? (mode === 'median' ? med : avg) : (ct === 1 ? pb : null);
 }
 
-// Compute a statsRow-compatible array from an in-memory profRows slice (used by the date range filter)
-function _statsFromRows(rows) {
+// Compute a statsRow-compatible array from an in-memory rows slice: used by the athlete
+// profile's date-range filter and live stats, and by the club profile's apparatus radar
+// (which passes its own `sport` since the viewed club's sport can differ from currentSport).
+function _statsFromRows(rows, sport = currentSport) {
   const COL = { VT:'vault', UB:'bars', BB:'beam', FX:'floor', PH:'pommel', SR:'rings', PB:'pbars', HB:'hbar' };
-  const appKeys = G_APP_KEYS[currentSport] || [];
-  const result = new Array(25).fill(null);
+  const appKeys = G_APP_KEYS[sport] || [];
+  const result = new Array(33).fill(null);
   for (const k of appKeys) {
     const base = _STAT_OFFSET[k];
     const col  = COL[k];
@@ -2800,10 +2817,11 @@ function _statsFromRows(rows) {
     if (!vals.length) continue;
     result[base]     = Math.max(...vals);
     result[base + 1] = vals.reduce((a, b) => a + b, 0) / vals.length;
-    result[base + 2] = vals.length;
+    result[base + 2] = median(vals);
+    result[base + 3] = vals.length;
   }
   const tots = rows.map(r => r.total).filter(v => v != null && v > 0);
-  result[24] = tots.length ? Math.max(...tots) : null;
+  result[32] = tots.length ? Math.max(...tots) : null;
   return result;
 }
 
@@ -2848,7 +2866,7 @@ function _profRenderTimeChart(canvasEl, type, rows, mode, animate = true) {
   });
 }
 
-function _profRenderStrengthChart(canvasEl, showPB, statsRow, animate = true, sport = currentSport, labelsOverride = null) {
+function _profRenderStrengthChart(canvasEl, showPB, statsRow, animate = true, sport = currentSport, labelsOverride = null, mode = 'avg') {
   const allAppKeys = G_APP_KEYS[sport] || [];
   if (!allAppKeys.length) return;
   const appNames = sport === 'MAG' ? MAG_APPARATUS_NAME : APPARATUS_NAME;
@@ -2856,14 +2874,14 @@ function _profRenderStrengthChart(canvasEl, showPB, statsRow, animate = true, sp
   // Apparatus with no real result (never competed, not just a low score) get dropped from the
   // polygon entirely rather than plotted as 0, a specialist with 3 of 6 apparatus gets a genuine
   // triangle instead of a misleading 6-axis shape with three zero-collapsed points.
-  const keepIdx = allAppKeys.map((k, i) => (_profRepScore(statsRow, k) || 0) > 0 ? i : -1).filter(i => i !== -1);
+  const keepIdx = allAppKeys.map((k, i) => (_profRepScore(statsRow, k, mode) || 0) > 0 ? i : -1).filter(i => i !== -1);
   const appKeys = keepIdx.map(i => allAppKeys[i]);
   const lbl     = keepIdx.map(i => allLbl[i]);
   const colors = appKeys.map(k => G_COLOR[k]);
-  const avgVals = appKeys.map(k => _profRepScore(statsRow, k) || 0);
+  const avgVals = appKeys.map(k => _profRepScore(statsRow, k, mode) || 0);
   const pbVals  = appKeys.map(k => { const b = _STAT_OFFSET[k]; return b !== undefined ? (statsRow[b] || 0) : 0; });
   const datasets = [
-    { label: 'Avg', data: avgVals, backgroundColor: 'rgba(124,109,250,0.15)', borderColor: 'rgba(124,109,250,0.85)', borderWidth: 2, pointBackgroundColor: colors, pointBorderColor: '#1a1a24', pointRadius: 5, pointHoverRadius: 7 },
+    { label: mode === 'median' ? 'Median' : 'Avg', data: avgVals, backgroundColor: 'rgba(124,109,250,0.15)', borderColor: 'rgba(124,109,250,0.85)', borderWidth: 2, pointBackgroundColor: colors, pointBorderColor: '#1a1a24', pointRadius: 5, pointHoverRadius: 7 },
   ];
   if (showPB) {
     datasets.push({ label: 'Best', data: pbVals, backgroundColor: 'rgba(245,197,24,0.08)', borderColor: 'rgba(245,197,24,0.8)', borderWidth: 2, pointBackgroundColor: colors, pointBorderColor: '#1a1a24', pointRadius: 4, pointHoverRadius: 6 });
@@ -2939,23 +2957,6 @@ async function renderAthleteProfile(athleteName) {
     ORDER BY first_seen ASC
   `, [athleteName, currentSport]));
 
-  // Aggregate stats (PBs + avgs per apparatus)
-  const statsRow = (_execRows(await DB.exec(`
-    SELECT
-      MAX(CASE WHEN vault  > 0 THEN vault  END), AVG(CASE WHEN vault  > 0 THEN vault  END), COUNT(CASE WHEN vault  > 0 THEN 1 END),
-      MAX(CASE WHEN bars   > 0 THEN bars   END), AVG(CASE WHEN bars   > 0 THEN bars   END), COUNT(CASE WHEN bars   > 0 THEN 1 END),
-      MAX(CASE WHEN beam   > 0 THEN beam   END), AVG(CASE WHEN beam   > 0 THEN beam   END), COUNT(CASE WHEN beam   > 0 THEN 1 END),
-      MAX(CASE WHEN floor  > 0 THEN floor  END), AVG(CASE WHEN floor  > 0 THEN floor  END), COUNT(CASE WHEN floor  > 0 THEN 1 END),
-      MAX(CASE WHEN pommel > 0 THEN pommel END), AVG(CASE WHEN pommel > 0 THEN pommel END), COUNT(CASE WHEN pommel > 0 THEN 1 END),
-      MAX(CASE WHEN rings  > 0 THEN rings  END), AVG(CASE WHEN rings  > 0 THEN rings  END), COUNT(CASE WHEN rings  > 0 THEN 1 END),
-      MAX(CASE WHEN pbars  > 0 THEN pbars  END), AVG(CASE WHEN pbars  > 0 THEN pbars  END), COUNT(CASE WHEN pbars  > 0 THEN 1 END),
-      MAX(CASE WHEN hbar   > 0 THEN hbar   END), AVG(CASE WHEN hbar   > 0 THEN hbar   END), COUNT(CASE WHEN hbar   > 0 THEN 1 END),
-      MAX(CASE WHEN total  > 0 THEN total  END)
-    FROM results r
-    JOIN events e ON e.id = r.event_id
-    WHERE r.athlete = ? AND e.event_type != 'Team'
-  `, [athleteName]))[0]) || Array(25).fill(null);
-
   // Chart + history data (chronological for graphs, reversed for history table)
   const rawRows = _execRows(await DB.exec(`
     SELECT c.name, COALESCE(c.date, c.season || '-06-01') AS sort_date,
@@ -2981,6 +2982,10 @@ async function renderAthleteProfile(athleteName) {
     pommel: r[8], rings: r[9], pbars: r[10], hbar: r[11], total: r[12],
     level: r[13], division: r[14], ageGroup: r[15],
   }));
+
+  // Aggregate stats (PBs + avgs/medians per apparatus), derived from profRows
+  // rather than a separate SQL query, same data already fetched above.
+  const statsRow = _statsFromRows(profRows);
 
   // ── Derived values ────────────────────────────────────────────────────────
   const appKeys  = G_APP_KEYS[currentSport] || [];
@@ -3052,7 +3057,7 @@ async function renderAthleteProfile(athleteName) {
   }).concat(`<div class="profile-pb-item profile-pb-aa">
     <span class="profile-pb-dot" style="background:#f5c518"></span>
     <span class="profile-pb-key"><span class="pb-name-full">All Around</span><span class="pb-name-short">AA</span></span>
-    <span class="profile-pb-val">${statsRow[24] != null ? statsRow[24].toFixed(3) : '-'}</span>
+    <span class="profile-pb-val">${statsRow[32] != null ? statsRow[32].toFixed(3) : '-'}</span>
   </div>`).join('');
 
   const affilHtml = distinctClubs.length >= 2 && pastAffils.length
@@ -3137,7 +3142,11 @@ async function renderAthleteProfile(athleteName) {
     <div class="card profile-card profile-canvas-sq">
       <div class="profile-card-header">
         <span class="profile-card-title">Strength Radar</span>
-        <div class="prof-series-toggles" id="prof-radar-toggles" style="margin-left:auto;margin-bottom:0"></div>
+        <div class="profile-inner-tabs" id="prof-radar-stat-toggle" style="margin-left:auto">
+          <button class="filter-btn active" data-pstat="avg">Avg</button>
+          <button class="filter-btn" data-pstat="median">Median</button>
+        </div>
+        <div class="prof-series-toggles" id="prof-radar-toggles" style="margin-bottom:0"></div>
       </div>
       <div class="profile-canvas-wrap"><canvas id="profile-strengths-canvas"></canvas></div>
     </div>
@@ -3164,6 +3173,7 @@ async function renderAthleteProfile(athleteName) {
   // ── Wire up controls ──────────────────────────────────────────────────────
   let profGraphMode   = 'apparatus';
   let profLevelFilter = hasOptional ? 'optional' : 'compulsory';
+  let profStatMode    = 'avg';
   let profRangeL = 0;
   let profRangeR = profRows.length - 1;
   const profSeriesVis = {}; // dataset label → boolean visibility state
@@ -3241,7 +3251,7 @@ async function renderAthleteProfile(athleteName) {
       });
       return;
     }
-    _profRenderStrengthChart(c, true, computed, animate);
+    _profRenderStrengthChart(c, true, computed, animate, currentSport, null, profStatMode);
     _buildSeriesToggle('prof-radar-toggles', _profStrengthChart);
   }
 
@@ -3252,6 +3262,15 @@ async function renderAthleteProfile(athleteName) {
     btn.classList.add('active');
     profGraphMode = btn.dataset.ptab;
     profDrawGraph();
+  });
+
+  el.querySelector('#prof-radar-stat-toggle').addEventListener('click', e => {
+    const btn = e.target.closest('[data-pstat]');
+    if (!btn) return;
+    el.querySelectorAll('#prof-radar-stat-toggle button').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    profStatMode = btn.dataset.pstat;
+    profDrawStrength();
   });
 
   if (showLevelFilter) {
@@ -3397,25 +3416,22 @@ async function openClubProfile(code) {
 // blended, level=null, the default "All levels" radar view). Same statsRow
 // shape/column order as the athlete profile's own aggregate query
 // (_STAT_OFFSET), so it can reuse _profRenderStrengthChart as-is.
+// Raw fetch instead of a MAX/AVG/COUNT SQL aggregate: reuses _statsFromRows()
+// (the same helper the athlete profile uses) so pb/avg/median/count per apparatus
+// only has one implementation to keep in sync.
 async function fetchClubRadarStats(dbHandle, sport, code, level) {
   const levelClause = level ? 'e.level = ?' : 'e.level > 6';
   const params = level ? [code, sport, level] : [code, sport];
-  return (_execRows(await dbHandle.exec(`
-    SELECT
-      MAX(CASE WHEN vault  > 0 THEN vault  END), AVG(CASE WHEN vault  > 0 THEN vault  END), COUNT(CASE WHEN vault  > 0 THEN 1 END),
-      MAX(CASE WHEN bars   > 0 THEN bars   END), AVG(CASE WHEN bars   > 0 THEN bars   END), COUNT(CASE WHEN bars   > 0 THEN 1 END),
-      MAX(CASE WHEN beam   > 0 THEN beam   END), AVG(CASE WHEN beam   > 0 THEN beam   END), COUNT(CASE WHEN beam   > 0 THEN 1 END),
-      MAX(CASE WHEN floor  > 0 THEN floor  END), AVG(CASE WHEN floor  > 0 THEN floor  END), COUNT(CASE WHEN floor  > 0 THEN 1 END),
-      MAX(CASE WHEN pommel > 0 THEN pommel END), AVG(CASE WHEN pommel > 0 THEN pommel END), COUNT(CASE WHEN pommel > 0 THEN 1 END),
-      MAX(CASE WHEN rings  > 0 THEN rings  END), AVG(CASE WHEN rings  > 0 THEN rings  END), COUNT(CASE WHEN rings  > 0 THEN 1 END),
-      MAX(CASE WHEN pbars  > 0 THEN pbars  END), AVG(CASE WHEN pbars  > 0 THEN pbars  END), COUNT(CASE WHEN pbars  > 0 THEN 1 END),
-      MAX(CASE WHEN hbar   > 0 THEN hbar   END), AVG(CASE WHEN hbar   > 0 THEN hbar   END), COUNT(CASE WHEN hbar   > 0 THEN 1 END),
-      MAX(CASE WHEN total  > 0 THEN total  END)
+  const rawRows = _execRows(await dbHandle.exec(`
+    SELECT vault, bars, beam, floor, pommel, rings, pbars, hbar, total
     FROM results r
     JOIN events e ON e.id = r.event_id
     JOIN competitions c ON c.id = e.competition_id
     WHERE r.club = ? AND c.sport = ? AND e.event_type != 'Team' AND ${levelClause}
-  `, params))[0]) || Array(25).fill(null);
+  `, params));
+  const rows = rawRows.map(([vault, bars, beam, floor, pommel, rings, pbars, hbar, total]) =>
+    ({ vault, bars, beam, floor, pommel, rings, pbars, hbar, total }));
+  return _statsFromRows(rows, sport);
 }
 
 async function fetchClubSportData(dbHandle, sport, code) {
@@ -3441,23 +3457,34 @@ async function fetchClubSportData(dbHandle, sport, code) {
     GROUP BY e.level HAVING COUNT(DISTINCT r.athlete) > 0 ORDER BY CAST(e.level AS INTEGER)
   `, [code, sport]));
 
-  const avgRows = _execRows(await dbHandle.exec(`
-    SELECT e.level,
-           AVG(CASE WHEN r.club = ? THEN r.total END) AS club_avg,
-           COUNT(CASE WHEN r.club = ? THEN r.total END) AS club_n,
-           AVG(r.total) AS state_avg
+  // Raw fetch instead of a GROUP BY AVG(): the club and state-wide score arrays
+  // are bucketed per level in JS so median can be derived alongside the mean.
+  const levelScoreRows = _execRows(await dbHandle.exec(`
+    SELECT e.level, r.club, r.total
     FROM results r
     JOIN events e ON e.id = r.event_id
     JOIN competitions c ON c.id = e.competition_id
     WHERE c.sport = ? AND e.event_type = 'AA' AND r.total IS NOT NULL
-    GROUP BY e.level
-    HAVING club_n >= 3
-    ORDER BY CAST(e.level AS INTEGER)
-  `, [code, code, sport]));
+  `, [sport]));
+  const levelBuckets = {};
+  for (const [lvl, rowClub, total] of levelScoreRows) {
+    if (!levelBuckets[lvl]) levelBuckets[lvl] = { club: [], state: [] };
+    levelBuckets[lvl].state.push(total);
+    if (rowClub === code) levelBuckets[lvl].club.push(total);
+  }
   const avgByLevel = {};
-  for (const [lvl, clubAvg, clubN, stateAvg] of avgRows) avgByLevel[lvl] = { clubAvg, stateAvg };
+  for (const lvl in levelBuckets) {
+    const b = levelBuckets[lvl];
+    if (b.club.length < 3) continue;
+    avgByLevel[lvl] = {
+      clubAvg: b.club.reduce((a, v) => a + v, 0) / b.club.length,
+      clubMedian: median(b.club),
+      stateAvg: b.state.reduce((a, v) => a + v, 0) / b.state.length,
+      stateMedian: median(b.state),
+    };
+  }
   const levels = countRows.map(([level, count]) => ({
-    level, count, ...(avgByLevel[level] ? { clubAvg: avgByLevel[level].clubAvg, stateAvg: avgByLevel[level].stateAvg } : {}),
+    level, count, ...(avgByLevel[level] || {}),
   }));
 
   // Levels selectable in the radar's dropdown: only ones with real individual
@@ -3558,10 +3585,16 @@ function clubRadarHtml(radarLevels, sport) {
     <div class="clubA-radar">
       <div class="clubA-radar-head">
         <div class="cap">Apparatus average</div>
-        <select class="clubA-radar-select" onchange="onClubRadarLevelChange(this.value)">
-          <option value="">All levels</option>
-          ${options}
-        </select>
+        <div style="display:flex;gap:6px;align-items:center">
+          <div class="clubA-chart-toggle clubA-stat-toggle">
+            <button class="cur" data-stat="avg" onclick="onClubRadarStatChange('avg')">Avg</button>
+            <button data-stat="median" onclick="onClubRadarStatChange('median')">Median</button>
+          </div>
+          <select class="clubA-radar-select" onchange="onClubRadarLevelChange(this.value)">
+            <option value="">All levels</option>
+            ${options}
+          </select>
+        </div>
       </div>
       <div class="clubA-radar-canvas-wrap"><canvas id="club-radar-canvas"></canvas></div>
     </div>`;
@@ -3571,12 +3604,13 @@ function clubRadarHtml(radarLevels, sport) {
 // athlete profile's Strength Radar (_profRenderStrengthChart), including its
 // "not enough data" fallback, just fed a club-wide (optionally level-scoped)
 // statsRow instead of one athlete's, and with no Best/PB series (average only).
-function drawClubRadar(statsRow, sport, accent) {
+function drawClubRadar(statsRow, sport, accent, mode = 'avg') {
   const c = document.getElementById('club-radar-canvas');
   if (!c) return;
+  if (CLUB_STATE) CLUB_STATE.radarStatsRow = statsRow;
   const appKeys = G_APP_KEYS[sport] || [];
   const labels  = appKeys.map(k => clubLabelFor(k, sport));
-  const nonZeroCount = appKeys.filter(k => (_profRepScore(statsRow, k) || 0) > 0).length;
+  const nonZeroCount = appKeys.filter(k => (_profRepScore(statsRow, k, mode) || 0) > 0).length;
   const minNeeded = Math.ceil(appKeys.length / 2);
   if (nonZeroCount < minNeeded) {
     _profStrengthChart = new Chart(c.getContext('2d'), {
@@ -3595,7 +3629,7 @@ function drawClubRadar(statsRow, sport, accent) {
     });
     return;
   }
-  _profRenderStrengthChart(c, false, statsRow, true, sport, labels);
+  _profRenderStrengthChart(c, false, statsRow, true, sport, labels, mode);
 }
 
 async function onClubRadarLevelChange(levelValue) {
@@ -3605,21 +3639,50 @@ async function onClubRadarLevelChange(levelValue) {
   if (!dbHandle) return;
   const accent = sport === 'MAG' ? '#5ee6a8' : '#7c6dfa';
   const statsRow = await fetchClubRadarStats(dbHandle, sport, code, levelValue || null);
-  drawClubRadar(statsRow, sport, accent);
+  drawClubRadar(statsRow, sport, accent, CLUB_STATE.radarStatMode || 'avg');
+}
+
+// Avg/Median toggle for the club radar: both stats already live in the cached
+// statsRow (from _statsFromRows), so this just redraws, no re-fetch.
+function onClubRadarStatChange(mode) {
+  if (!CLUB_STATE || !CLUB_STATE.radarStatsRow) return;
+  CLUB_STATE.radarStatMode = mode;
+  const head = document.querySelector('.clubA-radar-head');
+  if (head) head.querySelectorAll('.clubA-stat-toggle button[data-stat]').forEach(b => b.classList.toggle('cur', b.dataset.stat === mode));
+  const { sport } = CLUB_STATE;
+  const accent = sport === 'MAG' ? '#5ee6a8' : '#7c6dfa';
+  drawClubRadar(CLUB_STATE.radarStatsRow, sport, accent, mode);
 }
 
 // "Club vs. state average" mode toggle: by level (default, from data already
 // fetched) or by apparatus (lazy-fetched on first switch, then cached on the
-// sport's data so flipping back and forth after that is instant).
+// sport's data so flipping back and forth after that is instant). A separate
+// Avg/Median stat toggle picks which pair of precomputed fields to display,
+// no re-fetch needed since both stats are computed together upstream.
 async function onClubChartModeChange(mode) {
   if (!CLUB_STATE) return;
+  CLUB_STATE.chartMode = mode;
+  const wrap = document.getElementById('club-chart-widget');
+  if (wrap) wrap.querySelectorAll('.clubA-chart-toggle button[data-mode]').forEach(b => b.classList.toggle('cur', b.dataset.mode === mode));
+  await renderClubChart();
+}
+
+async function onClubStatModeChange(stat) {
+  if (!CLUB_STATE) return;
+  CLUB_STATE.statMode = stat;
+  const wrap = document.getElementById('club-chart-widget');
+  if (wrap) wrap.querySelectorAll('.clubA-stat-toggle button[data-stat]').forEach(b => b.classList.toggle('cur', b.dataset.stat === stat));
+  await renderClubChart();
+}
+
+async function renderClubChart() {
   const { code, sport, sports } = CLUB_STATE;
   const data = sports[sport];
   const wrap = document.getElementById('club-chart-widget');
   if (!data || !wrap) return;
   const accent = sport === 'MAG' ? '#5ee6a8' : '#7c6dfa';
-
-  wrap.querySelectorAll('.clubA-chart-toggle button').forEach(b => b.classList.toggle('cur', b.dataset.mode === mode));
+  const mode = CLUB_STATE.chartMode || 'level';
+  const statMode = CLUB_STATE.statMode || 'avg';
 
   let items;
   if (mode === 'apparatus') {
@@ -3631,15 +3694,19 @@ async function onClubChartModeChange(mode) {
     }
     items = data.apparatusVsState;
   } else {
-    items = data.levels.filter(l => l.clubAvg != null).map(l => ({ label: clubLevelLabel(l.level, sport), clubAvg: l.clubAvg, stateAvg: l.stateAvg }));
+    items = data.levels.filter(l => l.clubAvg != null).map(l => ({
+      label: clubLevelLabel(l.level, sport),
+      clubAvg: l.clubAvg, clubMedian: l.clubMedian, stateAvg: l.stateAvg, stateMedian: l.stateMedian,
+    }));
   }
 
+  const statWord = statMode === 'median' ? 'median' : 'average';
   const desc = mode === 'apparatus'
-    ? `Delta from the VIC-wide average, per apparatus (optional levels), ${sport === 'WAG' ? "Women's" : "Men's"} Artistic.`
-    : `Delta from the VIC-wide average, per level, ${sport === 'WAG' ? "Women's" : "Men's"} Artistic.`;
+    ? `Delta from the VIC-wide ${statWord}, per apparatus (optional levels), ${sport === 'WAG' ? "Women's" : "Men's"} Artistic.`
+    : `Delta from the VIC-wide ${statWord}, per level, ${sport === 'WAG' ? "Women's" : "Men's"} Artistic.`;
   const pEl = wrap.querySelector('.clubA-sec p');
   if (pEl) pEl.textContent = desc;
-  wrap.querySelector('.clubA-chart-body').innerHTML = clubChartBodyHtml(items, accent);
+  wrap.querySelector('.clubA-chart-body').innerHTML = clubChartBodyHtml(items, accent, statMode);
 }
 
 function clubRankBadge(rank) {
@@ -3647,18 +3714,22 @@ function clubRankBadge(rank) {
 }
 
 // Shared diverging-bar row renderer for the "Club vs. state average" widget,
-// used by both its modes (by level, by apparatus). items: [{label, clubAvg, stateAvg}].
-function clubDivergingRows(items, accent) {
-  const maxAbsDelta = Math.max(...items.map(it => Math.abs(it.clubAvg - it.stateAvg)), 0.1);
+// used by both its modes (by level, by apparatus) and both its stats (avg, median).
+// items: [{label, clubAvg, clubMedian, stateAvg, stateMedian}].
+function clubDivergingRows(items, accent, statMode = 'avg') {
+  const clubVal  = it => statMode === 'median' ? it.clubMedian : it.clubAvg;
+  const stateVal = it => statMode === 'median' ? it.stateMedian : it.stateAvg;
+  const maxAbsDelta = Math.max(...items.map(it => Math.abs(clubVal(it) - stateVal(it))), 0.1);
   return items.map(it => {
-    const delta = +(it.clubAvg - it.stateAvg).toFixed(1);
+    const cv = clubVal(it), sv = stateVal(it);
+    const delta = +(cv - sv).toFixed(1);
     const up = delta >= 0;
     const pct = (Math.abs(delta) / maxAbsDelta) * 50;
     return `
       <div class="clubA-row">
         <div>
           <div class="lvl">${esc(it.label)}</div>
-          <div class="raw">${it.clubAvg.toFixed(1)} vs ${it.stateAvg.toFixed(1)}</div>
+          <div class="raw">${cv.toFixed(1)} vs ${sv.toFixed(1)}</div>
         </div>
         <div class="clubA-bars">
           <div class="clubA-axis0"></div>
@@ -3669,9 +3740,9 @@ function clubDivergingRows(items, accent) {
   }).join('');
 }
 
-function clubChartBodyHtml(items, accent) {
+function clubChartBodyHtml(items, accent, statMode = 'avg') {
   return items.length
-    ? `<div class="clubA-chart-rows">${clubDivergingRows(items, accent)}</div>
+    ? `<div class="clubA-chart-rows">${clubDivergingRows(items, accent, statMode)}</div>
        <div class="clubA-legend"><span><i style="background:${accent}"></i>Above state</span><span><i style="background:#ff6b6b"></i>Below state</span></div>`
     : `<div class="clubA-empty">Not enough same-season results yet for a state comparison.</div>`;
 }
@@ -3682,19 +3753,37 @@ function clubChartBodyHtml(items, accent) {
 async function fetchClubApparatusVsState(dbHandle, sport, code) {
   const apps = (CLUB_RECORD_APPS[sport] || []).filter(([col]) => col !== 'total');
   if (!apps.length) return [];
-  const sql = apps.map(([col]) => `
-    SELECT '${col}' AS key,
-           AVG(CASE WHEN r.club = ? THEN ${col} END) AS club_avg,
-           COUNT(CASE WHEN r.club = ? THEN ${col} END) AS club_n,
-           AVG(${col}) AS state_avg
+  const cols = apps.map(([col]) => col);
+  // Raw fetch instead of a per-apparatus GROUP BY AVG(): bucket club vs.
+  // state-wide values per apparatus in JS so median can ride along with the mean.
+  const rows = _execRows(await dbHandle.exec(`
+    SELECT r.club, ${cols.join(', ')}
     FROM results r JOIN events e ON e.id = r.event_id JOIN competitions c ON c.id = e.competition_id
-    WHERE c.sport = ? AND e.event_type != 'Team' AND e.level > 6 AND ${col} > 0
-  `).join(' UNION ALL ');
-  const params = apps.flatMap(() => [code, code, sport]);
+    WHERE c.sport = ? AND e.event_type != 'Team' AND e.level > 6
+  `, [sport]));
+  const buckets = Object.fromEntries(cols.map(col => [col, { club: [], state: [] }]));
+  for (const row of rows) {
+    const rowClub = row[0];
+    cols.forEach((col, i) => {
+      const v = row[i + 1];
+      if (v == null || v <= 0) return;
+      buckets[col].state.push(v);
+      if (rowClub === code) buckets[col].club.push(v);
+    });
+  }
   const labelByCol = Object.fromEntries(CLUB_RECORD_APPS[sport] || []);
-  return _execRows(await dbHandle.exec(sql, params))
-    .filter(([key, clubAvg, clubN, stateAvg]) => clubN >= 3 && clubAvg != null && stateAvg != null)
-    .map(([key, clubAvg, clubN, stateAvg]) => ({ label: labelByCol[key] || key, clubAvg, stateAvg }));
+  return cols
+    .filter(col => buckets[col].club.length >= 3)
+    .map(col => {
+      const b = buckets[col];
+      return {
+        label: labelByCol[col] || col,
+        clubAvg: b.club.reduce((a, v) => a + v, 0) / b.club.length,
+        clubMedian: median(b.club),
+        stateAvg: b.state.reduce((a, v) => a + v, 0) / b.state.length,
+        stateMedian: median(b.state),
+      };
+    });
 }
 
 async function renderClubProfile(code, initialSport) {
@@ -3708,7 +3797,7 @@ async function renderClubProfile(code, initialSport) {
   }
 
   const sport = CLUB_SPORTS.includes(initialSport) ? initialSport : 'WAG';
-  CLUB_STATE = { code, sport, sports: {} };
+  CLUB_STATE = { code, sport, sports: {}, chartMode: 'level', statMode: 'avg', radarStatMode: 'avg' };
   CLUB_STATE.sports[sport] = await fetchClubSportData(DB, sport, code);
 
   // Fetch "in the news" once per club (cheap, independent of sport)
@@ -3847,13 +3936,19 @@ function renderClubDashboard(bodyLoading) {
                 <h2>Club vs. state average</h2>
                 <p>Delta from the VIC-wide average, per level, ${sport === 'WAG' ? "Women's" : "Men's"} Artistic.</p>
               </div>
-              <div class="clubA-chart-toggle">
-                <button class="cur" data-mode="level" onclick="onClubChartModeChange('level')">Level</button>
-                <button data-mode="apparatus" onclick="onClubChartModeChange('apparatus')">Apparatus</button>
+              <div style="display:flex;flex-direction:column;gap:6px;align-items:flex-end">
+                <div class="clubA-chart-toggle">
+                  <button class="cur" data-mode="level" onclick="onClubChartModeChange('level')">Level</button>
+                  <button data-mode="apparatus" onclick="onClubChartModeChange('apparatus')">Apparatus</button>
+                </div>
+                <div class="clubA-chart-toggle clubA-stat-toggle">
+                  <button class="cur" data-stat="avg" onclick="onClubStatModeChange('avg')">Average</button>
+                  <button data-stat="median" onclick="onClubStatModeChange('median')">Median</button>
+                </div>
               </div>
             </section>
             <div class="clubA-chart">
-              <div class="clubA-chart-body">${clubChartBodyHtml(cmpLevels.map(l => ({ label: clubLevelLabel(l.level, sport), clubAvg: l.clubAvg, stateAvg: l.stateAvg })), accent)}</div>
+              <div class="clubA-chart-body">${clubChartBodyHtml(cmpLevels.map(l => ({ label: clubLevelLabel(l.level, sport), clubAvg: l.clubAvg, clubMedian: l.clubMedian, stateAvg: l.stateAvg, stateMedian: l.stateMedian })), accent, CLUB_STATE.statMode)}</div>
             </div>
           </div>
           <div>
@@ -3921,7 +4016,7 @@ function renderClubDashboard(bodyLoading) {
     row.addEventListener('click', () => openAthleteProfile(row.dataset.athlete));
   });
   if (!bodyLoading && data && data.athleteCount) {
-    drawClubRadar(data.radarStats, sport, accent);
+    drawClubRadar(data.radarStats, sport, accent, CLUB_STATE.radarStatMode || 'avg');
   }
 
   if (currentSport) {
