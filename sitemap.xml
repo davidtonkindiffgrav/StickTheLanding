@@ -233,6 +233,12 @@
     <priority>0.7</priority>
   </url>
   <url>
+    <loc>https://stickthelanding.com.au/results/wag/senior-gippsland-championships-2026/</loc>
+    <lastmod>2026-08-16</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
     <loc>https://stickthelanding.com.au/results/wag/judge-s-invitational-2026/</loc>
     <lastmod>2026-08-09</lastmod>
     <changefreq>monthly</changefreq>
@@ -263,13 +269,13 @@
     <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://stickthelanding.com.au/results/wag/y-invitational-2026/</loc>
+    <loc>https://stickthelanding.com.au/results/wag/jets-july-invitational-2026/</loc>
     <lastmod>2026-07-25</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://stickthelanding.com.au/results/wag/jets-july-invitational-2026/</loc>
+    <loc>https://stickthelanding.com.au/results/wag/y-invitational-2026/</loc>
     <lastmod>2026-07-25</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
@@ -455,6 +461,12 @@
     <priority>0.6</priority>
   </url>
   <url>
+    <loc>https://stickthelanding.com.au/results/wag/south-east-regional-championships-2025/</loc>
+    <lastmod>2025-09-13</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
     <loc>https://stickthelanding.com.au/results/wag/metro-south-regional-championships-2025/</loc>
     <lastmod>2025-09-13</lastmod>
     <changefreq>monthly</changefreq>
@@ -462,12 +474,6 @@
   </url>
   <url>
     <loc>https://stickthelanding.com.au/results/wag/metro-west-regional-championships-2025/</loc>
-    <lastmod>2025-09-13</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.6</priority>
-  </url>
-  <url>
-    <loc>https://stickthelanding.com.au/results/wag/south-east-regional-championships-2025/</loc>
     <lastmod>2025-09-13</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
@@ -737,13 +743,13 @@
     <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://stickthelanding.com.au/results/wag/metro-west-regional-championships-2024/</loc>
+    <loc>https://stickthelanding.com.au/results/wag/metro-south-regional-championships-2024/</loc>
     <lastmod>2024-07-09</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://stickthelanding.com.au/results/wag/metro-south-regional-championships-2024/</loc>
+    <loc>https://stickthelanding.com.au/results/wag/metro-west-regional-championships-2024/</loc>
     <lastmod>2024-07-09</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>

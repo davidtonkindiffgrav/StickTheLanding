@@ -101,6 +101,14 @@ def create_schema(con: sqlite3.Connection) -> None:
             image     TEXT
         );
 
+        CREATE TABLE IF NOT EXISTS club_teams (
+            id          INTEGER PRIMARY KEY AUTOINCREMENT,
+            club        TEXT NOT NULL REFERENCES clubs(code),
+            label       TEXT,
+            notes       TEXT,
+            created_at  TEXT DEFAULT (datetime('now'))
+        );
+
         CREATE INDEX IF NOT EXISTS idx_results_event      ON results(event_id);
         CREATE INDEX IF NOT EXISTS idx_events_comp       ON events(competition_id);
         CREATE INDEX IF NOT EXISTS idx_events_level      ON events(level, division, event_type);
@@ -128,6 +136,38 @@ def create_schema(con: sqlite3.Connection) -> None:
             con.execute(f"ALTER TABLE results ADD COLUMN {col}")
         except Exception:
             pass
+    for col in ("team_id INTEGER REFERENCES club_teams(id)",):
+        try:
+            con.execute(f"ALTER TABLE results ADD COLUMN {col}")
+        except Exception:
+            pass
+    # club_teams.label was originally NOT NULL with a UNIQUE(club, label) constraint.
+    # Both are relaxed: a team may be tagged before its display name is known, and a
+    # promoted team can end up sharing a colour/label with another team already
+    # sitting in its new division (two physical teams, one ambiguous-looking label -
+    # the team_id split still keeps their stats correctly separated either way).
+    # Rebuild only if the old constraints are still present.
+    label_col = next((c for c in con.execute("PRAGMA table_info(club_teams)") if c["name"] == "label"), None)
+    has_unique_idx = any(
+        idx["unique"] for idx in con.execute("PRAGMA index_list(club_teams)")
+    ) if label_col is not None else False
+    if label_col is not None and (label_col["notnull"] or has_unique_idx):
+        con.commit()
+        con.execute("PRAGMA foreign_keys = OFF")
+        con.executescript("""
+            CREATE TABLE club_teams_new (
+                id          INTEGER PRIMARY KEY AUTOINCREMENT,
+                club        TEXT NOT NULL REFERENCES clubs(code),
+                label       TEXT,
+                notes       TEXT,
+                created_at  TEXT DEFAULT (datetime('now'))
+            );
+            INSERT INTO club_teams_new SELECT * FROM club_teams;
+            DROP TABLE club_teams;
+            ALTER TABLE club_teams_new RENAME TO club_teams;
+        """)
+        con.commit()
+        con.execute("PRAGMA foreign_keys = ON")
     for col in ("age_bracket TEXT", "age_bracket_rank INTEGER"):
         try:
             con.execute(f"ALTER TABLE results ADD COLUMN {col}")
@@ -259,6 +299,36 @@ def insert_result(con: sqlite3.Connection, event_id: int, r: dict) -> None:
             r.get("hbar"),   r.get("hbar_d"),   r.get("hbar_e"),
         ),
     )
+
+
+def get_or_create_club_team(con: sqlite3.Connection, club: str, label: str, notes: str = None) -> int:
+    """Return the id of an existing club_teams row for (club, label), or create one.
+
+    (club, label) is not a database-enforced unique key - two different physical teams
+    can legitimately end up sharing a label (e.g. a promoted team landing in a division
+    that already has a team with the same colour). This only reuses the first existing
+    match it finds; call create_club_team() directly when you specifically want a new
+    row even though a matching label already exists.
+    """
+    row = con.execute(
+        "SELECT id FROM club_teams WHERE club = ? AND label IS ?", (club, label)
+    ).fetchone()
+    if row is not None:
+        return row["id"]
+    return create_club_team(con, club, label, notes)
+
+
+def create_club_team(con: sqlite3.Connection, club: str, label: str = None, notes: str = None) -> int:
+    """Always insert a new club_teams row and return its id (no reuse-by-label check)."""
+    cur = con.execute(
+        "INSERT INTO club_teams (club, label, notes) VALUES (?, ?, ?)",
+        (club, label, notes),
+    )
+    return cur.lastrowid
+
+
+def set_result_team_id(con: sqlite3.Connection, result_id: int, team_id: int) -> None:
+    con.execute("UPDATE results SET team_id = ? WHERE id = ?", (team_id, result_id))
 
 
 def upsert_pdf_manifest(con: sqlite3.Connection, comp_name: str, files: list) -> None:

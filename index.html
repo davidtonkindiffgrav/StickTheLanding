@@ -1100,15 +1100,35 @@ const INDIVIDUAL_PROMOTION_CUTOFF = {
 
 function buildTeamStandings(rows, apparatus = "AA") {
   const scoreField = appCol()[apparatus] || "total";
+
+  // A tagged team's result can occasionally have no division at all (e.g. a host
+  // combined several divisions into one open field for a small meet). That's a
+  // missing value, not a different division, so infer it from that same team_id's
+  // most recent other result that does have one, rather than stranding it in its
+  // own division-less bucket. This only ever fills a gap, never overrides a real
+  // division, so an actual mid-season promotion (a genuine division change) still
+  // keeps its results correctly split apart.
+  const teamDivInfo = {};
+  for (const r of rows) {
+    if (r.team_id == null) continue;
+    const dl = r.division != null ? `Div ${r.division}` : (r.age_group || null);
+    if (!dl) continue;
+    const existing = teamDivInfo[r.team_id];
+    if (!existing || (r.date || "") > (existing.date || "")) {
+      teamDivInfo[r.team_id] = { label: dl, date: r.date || "" };
+    }
+  }
+
   const clubs = {};
   for (const r of rows) {
     const score = r[scoreField];
     if (score == null || score === 0) continue;
     const club = r.club || "Unknown";
-    const divLabel = r.division != null ? `Div ${r.division}` : (r.age_group || null);
-    const key = `${club}||${divLabel || ""}`;
+    const ownDivLabel = r.division != null ? `Div ${r.division}` : (r.age_group || null);
+    const divLabel = ownDivLabel || (r.team_id != null ? teamDivInfo[r.team_id]?.label : null) || null;
+    const key = `${club}||${divLabel || ""}||${r.team_id ?? ""}`;
     if (!clubs[key]) clubs[key] = {
-      club, divLabel, division: r.division, wins: 0, seconds: 0, thirds: 0, points: 0,
+      club, divLabel, division: r.division, teamId: r.team_id ?? null, teamLabel: r.team_label ?? null, wins: 0, seconds: 0, thirds: 0, points: 0,
       totalScore: 0, scores: [], highScore: 0, highScoreDetail: "", count: 0, comps: new Set(), overCutoffComps: new Set(),
     };
     const c = clubs[key];
@@ -1146,10 +1166,11 @@ async function renderClubs() {
   let sql = `
     SELECT r.club, r.rank, r.total, r.vault, r.bars, r.beam, r.floor,
            r.pommel, r.rings, r.pbars, r.hbar,
-           c.name, e.level, e.division, e.age_group
+           c.name, e.level, e.division, e.age_group, r.team_id, ct.label, c.date
     FROM results r
     JOIN events e ON r.event_id = e.id
     JOIN competitions c ON e.competition_id = c.id
+    LEFT JOIN club_teams ct ON ct.id = r.team_id
     WHERE e.event_type = 'Team' AND c.sport = ? AND c.season = ?`;
   const params = [currentSport, currentSeason];
   if (activeLevel    !== null) { sql += ` AND e.level = ?`;    params.push(activeLevel); }
@@ -1161,10 +1182,10 @@ async function renderClubs() {
   const raw = _execRows(await DB.exec(sql, params));
   const rows = raw.map(([club, rank, total, vault, bars, beam, floor,
                          pommel, rings, pbars, hbar,
-                         competition, level, division, age_group]) =>
+                         competition, level, division, age_group, team_id, team_label, date]) =>
     ({ club, rank, total, vault, bars, beam, floor,
        pommel, rings, pbars, hbar,
-       competition, level, division, age_group }));
+       competition, level, division, age_group, team_id, team_label, date }));
 
   let standings = buildTeamStandings(rows.filter(r => !isMixed(r.club || "", r.competition) && !([3,4,5].includes(r.level) && (r.total || 0) < 40)), activeApparatus);
   if (activeRegion) {
@@ -1221,7 +1242,7 @@ async function renderClubs() {
       html.push(`<tr class="club-dir-row${flagged ? " promo-flag" : ""}" data-code="${esc(s.club)}" style="cursor:pointer"${rowTip}>
         <td>${badge}</td>
         <td class="logo-cell">${clubLogo(s.club, "club-logo-sm")}</td>
-        <td><strong>${clubName(s.club)}</strong>${s.divLabel ? ` <small style="color:var(--muted)">(${esc(s.divLabel)})</small>` : ""}</td>
+        <td><strong>${clubName(s.club)}</strong>${s.divLabel ? ` <small style="color:var(--muted)">(${esc(s.divLabel)})</small>` : ""}${s.teamLabel ? ` <small class="team-label-tag" style="color:var(--accent);border:1px solid var(--accent);border-radius:4px;padding:1px 6px;font-size:0.75em;font-weight:600">${esc(s.teamLabel)}</small>` : ""}</td>
         <td class="score score-hi"${scoreTip}>${score.toFixed(3)}${arrow}</td>
         <td class="score">${s.comps}</td>
       </tr>`);

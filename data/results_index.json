@@ -1,6 +1,12 @@
 [
   {
     "sport": "wag",
+    "comp_id": "senior-gippsland-championships-2026",
+    "name": "Senior Gippsland Championships",
+    "date": "2026-08-16"
+  },
+  {
+    "sport": "wag",
     "comp_id": "judge-s-invitational-2026",
     "name": "Judge's Invitational",
     "date": "2026-08-09"

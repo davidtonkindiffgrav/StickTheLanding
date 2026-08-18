@@ -332,7 +332,9 @@
       "name": "East Gippsland Gym Club",
       "region": "Regional SE",
       "aliases": [
-        "EGI"
+        "EGI",
+        "EGP",
+        "EGJ"
       ],
       "logo": null
     },
@@ -647,7 +649,11 @@
         "MAFFRA GYMNATICS CLUB",
         "MAFFRA GYMNASTIC CLUB",
         "MAFFRA GYMNASTIC CLUB NAVY",
-        "MAFFRA GYMNASTIC CLUB JADE"
+        "MAFFRA GYMNASTIC CLUB JADE",
+        "MGW",
+        "MGJ",
+        "MGN",
+        "MGP"
       ],
       "logo": null
     },
