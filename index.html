@@ -2323,10 +2323,13 @@ function buildLevelFilters() {
   _fillLevelSel("sel-level",         levels,        lvl => intLevelLabel(lvl, false) || `L${lvl}`, applyLevel);
   _fillLevelSel("sel-athlete-level", athleteLevels, lvl => intLevelLabel(lvl, false) || `L${lvl}`, applyLevel);
 
-  // Auto-select first athlete-eligible level
-  const firstAthlSel = document.getElementById("sel-athlete-level");
-  if (firstAthlSel && firstAthlSel.options.length) {
-    applyLevel(firstAthlSel.options[0].value);
+  // Auto-select the lowest available level. Team Standings (the default
+  // landing view) has data down to Level 3, even though Individual Rankings
+  // doesn't, so seed from the full level list rather than the
+  // athlete-eligible one, which would skip straight to L5.
+  const firstLevelSel = document.getElementById("sel-level");
+  if (firstLevelSel && firstLevelSel.options.length) {
+    applyLevel(firstLevelSel.options[0].value);
   }
 
   // Division options
@@ -2383,9 +2386,15 @@ document.querySelectorAll("#app-nav button[data-view]").forEach(btn => {
       return;
     }
 
-    if (activeLevel === null) {
-      const selId = activeView === "athletes" ? "sel-athlete-level" : "sel-level";
-      const sel = document.getElementById(selId);
+    const selId = activeView === "athletes" ? "sel-athlete-level" : "sel-level";
+    const sel = document.getElementById(selId);
+    // Team Standings can sit on a level (e.g. L3/L4) that Individual Rankings
+    // has no options for, since individual data only exists from L5 up. When
+    // that happens sel.value silently falls back to its own first option
+    // without activeLevel following, so check the level is actually one of
+    // this view's options rather than just checking for null.
+    const levelValidForView = sel && [...sel.options].some(o => o.value === String(activeLevel));
+    if (activeLevel === null || !levelValidForView) {
       if (sel && sel.options.length) { sel.dispatchEvent(new Event('change')); return; }
     }
     render();
