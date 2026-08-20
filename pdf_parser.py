@@ -114,7 +114,10 @@ ATHLETE_LINE_MAG_AA = re.compile(
 )
 
 # Club + ranks line after an athlete: "WVG 5 1 2 3 1" / "CAS CS 1 2 5 1 0T 1" / "GUN (HPP) 2 1..." / "HPP/PIT 1 2..."
-_CLUB_RANKS_LINE = re.compile(r"^(?:[A-Za-z]{2,6}/)?([A-Za-z]{2,8}(?:\s+[A-Za-z]{2,4})*)(?:\s+\([A-Za-z/]+\))?\s+[\dT]")
+# First-word cap of 14 covers spelled-out club names some hosts print instead of a
+# short code (e.g. "MILLICENT"), verified against the whole existing WAG/MAG corpus
+# to introduce no regressions.
+_CLUB_RANKS_LINE = re.compile(r"^(?:[A-Za-z]{2,6}/)?([A-Za-z]{2,14}(?:\s+[A-Za-z]{2,6})*)(?:\s+\([A-Za-z/]+\))?\s+[\dT]")
 
 # Lines to filter when building the cleaned line list for new-format parsing
 _HEADER_SKIP = re.compile(
