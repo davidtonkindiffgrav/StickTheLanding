@@ -111,9 +111,35 @@ def _parse_source_meta(source_file):
 # label them. These two events' own PDF pages print "Session: 4" and
 # "Session: 3" respectively (niddrie-invitational-5-7-2026, L5D1) with no
 # other split-cause given, confirmed by reading both source PDFs directly.
+#
+# Waverley Classic 2026 (waverley-classic-2026) files into "Session N" folders
+# and marks the parallel pool with "Part X" in the filename rather than
+# encoding either into the PDF name itself, so _parse_source_meta can't label
+# these either. Labels below are "<session><part>", e.g. "10A" = Session 10
+# folder, Part A. Three entries (3928, 4000, 4001) override what the filename
+# itself claims because it doesn't match that PDF's own embedded header/roster
+# (confirmed by reading the source PDFs directly): 3928 is filed as "...
+# Division 2 Part A.pdf" but its header and team roster are actually Division
+# 1 Part B; 4000 and 4001 are Session 8's two Team PDFs with their Part A/B
+# filenames swapped relative to their headers, corrected here so each still
+# pairs with the matching Meet-results pool (3997/3998).
 _EVENT_SESSION_OVERRIDES = {
     3867: "4",
     3882: "3",
+    3925: "1A", 3926: "1B", 3927: "1A", 3928: "1B", 3929: "1A", 3930: "1B",
+    3936: "10A", 3937: "10C", 3938: "10A", 3939: "10B", 3940: "10C",
+    3941: "11A", 3942: "11B", 3943: "11A", 3944: "11B",
+    3946: "2A", 3947: "2B", 3950: "2A", 3951: "2B",
+    3954: "3", 3955: "3", 3956: "3A", 3957: "3B", 3958: "3", 3959: "3",
+    3960: "3A", 3961: "3B",
+    3968: "4A", 3969: "4B", 3970: "4C", 3971: "4A", 3972: "4B", 3973: "4C",
+    3974: "5A", 3975: "5B", 3976: "5", 3977: "5", 3978: "5A", 3979: "5B",
+    3980: "5", 3981: "5",
+    3982: "6A", 3983: "6B", 3984: "6A", 3985: "6B", 3986: "6A", 3987: "6B",
+    3988: "6A", 3989: "6B",
+    3991: "7", 3995: "7",
+    3997: "8A", 3998: "8B", 4000: "8B", 4001: "8A",
+    4006: "9A", 4007: "9B", 4008: "9",
 }
 
 
