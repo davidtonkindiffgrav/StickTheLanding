@@ -13,6 +13,12 @@
   },
   {
     "sport": "wag",
+    "comp_id": "waverley-classic-2026",
+    "name": "Waverley Classic",
+    "date": "2026-08-14"
+  },
+  {
+    "sport": "wag",
     "comp_id": "judge-s-invitational-2026",
     "name": "Judge's Invitational",
     "date": "2026-08-09"
