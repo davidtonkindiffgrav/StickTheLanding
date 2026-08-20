@@ -224,7 +224,15 @@
           <select class="filter-select" id="sel-region"><option value="all">All</option></select>
         </div>
       </div>
-      <p class="standings-note">These rankings are a rough guide, not a precise measure, since they don't track individual gymnasts moving between a club's squads across the season. Clubs may enter multiple squads in the same division, in which case they're combined into one entry (best score and average across all of them), but squads in other divisions are ranked separately since they never competed against each other. Click a club to see its full results on its stats page.</p>
+      <details class="standings-note" style="margin:4px 0 16px;padding:10px 14px;border:1px solid var(--border);border-radius:8px">
+        <summary style="cursor:pointer;font-weight:600;color:var(--text)">How this table works</summary>
+        <div style="margin-top:10px;color:var(--muted);font-size:0.9rem;line-height:1.6">
+          <p style="margin:0 0 10px">Each row is a club's results at this Level combined into one entry, best score, average, and how many competitions counted, so clubs can be compared at a glance rather than reading one competition at a time.</p>
+          <p style="margin:0 0 10px">When a club enters more than one squad in the same Division, we try to keep them separate using a tagging system that follows each named squad across competitions. That's a best-effort match, not a certainty, it doesn't track individual gymnasts moving between a club's squads mid-season, so "squad A" and "squad B" here are an approximation. Untagged squads sharing a club and Division are still combined into a single entry.</p>
+          <p style="margin:0 0 10px">In the All Divisions view, a tagged squad is grouped under whichever Division it most recently competed in, so a score picked up before a mid-season promotion still counts toward its current total. This table reflects where things stand right now, to see full history visit the <a href="#" onclick="window.location.href='/competitions/'+currentSport.toLowerCase()+'/'; return false;">Results</a> page. Filtering to one specific Division instead shows only scores actually recorded in that Division, so a promoted squad may not appear under a Division it has since moved on from, even though it competed there earlier in the season.</p>
+          <p style="margin:0">Click a club to see its full results on its stats page.</p>
+        </div>
+      </details>
       <div class="filter-bar" id="team-score-toggle">
         <button class="filter-btn active" data-basis="high">By High Score</button>
         <button class="filter-btn" data-basis="avg">By Average</button>
@@ -1101,13 +1109,15 @@ const INDIVIDUAL_PROMOTION_CUTOFF = {
 function buildTeamStandings(rows, apparatus = "AA") {
   const scoreField = appCol()[apparatus] || "total";
 
-  // A tagged team's result can occasionally have no division at all (e.g. a host
-  // combined several divisions into one open field for a small meet). That's a
-  // missing value, not a different division, so infer it from that same team_id's
-  // most recent other result that does have one, rather than stranding it in its
-  // own division-less bucket. This only ever fills a gap, never overrides a real
-  // division, so an actual mid-season promotion (a genuine division change) still
-  // keeps its results correctly split apart.
+  // Team Standings is read as a snapshot of where things stand right now, not
+  // a historical archive (that's what each competition's own result page is
+  // for). So a tagged team always groups under its most recent division,
+  // including results it scored earlier this season under a different
+  // division (e.g. before a mid-season promotion) - otherwise a promoted
+  // team gets split across two rows and its current-division row looks
+  // thinner than it should heading into regionals/states. Untagged teams
+  // have no team_id to track continuity with, so they still group by each
+  // result's own division as before.
   const teamDivInfo = {};
   for (const r of rows) {
     if (r.team_id == null) continue;
@@ -1125,7 +1135,7 @@ function buildTeamStandings(rows, apparatus = "AA") {
     if (score == null || score === 0) continue;
     const club = r.club || "Unknown";
     const ownDivLabel = r.division != null ? `Div ${r.division}` : (r.age_group || null);
-    const divLabel = ownDivLabel || (r.team_id != null ? teamDivInfo[r.team_id]?.label : null) || null;
+    const divLabel = (r.team_id != null ? teamDivInfo[r.team_id]?.label : null) || ownDivLabel || null;
     const key = `${club}||${divLabel || ""}||${r.team_id ?? ""}`;
     if (!clubs[key]) clubs[key] = {
       club, divLabel, division: r.division, teamId: r.team_id ?? null, teamLabel: r.team_label ?? null, wins: 0, seconds: 0, thirds: 0, points: 0,
