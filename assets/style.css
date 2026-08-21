@@ -822,6 +822,7 @@
     }
     #landing-view .v3-card p { font-size: 13.5px; color: #8d92ac; margin: 0; }
     #landing-view .v3-card.big h4 { font-size: 26px; }
+    #landing-view .v3-card.big p { font-size: 17px; }
     #landing-view .v3-card.big .thumb {
       aspect-ratio: 16/9; border-radius: 8px; position: relative; overflow: hidden;
       background: linear-gradient(135deg, rgba(106,61,240,0.25), rgba(11,139,90,0.25)),
