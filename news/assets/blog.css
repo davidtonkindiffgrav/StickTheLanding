@@ -245,6 +245,12 @@ html[data-theme="light"] .post-body a { color: var(--text); }
 @media (max-width: 500px) {
   .post-body figure.fig-float { float: none; width: 100%; max-width: 100%; margin: 20px auto; text-align: center; }
 }
+.post-body figure.mini-fig { border: 1px solid var(--border); border-radius: 8px; padding: 8px; }
+.post-body table.mini-table { width: 100%; border-collapse: collapse; font-size: 0.72rem; }
+.post-body table.mini-table th { text-align: left; padding: 3px 5px; border-bottom: 2px solid var(--border); font-weight: 700; color: var(--text); }
+.post-body table.mini-table td { padding: 3px 5px; border-bottom: 1px solid var(--border); color: var(--text); }
+.post-body table.mini-table tr:last-child td { border-bottom: none; }
+.post-body table.mini-table td:last-child, .post-body table.mini-table th:last-child { text-align: right; }
 .post-body blockquote.coach-quote {
   border-left: 4px solid var(--accent);
   margin: 24px 0;
