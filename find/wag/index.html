@@ -183,10 +183,13 @@
     let athletes = [];
     let ready = false;
 
-    fetch('/data/athletes_WAG.json')
-      .then(r => r.json())
-      .then(data => {
-        athletes = data;
+    Promise.all([
+      fetch('/data/athletes_WAG.json').then(r => r.json()),
+      fetch('/data/redacted.json').then(r => r.json()).catch(() => ({}))
+    ])
+      .then(([data, redacted]) => {
+        const hidden = new Set(redacted.WAG || []);
+        athletes = data.filter(a => !hidden.has(a.name));
         ready = true;
         document.getElementById('status').style.display = 'none';
         if (document.getElementById('q').value.trim()) filter();

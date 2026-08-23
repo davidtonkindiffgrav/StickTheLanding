@@ -611,7 +611,38 @@ async function loadSportDbHandle(sport) {
   if (!resp.ok) throw new Error("Failed to fetch database: " + resp.status);
   const buf   = await resp.arrayBuffer();
   const rawDb = new SQL.Database(new Uint8Array(buf));
+  _maskRedactedAthletes(rawDb);
   return { exec: (sql, params) => rawDb.exec(sql, params || []) };
+}
+
+// Athletes flagged via redact_athlete.py (athletes.redacted = 1) get their name
+// overwritten in-memory, right after the .db loads, with every letter replaced
+// by underscores (e.g. "Emma Smith" -> "____ _____"). Every query for the rest
+// of the session - rankings, profiles, club rosters, graphs - reads this masked
+// value, since it runs before anything else touches the db. The underlying data
+// on disk is untouched, so flagging is fully reversible.
+// Masked names always start with a literal underscore (see mask_name above).
+// GLOB (unlike LIKE) treats '_' as a literal char, not a single-char wildcard,
+// so this cleanly matches only masked rows with no escaping needed.
+const NOT_REDACTED = "r.athlete NOT GLOB '_*'";
+
+function _maskRedactedAthletes(rawDb) {
+  try {
+    rawDb.create_function("mask_name", (name) => {
+      if (name == null) return name;
+      return String(name).trim().split(/\s+/).map((w) => "_".repeat(w.length)).join(" ");
+    });
+    rawDb.run(`
+      UPDATE results SET athlete = mask_name(athlete)
+      WHERE athlete IN (SELECT name FROM athletes WHERE redacted = 1)
+    `);
+    rawDb.run(`
+      UPDATE athletes SET name = mask_name(name), nickname = NULL, image = NULL
+      WHERE redacted = 1
+    `);
+  } catch (_) {
+    // Older cached .db without the redacted column - nothing to mask yet.
+  }
 }
 
 async function initDB() {
@@ -3482,7 +3513,7 @@ async function fetchClubSportData(dbHandle, sport, code) {
     FROM results r
     JOIN events e ON e.id = r.event_id
     JOIN competitions c ON c.id = e.competition_id
-    WHERE r.club = ? AND c.sport = ?
+    WHERE r.club = ? AND c.sport = ? AND ${NOT_REDACTED}
   `, [code, sport]))[0]) || [0, 0, null, null, null];
   const [athleteCount, compCount, firstDate, lastDate, latestSeason] = heroRow;
 
@@ -3493,7 +3524,7 @@ async function fetchClubSportData(dbHandle, sport, code) {
   const countRows = _execRows(await dbHandle.exec(`
     SELECT e.level, COUNT(DISTINCT r.athlete)
     FROM results r JOIN events e ON e.id = r.event_id JOIN competitions c ON c.id = e.competition_id
-    WHERE r.club = ? AND c.sport = ? AND e.level IS NOT NULL
+    WHERE r.club = ? AND c.sport = ? AND e.level IS NOT NULL AND ${NOT_REDACTED}
     GROUP BY e.level HAVING COUNT(DISTINCT r.athlete) > 0 ORDER BY CAST(e.level AS INTEGER)
   `, [code, sport]));
 
@@ -3559,7 +3590,7 @@ async function fetchClubSportData(dbHandle, sport, code) {
     const row = (_execRows(await dbHandle.exec(`
       SELECT r.athlete, r.${col}, e.level, c.name, COALESCE(c.date, c.season || '-06-01'), c.season
       FROM results r JOIN events e ON e.id = r.event_id JOIN competitions c ON c.id = e.competition_id
-      WHERE r.club = ? AND c.sport = ? AND r.${col} > 0 AND e.event_type != 'Team'
+      WHERE r.club = ? AND c.sport = ? AND r.${col} > 0 AND e.event_type != 'Team' AND ${NOT_REDACTED}
       ORDER BY r.${col} DESC LIMIT 1
     `, [code, sport]))[0]);
     if (row) records.push({ apparatus: label, col, score: row[1], athlete: row[0], level: row[2], comp: row[3], year: row[5] });
@@ -3571,7 +3602,7 @@ async function fetchClubSportData(dbHandle, sport, code) {
     FROM results r
     JOIN events e ON e.id = r.event_id
     JOIN competitions c ON c.id = e.competition_id
-    WHERE r.club = ? AND c.sport = ? AND c.season = ? AND r.rank BETWEEN 1 AND 3 AND e.event_type != 'Team'
+    WHERE r.club = ? AND c.sport = ? AND c.season = ? AND r.rank BETWEEN 1 AND 3 AND e.event_type != 'Team' AND ${NOT_REDACTED}
     ORDER BY d DESC LIMIT 12
   `, [code, sport, latestSeason])).map(([athlete, rank, total, comp, level]) => ({ athlete, rank, total, comp, level })) : [];
 
@@ -3582,7 +3613,7 @@ async function fetchClubSportData(dbHandle, sport, code) {
       FROM results r
       JOIN events e ON e.id = r.event_id
       JOIN competitions c ON c.id = e.competition_id
-      WHERE r.club = ? AND c.sport = ? AND r.athlete IS NOT NULL AND r.athlete != ''
+      WHERE r.club = ? AND c.sport = ? AND r.athlete IS NOT NULL AND r.athlete != '' AND ${NOT_REDACTED}
     ) WHERE rn = 1
     ORDER BY athlete
   `, [code, sport])).map(([name, level]) => ({ name, level }))

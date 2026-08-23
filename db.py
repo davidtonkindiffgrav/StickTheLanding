@@ -98,7 +98,8 @@ def create_schema(con: sqlite3.Connection) -> None:
             id        INTEGER PRIMARY KEY AUTOINCREMENT,
             name      TEXT NOT NULL UNIQUE,
             nickname  TEXT,
-            image     TEXT
+            image     TEXT,
+            redacted  INTEGER NOT NULL DEFAULT 0
         );
 
         CREATE TABLE IF NOT EXISTS club_teams (
@@ -182,6 +183,10 @@ def create_schema(con: sqlite3.Connection) -> None:
             con.execute(f"ALTER TABLE clubs ADD COLUMN {col}")
         except Exception:
             pass
+    try:
+        con.execute("ALTER TABLE athletes ADD COLUMN redacted INTEGER NOT NULL DEFAULT 0")
+    except Exception:
+        pass
     con.commit()
 
 

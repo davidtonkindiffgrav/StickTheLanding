@@ -219,11 +219,14 @@
     let sport = null;
     let timer;
 
-    // Pre-fetch both lists immediately
+    // Pre-fetch both lists immediately, dropping any athlete flagged in data/redacted.json
+    const redactedPromise = fetch('/data/redacted.json').then(r => r.json()).catch(() => ({}));
     ['WAG', 'MAG'].forEach(s => {
-      fetch(`/data/athletes_${s}.json`)
-        .then(r => r.json())
-        .then(d => { data[s] = d; })
+      Promise.all([fetch(`/data/athletes_${s}.json`).then(r => r.json()), redactedPromise])
+        .then(([d, redacted]) => {
+          const hidden = new Set(redacted[s] || []);
+          data[s] = d.filter(a => !hidden.has(a.name));
+        })
         .catch(() => {});
     });
 

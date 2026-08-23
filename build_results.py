@@ -74,8 +74,13 @@ def fetch_competitions(con, comp_id):
     return con.execute("SELECT * FROM competitions ORDER BY date DESC, name").fetchall()
 
 
+def mask_name(name: str) -> str:
+    """Same rule as index.html's client-side mask_name: every letter -> underscore."""
+    return " ".join("_" * len(w) for w in name.split())
+
+
 def fetch_rows(con, comp_id: str, sport: str):
-    return con.execute("""
+    rows = con.execute("""
         SELECT e.id AS event_id, e.level, e.division, e.event_type, e.source_file,
                r.rank, r.athlete, r.club, r.team_name,
                r.vault, r.bars, r.beam, r.floor, r.total,
@@ -85,6 +90,17 @@ def fetch_rows(con, comp_id: str, sport: str):
         WHERE e.competition_id = ?
         ORDER BY e.level, e.division, e.event_type, r.rank
     """, (comp_id,)).fetchall()
+
+    try:
+        redacted = {r["name"] for r in con.execute("SELECT name FROM athletes WHERE redacted = 1")}
+    except sqlite3.OperationalError:
+        redacted = set()
+    if not redacted:
+        return rows
+    return [
+        dict(r, athlete=mask_name(r["athlete"])) if r["athlete"] in redacted else r
+        for r in rows
+    ]
 
 
 # ── Pool splitting (same division run as two independently-ranked fields) ──────
