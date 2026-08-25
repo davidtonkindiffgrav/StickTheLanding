@@ -1593,7 +1593,20 @@ def parse_gymp_individual(full_text, level, division):
                 continue
             name = middle[0] + " " + middle[1]
             club = " ".join(middle[2:]).upper() if len(middle) > 2 else ""
-            results.append({"rank": rank, "athlete": _clean_name(name), "club": club, "total": total})
+            rec = {"rank": rank, "athlete": _clean_name(name), "club": club, "total": total}
+            try:
+                if n_trail == 14:
+                    # D score, combined score, rank per apparatus
+                    for i, app in enumerate(_WAG_COL_ORDER):
+                        rec[f"{app}_d"] = float(trail[3 * i])
+                        rec[app] = float(trail[3 * i + 1])
+                else:
+                    # combined score, rank per apparatus (no D column)
+                    for i, app in enumerate(_WAG_COL_ORDER):
+                        rec[app] = float(trail[2 * i])
+            except ValueError:
+                pass
+            results.append(rec)
             break
     return results
 
@@ -1622,7 +1635,10 @@ def parse_gymp_team(full_text, level, division):
         except ValueError:
             continue
         club = " ".join(tokens[:-10]).upper()
-        results.append({"rank": rank, "club": club, "total": total, "athlete": None})
+        rec = {"rank": rank, "club": club, "total": total, "athlete": None}
+        for i, app in enumerate(_WAG_COL_ORDER):
+            rec[app] = vals[2 * i]
+        results.append(rec)
     return results
 
 
