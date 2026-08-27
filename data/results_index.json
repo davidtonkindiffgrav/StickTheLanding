@@ -1,6 +1,12 @@
 [
   {
     "sport": "wag",
+    "comp_id": "eclipse-invitational-2026",
+    "name": "Eclipse Invitational",
+    "date": "2026-08-22"
+  },
+  {
+    "sport": "wag",
     "comp_id": "senior-gippsland-championships-2026",
     "name": "Senior Gippsland Championships",
     "date": "2026-08-16"
