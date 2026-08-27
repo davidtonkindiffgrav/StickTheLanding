@@ -1567,47 +1567,162 @@ def _parse_gymp_level_div(full_text, file_meta):
     return file_meta.get("level"), file_meta.get("division")
 
 
-def parse_gymp_individual(full_text, level, division):
+
+# ---------------------------------------------------------------------------
+# GymPro individual-results wrap fixup (addon, not part of the main parser)
+#
+# Normally a wrapped Club/Team cell drops onto its own continuation line
+# below the row (e.g. just "Club" or "Australia Red"), and the row still
+# parses fine on the first line since the athlete's first+last name and the
+# start of the club name are already present. That dropped continuation just
+# leaves the club column truncated, which club-alias matching absorbs fine.
+#
+# It breaks when the athlete's SURNAME is long enough to wrap too, landing on
+# the same continuation line as the wrapped club text (e.g.
+# "Chindarattanavorakul Australia Red"). Flattened text then has no way to
+# tell which word belongs to the Gymnast column vs the Club column, and the
+# per-line splitter mis-attributes a club word as the surname. This is rare
+# enough (2 rows out of ~250 in one real ingest) that it isn't worth
+# rewriting the whole parser to be coordinate-based — instead we detect the
+# ambiguous case by checking whether the continuation line contains any word
+# that isn't a known "safe" club/colour fragment, and only for those flagged
+# rows fall back to re-deriving the columns from word coordinates.
+# ---------------------------------------------------------------------------
+
+_GYMP_WRAP_WHITELIST = {
+    "CLUB", "IND.", "IND", "CENTRE", "CENTER", "PROGRAM",
+    "GYMNASTICS", "GYMNASTIC", "GYMANSTICS",
+    "AUSTRALIA", "WARRNAMBOOL", "NUNAWADING",
+    "WHITE", "BLUE", "RED", "SILVER", "GOLD", "BLACK", "NAVY", "TEAL",
+    "PURPLE", "GREEN", "PINK", "YELLOW", "ORANGE", "AQUA", "MAROON",
+    "GREY", "GRAY", "BRONZE", "COPPER", "PLATINUM", "INDIGO", "VIOLET",
+    "CRIMSON", "SCARLET", "RUBY", "JADE", "AMBER", "CORAL", "LIME",
+}
+
+_GYMP_IGNORE_LINE_RE = re.compile(r"^(continued on page \d+|around)$", re.IGNORECASE)
+
+
+def _gymp_wrap_is_suspicious(line):
+    """True if a GymPro continuation line carries a word that isn't a known
+    safe club/colour fragment — the signal that it also holds a surname
+    overflow the per-line splitter can't place correctly."""
+    l = line.strip()
+    if not l or _GYMP_IGNORE_LINE_RE.match(l):
+        return False
+    return not all(t.upper() in _GYMP_WRAP_WHITELIST for t in l.split())
+
+
+def _fix_gymp_row_via_coords(pdf_path, page_idx, bib_id):
+    """Re-derive one flagged row's Gymnast/Club columns from word coordinates
+    instead of flattened text. Only invoked for rows _gymp_wrap_is_suspicious
+    flagged; returns (name, club) or None if the layout can't be resolved."""
+    try:
+        with pdfplumber.open(pdf_path) as pdf:
+            words = pdf.pages[page_idx].extract_words()
+    except Exception:
+        return None
+
+    id_x0 = gymnast_x0 = club_x0 = score_x0 = None
+    for w in words:
+        if id_x0 is None and w["text"] == "ID":
+            id_x0 = w["x0"]
+        elif gymnast_x0 is None and w["text"] == "Gymnast":
+            gymnast_x0 = w["x0"]
+        elif club_x0 is None and w["text"].startswith("Club"):
+            club_x0 = w["x0"]
+        elif score_x0 is None and club_x0 is not None and w["text"] == "D":
+            score_x0 = w["x0"]
+    if None in (id_x0, gymnast_x0, club_x0, score_x0):
+        return None
+
+    # Data x-positions sit a few points left of their header label's x0, so
+    # use midpoints between header columns as the split points rather than
+    # each label's own (slightly-too-far-right) x0.
+    id_name_boundary   = (id_x0 + gymnast_x0) / 2
+    name_club_boundary = (gymnast_x0 + club_x0) / 2
+    club_score_boundary = (club_x0 + score_x0) / 2
+
+    bib_words = [w for w in words if w["text"] == str(bib_id) and w["x0"] < id_name_boundary]
+    if not bib_words:
+        return None
+    row_top = bib_words[0]["top"]
+    later_bibs = sorted(
+        w["top"] for w in words
+        if w["text"].isdigit() and w["x0"] < id_name_boundary and w["top"] > row_top + 1
+    )
+    row_bottom = later_bibs[0] if later_bibs else float("inf")
+
+    row_words = [w for w in words if row_top - 1 <= w["top"] < row_bottom]
+    name_words = sorted(
+        (w for w in row_words if id_name_boundary <= w["x0"] < name_club_boundary),
+        key=lambda w: (w["top"], w["x0"]),
+    )
+    club_words = sorted(
+        (w for w in row_words if name_club_boundary <= w["x0"] < club_score_boundary),
+        key=lambda w: (w["top"], w["x0"]),
+    )
+    if not name_words or not club_words:
+        return None
+
+    name = " ".join(w["text"] for w in name_words)
+    club = " ".join(w["text"] for w in club_words).upper()
+    return name, club
+
+
+def parse_gymp_individual(text_pages, level, division, pdf_path):
     """Parse GymPro individual results. Each row:
        ID First Last Club... D score rank D score rank D score rank D score rank total rank
        = 14 trailing numeric tokens (4 apparatus with difficulty + total + rank)
     """
     results = []
-    for line in full_text.splitlines():
-        tokens = line.split()
-        # Must start with a numeric bib and have enough tokens
-        if not tokens or not tokens[0].isdigit() or len(tokens) < 7:
-            continue
-        # Try to peel off 14 trailing tokens (with D scores)
-        for n_trail in (14, 10):
-            if len(tokens) < 1 + 2 + n_trail:  # bib + 2 name words + scores
+    for page_idx, page_text in enumerate(text_pages):
+        last_rec = None
+        last_bib = None
+        for line in (page_text or "").splitlines():
+            tokens = line.split()
+            if not tokens or not tokens[0].isdigit() or len(tokens) < 7:
+                # Not a data row — check if it's a suspicious wrap continuation
+                # of the row we just parsed.
+                if last_rec is not None and _gymp_wrap_is_suspicious(line):
+                    fixed = _fix_gymp_row_via_coords(pdf_path, page_idx, last_bib)
+                    if fixed:
+                        name, club = fixed
+                        last_rec["athlete"] = _clean_name(name)
+                        last_rec["club"] = club
+                    last_rec = None  # only ever attempt one fixup per row
                 continue
-            trail = tokens[-n_trail:]
-            middle = tokens[1:-n_trail]  # first last [club...]
-            if len(middle) < 2:
-                continue
-            try:
-                total = float(trail[-2])
-                rank  = int(trail[-1])
-            except ValueError:
-                continue
-            name = middle[0] + " " + middle[1]
-            club = " ".join(middle[2:]).upper() if len(middle) > 2 else ""
-            rec = {"rank": rank, "athlete": _clean_name(name), "club": club, "total": total}
-            try:
-                if n_trail == 14:
-                    # D score, combined score, rank per apparatus
-                    for i, app in enumerate(_WAG_COL_ORDER):
-                        rec[f"{app}_d"] = float(trail[3 * i])
-                        rec[app] = float(trail[3 * i + 1])
-                else:
-                    # combined score, rank per apparatus (no D column)
-                    for i, app in enumerate(_WAG_COL_ORDER):
-                        rec[app] = float(trail[2 * i])
-            except ValueError:
-                pass
-            results.append(rec)
-            break
+            # Try to peel off 14 trailing tokens (with D scores)
+            for n_trail in (14, 10):
+                if len(tokens) < 1 + 2 + n_trail:  # bib + 2 name words + scores
+                    continue
+                trail = tokens[-n_trail:]
+                middle = tokens[1:-n_trail]  # first last [club...]
+                if len(middle) < 2:
+                    continue
+                try:
+                    total = float(trail[-2])
+                    rank  = int(trail[-1])
+                except ValueError:
+                    continue
+                name = middle[0] + " " + middle[1]
+                club = " ".join(middle[2:]).upper() if len(middle) > 2 else ""
+                rec = {"rank": rank, "athlete": _clean_name(name), "club": club, "total": total}
+                try:
+                    if n_trail == 14:
+                        # D score, combined score, rank per apparatus
+                        for i, app in enumerate(_WAG_COL_ORDER):
+                            rec[f"{app}_d"] = float(trail[3 * i])
+                            rec[app] = float(trail[3 * i + 1])
+                    else:
+                        # combined score, rank per apparatus (no D column)
+                        for i, app in enumerate(_WAG_COL_ORDER):
+                            rec[app] = float(trail[2 * i])
+                except ValueError:
+                    pass
+                results.append(rec)
+                last_rec = rec
+                last_bib = tokens[0]
+                break
     return results
 
 
@@ -1634,8 +1749,9 @@ def parse_gymp_team(full_text, level, division):
             rank  = int(vals[-1])
         except ValueError:
             continue
-        club = " ".join(tokens[:-10]).upper()
-        rec = {"rank": rank, "club": club, "total": total, "athlete": None}
+        raw_name = " ".join(tokens[:-10])
+        club = raw_name.upper()
+        rec = {"rank": rank, "club": club, "team_name": raw_name.strip(), "total": total, "athlete": None}
         for i, app in enumerate(_WAG_COL_ORDER):
             rec[app] = vals[2 * i]
         results.append(rec)
@@ -1753,7 +1869,7 @@ def parse_gymp(text_pages, pdf_path):
         results = parse_gymp_team(full_text, level, division)
         event_type = "Team"
     else:
-        results = parse_gymp_individual(full_text, level, division)
+        results = parse_gymp_individual(text_pages, level, division, pdf_path)
         event_type = "AA"
 
     if not results:

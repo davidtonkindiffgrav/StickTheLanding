@@ -112,7 +112,9 @@
       "name": "Bentleigh McKinnon Gymnastics Club",
       "region": "Metro South",
       "aliases": [
-        "BMGC"
+        "BMGC",
+        "BENTLEIGH MCKINNON",
+        "BENTLEIGH MCKINNON GYMNASTICS"
       ],
       "logo": null
     },
@@ -140,7 +142,8 @@
         "B6O",
         "B7O",
         "B7U",
-        "B8O"
+        "B8O",
+        "BTYC GYMNASTICS"
       ],
       "logo": null
     },
@@ -162,7 +165,9 @@
         "BUGS",
         "BUGSWHI",
         "BUGSBLU",
-        "BUGS GYMNASTICS"
+        "BUGS GYMNASTICS",
+        "BUGS GYMNASTICS IND.",
+        "NATT BUGS GYMNASTICS"
       ],
       "logo": null
     },
@@ -183,7 +188,8 @@
         "CASEY GYMNASTICS",
         "CASEY GYMNASTICS BLUE",
         "CASEY GYMNASTICS RED",
-        "CASEY GYMNASTICS INDIVIDUAL"
+        "CASEY GYMNASTICS INDIVIDUAL",
+        "CASEY GYMNASTICS IND."
       ],
       "_venues": [
         "Casey Stadium",
@@ -251,7 +257,8 @@
       "aliases": [
         "DIAMOND",
         "DIAMOND GYMNASTICS",
-        "DIAMOND GYMNASTICS CLUB"
+        "DIAMOND GYMNASTICS CLUB",
+        "PAMPUS DIAMOND GYMNASTICS"
       ],
       "logo": null
     },
@@ -278,7 +285,8 @@
       "name": "Eclipse Gymnastics Ringwood",
       "region": "Metro East",
       "aliases": [
-        "ECLIPSE"
+        "ECLIPSE",
+        "ECLIPSE IND."
       ],
       "logo": null
     },
@@ -291,7 +299,10 @@
         "EDGE GYMNASTICS",
         "EDGE GYMNASTICS INDIVIDUAL",
         "EDGE GYMNASTICS LIME",
-        "EDGE GYMNASTICS SILVER"
+        "EDGE GYMNASTICS SILVER",
+        "EDGE GYMANSTICS",
+        "EDGE GYMANSTICS IND.",
+        "VITO EDGE GYMANSTICS"
       ],
       "logo": null
     },
@@ -463,7 +474,11 @@
       "aliases": [
         "GU",
         "GYMNASTICS UNLIMITED",
-        "GYU"
+        "GYU",
+        "GYMNASTICS UNLIMITED AUSTRALIA",
+        "GYMNASTICS UNLIMITED AUSTRALIA IND.",
+        "MAKDISSI GYMNASTICS UNLIMITED",
+        "BUNAM GYMNASTICS UNLIMITED"
       ],
       "logo": null
     },
@@ -552,7 +567,10 @@
         "JETS SHEPPARTON",
         "JETS S",
         "JETS G",
-        "JETSS"
+        "JETSS",
+        "JETS PERFORMANCE",
+        "JETS PERFORMANCE PROGRAM",
+        "JETS PERFORMANCE PROGRAM IND."
       ],
       "_venues": [
         "Diamond Creek",
@@ -717,7 +735,8 @@
         "MI1",
         "MI2",
         "MI3",
-        "MILDURA"
+        "MILDURA",
+        "MILDURA GYMNASTICS CENTRE"
       ],
       "logo": null
     },
@@ -738,7 +757,9 @@
         "MLC BLACK",
         "MLC GREEN",
         "MLC SILVER",
-        "MLC WHITE"
+        "MLC WHITE",
+        "MLC GYMNASTICS",
+        "MLC GYMNASTICS IND."
       ],
       "logo": null
     },
@@ -797,7 +818,9 @@
         "MY6",
         "MY7",
         "MY8",
-        "MY9"
+        "MY9",
+        "MYC GYMNASTICS",
+        "MYC GYMNASTICS IND."
       ],
       "logo": null
     },
@@ -807,7 +830,9 @@
       "region": "Regional West",
       "aliases": [
         "NATIMUK",
-        "NATIMUK & DISTRICT GYMNASTICS CLUB"
+        "NATIMUK & DISTRICT GYMNASTICS CLUB",
+        "NATIMUK & DISTRICT",
+        "NATIMUK & DISTRICT GYMNASTIC CLUB IND."
       ],
       "logo": null
     },
@@ -816,7 +841,9 @@
       "name": "Niddrie Gymnastic Club",
       "region": "Metro West",
       "aliases": [
-        "NIDDRIE"
+        "NIDDRIE",
+        "MCFADDEN NIDDRIE AQUA",
+        "NIDDRIE IND."
       ],
       "logo": null
     },
@@ -826,7 +853,10 @@
       "region": "Metro East",
       "aliases": [
         "NUNAWADING",
-        "NGS"
+        "NGS",
+        "NUNAWADING GYMNASTICS IND.",
+        "PRAAG NUNAWADING",
+        "NUNAWADING GYMNASTICS"
       ],
       "logo": null
     },
@@ -859,7 +889,8 @@
         "PIT GYMNASTICS",
         "PIT INDIVIDUAL",
         "PIT WHITE",
-        "PIT BLUE"
+        "PIT BLUE",
+        "PIT GYMNASTICS IND."
       ],
       "logo": "assets/logos/PIT.png"
     },
@@ -905,7 +936,11 @@
         "PU5",
         "PU6",
         "PU7",
-        "PU8"
+        "PU8",
+        "PULSE GYMNASTICS IND.",
+        "FAZIO PULSE GYMNASTICS WHITE",
+        "SINGH PULSE GYMNASTICS WHITE",
+        "PULSE GYMNASTICS"
       ],
       "logo": null
     },
@@ -1016,7 +1051,9 @@
         "Strive 3",
         "Strive D1",
         "Strive D2",
-        "Strive D3"
+        "Strive D3",
+        "STRIVE GYMNASTICS WARRNAMBOOL",
+        "STRIVE GYMNASTICS WARRNAMBOOL IND."
       ],
       "logo": null
     },
@@ -1089,7 +1126,10 @@
       "aliases": [
         "WERR",
         "WERRIBEE",
-        "WGC"
+        "WGC",
+        "WERRIBEE GYMNASTICS",
+        "WERRIBEE GYMNASTICS CLUB",
+        "WERRIBEE GYMNASTICS CLUB IND."
       ],
       "logo": null
     },
@@ -1104,7 +1144,11 @@
         "WVB",
         "WAV",
         "WAVERLEYGC",
-        "WAVERLEY"
+        "WAVERLEY",
+        "WAVERLEY GYMNASTICE",
+        "WAVERLEY GYMNASTICE CENTRE",
+        "WAVERLEY GYMNASTICE CENTRE IND.",
+        "COSTA WAVERLEY GYMNASTICE"
       ],
       "logo": null
     },
