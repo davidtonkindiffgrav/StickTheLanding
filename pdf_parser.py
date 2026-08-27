@@ -10,6 +10,7 @@ Team Results PDFs are skipped in all cases.
 """
 
 import datetime
+import json
 import re
 import sys
 from pathlib import Path
@@ -148,6 +149,9 @@ INT_LEVEL_LABELS = {101: "Dev Int", 102: "Fut Int", 103: "Jun Int", 104: "Sen In
 # Helpers
 # ---------------------------------------------------------------------------
 
+_NAME_PARTICLES = {"van", "der", "de", "von", "le", "la", "du", "den"}
+
+
 def _parse_rank(s):
     try:
         return int(re.sub(r"[^0-9]", "", s))
@@ -167,11 +171,13 @@ def _clean_name(name):
     # "Word-Word" (e.g. "Brand - Starkey"). Collapse it back to a tight hyphen.
     name = re.sub(r"(?<=[A-Za-z])\s+-\s+(?=[A-Za-z])", "-", name)
     # PDF text extraction sometimes inserts spaces mid-word. A token starting with
-    # a lowercase letter is always a broken fragment — join it to the previous token.
+    # a lowercase letter is usually a broken fragment — join it to the previous
+    # token, UNLESS it's a real lowercase surname particle ("van Praag", "de
+    # Fazio"), which must stay a separate word for _normalise_name to recognise.
     tokens = name.split(" ")
     joined = [tokens[0]] if tokens else []
     for tok in tokens[1:]:
-        if tok and tok[0].islower():
+        if tok and tok[0].islower() and tok.lower() not in _NAME_PARTICLES:
             joined[-1] += tok
         else:
             joined.append(tok)
@@ -186,7 +192,7 @@ def _normalise_name(name):
     """
     if not name or name.startswith("["):
         return name
-    _PARTICLES = {"van", "der", "de", "von", "le", "la", "du", "den"}
+    _PARTICLES = _NAME_PARTICLES
     def _cap(part):
         if not part:
             return part
@@ -1669,6 +1675,68 @@ def _fix_gymp_row_via_coords(pdf_path, page_idx, bib_id):
     return name, club
 
 
+# ---------------------------------------------------------------------------
+# GymPro individual-results name/club split
+#
+# The Gymnast and Club/Team columns are just two runs of space-separated
+# words with no delimiter between them, so the naive assumption "name is
+# exactly the first 2 words" breaks for compound surnames ("Da Costa", "van
+# Praag", "Al Makdissi"), a 3-word surname ("Lindor McFadden"), or a double
+# given name ("Hailey Isabella"). In every one of those cases the extra name
+# word was silently swallowed into the club field instead. Since every real
+# club name is already known (clubs.json), the fix is to grow the name past
+# 2 words only when doing so leaves a remainder that's actually a recognised
+# club — otherwise fall back to the original 2-word split unchanged.
+# ---------------------------------------------------------------------------
+
+_CLUB_ALIASES_CACHE = None
+
+_GYMP_COLOUR_SUFFIXES = {
+    "WHITE", "BLUE", "RED", "SILVER", "GOLD", "BLACK", "NAVY", "TEAL",
+    "PURPLE", "GREEN", "PINK", "YELLOW", "ORANGE", "AQUA", "MAROON",
+    "GREY", "GRAY", "BRONZE", "COPPER", "PLATINUM", "INDIGO", "VIOLET",
+    "CRIMSON", "SCARLET", "RUBY", "JADE", "AMBER", "CORAL", "LIME",
+}
+
+
+def _load_club_aliases():
+    global _CLUB_ALIASES_CACHE
+    if _CLUB_ALIASES_CACHE is None:
+        cache = {}
+        try:
+            with open("data/clubs.json", encoding="utf-8") as f:
+                data = json.load(f)
+            for club in data.get("clubs", []):
+                cache[club["code"].upper()] = club["code"]
+                for alias in club.get("aliases", []):
+                    cache[alias.upper()] = club["code"]
+        except Exception:
+            cache = {}
+        _CLUB_ALIASES_CACHE = cache
+    return _CLUB_ALIASES_CACHE
+
+
+def _is_known_club_text(text):
+    aliases = _load_club_aliases()
+    if text in aliases:
+        return True
+    parts = text.rsplit(" ", 1)
+    return len(parts) == 2 and parts[1] in _GYMP_COLOUR_SUFFIXES and parts[0] in aliases
+
+
+def _split_gymp_name_club(middle):
+    """Return (name, club) from the Gymnast+Club tokens of a GymPro row,
+    extending the name past the default first+last split whenever that's
+    needed to keep the remaining club text a recognised club."""
+    best_split = 2
+    for split in range(3, len(middle)):
+        if _is_known_club_text(" ".join(middle[split:]).upper()):
+            best_split = split
+    name = " ".join(middle[:best_split])
+    club = " ".join(middle[best_split:]).upper() if len(middle) > best_split else ""
+    return name, club
+
+
 def parse_gymp_individual(text_pages, level, division, pdf_path):
     """Parse GymPro individual results. Each row:
        ID First Last Club... D score rank D score rank D score rank D score rank total rank
@@ -1704,8 +1772,7 @@ def parse_gymp_individual(text_pages, level, division, pdf_path):
                     rank  = int(trail[-1])
                 except ValueError:
                     continue
-                name = middle[0] + " " + middle[1]
-                club = " ".join(middle[2:]).upper() if len(middle) > 2 else ""
+                name, club = _split_gymp_name_club(middle)
                 rec = {"rank": rank, "athlete": _clean_name(name), "club": club, "total": total}
                 try:
                     if n_trail == 14:
