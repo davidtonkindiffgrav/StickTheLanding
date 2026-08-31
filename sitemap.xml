@@ -41,6 +41,12 @@
     <priority>0.4</priority>
   </url>
   <url>
+    <loc>https://stickthelanding.com.au/news/posts/2026-08-29-Eclipse-Invitational/</loc>
+    <lastmod>2026-08-29</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
     <loc>https://stickthelanding.com.au/news/posts/2026-08-20-Waverley-Classic/</loc>
     <lastmod>2026-08-20</lastmod>
     <changefreq>monthly</changefreq>
@@ -243,6 +249,12 @@
     <lastmod>2026-01-27</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://stickthelanding.com.au/results/wag/cyc-junior-invitational-2026/</loc>
+    <lastmod>2026-08-29</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
   </url>
   <url>
     <loc>https://stickthelanding.com.au/results/wag/eclipse-invitational-2026/</loc>

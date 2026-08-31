@@ -75,7 +75,7 @@ ATHLETE_LINE_APP = re.compile(
     rf"^(\d+[T]?)\s+(\d+)\s+(.+?)\s+({_S})\s*$"
 )
 
-CLUB_LINE = re.compile(r"^([A-Za-z]{2,6})\s+[\d]+[T]?(?:\s+[\d]+[T]?){1,5}\s*$")
+CLUB_LINE = re.compile(r"^([A-Za-z]{2,6})\s+[\d]+[T*]?(?:\s+[\d]+[T*]?){1,5}\s*$")
 APP_CODE = re.compile(r"\b(VT|UB|BB|FX|PH|SR|PB|HB)\b", re.IGNORECASE)
 
 # MAG apparatus code → results dict key

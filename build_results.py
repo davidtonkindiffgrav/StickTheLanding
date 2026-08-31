@@ -122,6 +122,39 @@ def _parse_source_meta(source_file):
     return m.group(1), m.group(2)  # session, code
 
 
+# CYC Junior Invitational (and similar) name files "<session#><letter>. MEET -
+# Level N Division M[<pool suffix>].pdf", e.g. "8G. MEET - Level 5 Division
+# 1.1.pdf" / "...1.2.pdf" (two ranked pools run in the same session) or
+# "3G. MEET - Level 7 Division 2.1.pdf" vs "2G. MEET - Level 7 Division 2.pdf"
+# (a pool held over from an earlier session with no pool suffix of its own).
+# The leading letter is just a parallel-hall code, not a gender marker, and
+# carries no labeling information of its own.
+def _parse_cyc_source_meta(source_file):
+    """Return a short pool label for one CYC-style filename, or None if the
+    filename doesn't match this competition's naming convention."""
+    if not source_file:
+        return None
+    fname = source_file.replace("\\", "/").rsplit("/", 1)[-1]
+    m = re.match(r"^(\d+)[A-Za-z]\.\s*(?:MEET|TEAM)\s*-\s*(.+?)\.pdf$", fname, re.I)
+    if not m:
+        return None
+    session, rest = m.group(1), m.group(2)
+
+    last_word = rest.rsplit(None, 1)[-1]
+    if last_word.lower() in ("open", "under"):
+        return last_word.capitalize()
+
+    dot_m = re.search(r"\.(\d+)$", rest)
+    if dot_m:
+        return f"Pool {dot_m.group(1)}"
+
+    letter_m = re.search(r"\d([a-z])$", rest)
+    if letter_m:
+        return f"Pool {ord(letter_m.group(1)) - ord('a') + 1}"
+
+    return f"Session {session}"
+
+
 # Old-style ProScore filenames (pre-dating the "MEET_Women_S3A_L5U.pdf"
 # convention) don't encode a session number, so _parse_source_meta can't
 # label them. These two events' own PDF pages print "Session: 4" and
@@ -182,6 +215,17 @@ def pool_labels_for_group(rows_by_event: dict) -> dict:
         # same code, different session -> scheduling split, label by session
         for eid, (session, code) in meta.items():
             labels[eid] = f"Session {session}" if session else None
+
+    # Neither the Y-Invitational nor the override convention recognised any
+    # of these filenames (all labels still None) -> try the CYC convention.
+    # Only trust it if it produces a distinct label for every event, since a
+    # collision would be worse than the unlabeled tables it's meant to fix.
+    if all(v is None for v in labels.values()):
+        cyc_labels = {eid: _parse_cyc_source_meta(rows[0].get("source_file") if rows else None)
+                      for eid, rows in rows_by_event.items()}
+        if all(cyc_labels.values()) and len(set(cyc_labels.values())) == len(cyc_labels):
+            return cyc_labels
+
     return labels
 
 

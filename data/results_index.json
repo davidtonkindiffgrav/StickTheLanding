@@ -1,6 +1,12 @@
 [
   {
     "sport": "wag",
+    "comp_id": "cyc-junior-invitational-2026",
+    "name": "CYC Junior Invitational",
+    "date": "2026-08-29"
+  },
+  {
+    "sport": "wag",
     "comp_id": "eclipse-invitational-2026",
     "name": "Eclipse Invitational",
     "date": "2026-08-22"
