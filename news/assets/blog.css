@@ -245,6 +245,50 @@ html[data-theme="light"] .post-body a { color: var(--text); }
 .post-table tr:last-child td { border-bottom: none; }
 .post-table td:first-child, .post-table th:first-child { width: 36px; }
 @media (max-width: 540px) { .post-table { font-size: 0.75rem; } .post-table td, .post-table th { padding: 5px 6px; } }
+
+.l34-table td:first-child, .l34-table th:first-child,
+.l57-table td:first-child, .l57-table th:first-child { width: auto; }
+.l34-table, .l57-table { margin-bottom: 16px; }
+.l34-table caption, .l57-table caption {
+  text-align: left; font-weight: 700; font-size: 0.82rem; color: var(--text);
+  background: var(--surface2); padding: 7px 10px; border: 1px solid var(--border); border-bottom: none;
+}
+.l34-table tr.qualifies td { font-weight: 600; }
+.l34-table tr.bubble td { color: var(--muted); }
+.l57-table tr.bubble-cutoff td { border-top: 1px dashed var(--border); }
+.l57-table .clears { color: #2f9e64; }
+.l57-table .short { color: #c1554f; }
+html:not([data-theme="light"]) .l57-table .clears { color: #6fd39a; }
+html[data-theme="dark"] .l57-table .clears { color: #6fd39a; }
+html:not([data-theme="light"]) .l57-table .short { color: #e08a85; }
+html[data-theme="dark"] .l57-table .short { color: #e08a85; }
+.l57-table tr.short-row td { color: var(--muted); }
+.watch-flag { font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.5px; color: var(--accent); background: var(--accent-glow); padding: 1px 5px; border-radius: 4px; }
+
+.region-jump-nav {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin: 20px 0 8px;
+  padding: 10px 0;
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+}
+.region-jump-nav .region-jump-label { font-size: 0.78rem; color: var(--muted); margin-right: 2px; }
+.region-jump-btn {
+  color: var(--text);
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-decoration: underline;
+  text-decoration-color: var(--border);
+  text-underline-offset: 3px;
+}
+.region-jump-btn:hover { color: var(--accent); text-decoration-color: var(--accent); }
+.region-jump-sep { color: var(--muted); font-size: 0.8rem; }
+h2[id] { scroll-margin-top: 20px; }
+.region-divider { border: none; border-top: 1px solid var(--border); margin: 40px 0; }
+
 .post-body figure { margin: 28px 0; }
 .post-body figure img { width: 100%; border-radius: 10px; display: block; }
 .post-body figcaption { font-size: 0.78rem; color: var(--muted); text-align: center; margin-top: 8px; }
