@@ -1184,7 +1184,8 @@ function buildTeamStandings(rows, apparatus = "AA") {
     c.points += POINTS_MAP[r.rank] || 0;
     if (r.competition) c.comps.add(r.competition);
     const cutoff = TEAM_PROMOTION_CUTOFF[currentSport]?.[r.level]?.[r.division];
-    if (cutoff != null && score >= cutoff && r.competition) c.overCutoffComps.add(r.competition);
+    const isCurrentDiv = r.team_id == null || ownDivLabel === divLabel;
+    if (cutoff != null && score >= cutoff && r.competition && isCurrentDiv) c.overCutoffComps.add(r.competition);
   }
   return Object.values(clubs).map(c => ({
     ...c,
