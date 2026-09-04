@@ -35,7 +35,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
-  <link rel="stylesheet" href="assets/style.css?v=3" />
+  <link rel="stylesheet" href="assets/style.css?v=4" />
   <link rel="stylesheet" href="/assets/nav.css" />
   <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-8302214774959598" crossorigin="anonymous"></script>
   <script async src="https://tally.so/widgets/embed.js"></script>
@@ -47,13 +47,13 @@
 
   <section class="v3-hero">
     <div class="copy">
-      <div class="kicker">★ Victorian Gymnastics Leaderboards ★</div>
+      <div class="kicker">★ Victorian Gymnastics Community ★</div>
       <h1>
         <span class="stack">Every <span class="acc1">routine.</span></span>
         <span class="stack">Every <span class="acc2">score.</span></span>
       <!--  <span class="stack">One season <span class="slash">/</span> one table.</span> -->
       </h1>
-      <p>Your hub for Victorian Gymnastics results, standings, and athlete profiles. Explore season histories, apparatus graphs, and personal bests - every score, every competition, all in one place.</p>
+      <p>Your home for the Victorian Gymnastics community - results, standings, and athlete profiles. Explore season histories, apparatus graphs, and personal bests - every score, every competition, all in one place.</p>
     </div>
     <div class="v3-stats">
       <div class="v3-stat a"><div class="n">2.3k</div><div class="l">Gymnasts</div></div>
@@ -163,7 +163,7 @@
   </div>
 
   <footer class="v3-foot">
-    <span>© 2026 Stick The Landing</span>
+    <span>© 2026 Stick The Landing · Built for the Victorian gymnastics community</span>
     <span>
       <button class="link-btn v3-foot-btn" onclick="showContact('landing')">Contact</button>
       ·
@@ -188,6 +188,7 @@
     <button class="active" data-view="clubs">Team Standings</button>
     <button data-view="athletes">Individual Rankings</button>
     <button onclick="window.location.href='/competitions/'+currentSport.toLowerCase()+'/'">Competitions</button>
+    <button id="cop-nav-btn" onclick="window.location.href='/code-of-points/wag/'">Code of Points</button>
     <button data-view="club-directory">Clubs</button>
     <button onclick="showCalendar('app')">Events</button>
     <button data-view="graphs">Graphs</button>

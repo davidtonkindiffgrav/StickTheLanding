@@ -177,6 +177,7 @@
     #app-nav, #apparatus-nav { position: sticky; z-index: 150; }
     #app-nav { top: 56px; }
     #apparatus-nav { top: 104px; }
+    html[data-sport="MAG"] #cop-nav-btn { display: none; }
 
     /* ── MAIN CONTENT ──────────────────────────────────────────────────────── */
     main { padding: 28px 32px; max-width: 1200px; margin: 0 auto; }
