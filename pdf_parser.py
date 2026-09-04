@@ -1029,6 +1029,13 @@ def parse_scoreholder(text_pages, pdf_path, sport="WAG"):
     Athlete line:  rank name score(rank) ×6 total
     Next line:     club/gym full name (to be alias-mapped later)
     Remaining lines: detail rows (SV B E ND breakdown) — ignored.
+
+    Team pages ("Level N - Team" header, no All-around) list one row per
+    club squad (e.g. "1 PIT L1 Team ... 161.700") matched by the same row
+    regex, followed by that squad's club name and then each athlete's own
+    per-apparatus contribution ending in "-" instead of a numeric total —
+    those per-athlete rows don't match the row regex so they're skipped
+    automatically, leaving just the squad totals.
     """
     file_meta = parse_filename_meta(pdf_path, sport=sport)
 
@@ -1036,6 +1043,8 @@ def parse_scoreholder(text_pages, pdf_path, sport="WAG"):
     _hdr_re = re.compile(
         r"Level\s+(\d+)\s*[-–]\s*All.?[Aa]round\s*[>|]\s*(\w+)", re.IGNORECASE
     )
+    # Team page header e.g. "Level 1 - Team"
+    _team_hdr_re = re.compile(r"Level\s+(\d+)\s*[-–]\s*Team\b", re.IGNORECASE)
     # Score token with rank annotation: "9.200 (1)" / "8.900 (1=)" / "9.400 (3T)"
     _SH = r"[\d.]+\s*\(\d+[=T]?\)"
     _athlete_re = re.compile(
@@ -1047,27 +1056,36 @@ def parse_scoreholder(text_pages, pdf_path, sport="WAG"):
         re.IGNORECASE
     )
 
-    events_by_key = {}   # (level, age_group) → list of results
+    events_by_key      = {}   # (level, age_group) → list of AA results
+    team_events_by_lvl = {}   # level → list of Team results
 
     for text in text_pages:
         if not text:
             continue
 
-        level = file_meta.get("level")
+        level     = file_meta.get("level")
         age_group = file_meta.get("age_group")
+        is_team   = file_meta.get("event_type") == "Team"
 
         hdr_m = _hdr_re.search(text)
         if hdr_m:
             level = int(hdr_m.group(1))
             ag_raw = hdr_m.group(2).strip().lower()
             age_group = "Open" if ag_raw == "open" else "Under" if "under" in ag_raw else ag_raw.title()
+            is_team = False
+        else:
+            team_hdr_m = _team_hdr_re.search(text)
+            if team_hdr_m:
+                level = int(team_hdr_m.group(1))
+                is_team = True
 
         if level is None:
             continue
 
-        key = (level, age_group)
-        if key not in events_by_key:
-            events_by_key[key] = []
+        if is_team:
+            target = team_events_by_lvl.setdefault(level, [])
+        else:
+            target = events_by_key.setdefault((level, age_group), [])
 
         lines = [l.rstrip() for l in text.splitlines() if l.strip()]
         pending = None
@@ -1081,19 +1099,21 @@ def parse_scoreholder(text_pages, pdf_path, sport="WAG"):
             m = _athlete_re.match(line)
             if m:
                 rank_str = m.group(1).rstrip("=T")
-                name = _clean_name(m.group(2))
                 raw_scores = [re.match(r"([\d.]+)", g).group(1) for g in m.groups()[2:8]]
                 scores = [_parse_score(s) for s in raw_scores]
                 total = _parse_score(m.group(9))
                 row = {
-                    "rank":    _parse_rank(rank_str),
-                    "bib":     None,
-                    "athlete": name,
-                    "club":    None,
-                    "total":   total,
+                    "rank":  _parse_rank(rank_str),
+                    "bib":   None,
+                    "club":  None,
+                    "total": total,
                 }
+                if is_team:
+                    row["team_name"] = m.group(2).strip()
+                else:
+                    row["athlete"] = _clean_name(m.group(2))
                 row.update(_build_app_scores(scores, [], [], sport))
-                events_by_key[key].append(row)
+                target.append(row)
                 pending = row
                 continue
 
@@ -1102,11 +1122,17 @@ def parse_scoreholder(text_pages, pdf_path, sport="WAG"):
                     pending["club"] = line.strip()
                     pending = None
 
-    return [
+    events = [
         {"level": lvl, "division": None, "age_group": ag, "event_type": "AA", "results": results}
         for (lvl, ag), results in events_by_key.items()
         if results
     ]
+    events += [
+        {"level": lvl, "division": None, "age_group": None, "event_type": "Team", "results": results}
+        for lvl, results in team_events_by_lvl.items()
+        if results
+    ]
+    return events
 
 
 def parse_scoreholder_wag(text_pages, pdf_path):
