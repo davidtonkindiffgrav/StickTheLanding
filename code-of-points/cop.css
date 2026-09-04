@@ -166,9 +166,11 @@
 .cop-card-diagram { display: block; width: 100%; padding: 0; background: var(--cop-plate); border: 0; border-bottom: 1px solid var(--cop-border); cursor: zoom-in; }
 .cop-card-diagram img { display: block; width: 100%; height: 132px; object-fit: contain; padding: 10px; }
 .cop-card-body { display: flex; flex-direction: column; gap: 10px; padding: 14px 16px 16px; }
-.cop-card-meta { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
-.cop-card-number { font-family: 'JetBrains Mono', monospace; font-size: 13px; font-weight: 500; color: var(--cop-text-muted); }
-.cop-card-meta-right { display: flex; align-items: center; gap: 7px; }
+.cop-card-meta { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
+.cop-card-meta-left { display: flex; align-items: baseline; gap: 7px; min-width: 0; overflow: hidden; }
+.cop-card-number { font-family: 'JetBrains Mono', monospace; font-size: 13px; font-weight: 500; color: var(--cop-text-muted); flex-shrink: 0; }
+.cop-card-aka { font-style: italic; font-size: 12px; color: var(--cop-gold); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.cop-card-meta-right { display: flex; align-items: center; gap: 7px; flex-shrink: 0; }
 .cop-card-score { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--cop-text-faint); }
 .cop-badge { display: grid; place-items: center; min-width: 26px; height: 24px; padding: 0 6px; border-radius: 6px; font-family: 'JetBrains Mono', monospace; font-size: 13px; font-weight: 700; background: var(--cop-gold-badge-bg); color: var(--cop-gold); border: 1px solid var(--cop-gold-badge-border); }
 .cop-badge.missing { background: var(--cop-surface-raised); color: var(--cop-text-faint); border-color: var(--cop-border-btn); }
@@ -192,6 +194,7 @@
 .cop-modal-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; padding: 20px 22px 16px; border-bottom: 1px solid var(--cop-border); }
 .cop-modal-kicker { font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: .14em; text-transform: uppercase; color: var(--cop-text-faint); }
 .cop-modal-number { font-family: 'JetBrains Mono', monospace; font-size: 22px; font-weight: 500; color: var(--cop-text-strong); }
+.cop-modal-aka { font-style: italic; font-size: 15px; color: var(--cop-gold); }
 .cop-modal-head-left { display: flex; flex-direction: column; gap: 8px; }
 .cop-modal-head-right { display: flex; align-items: center; gap: 12px; }
 .cop-modal-value-col { display: flex; flex-direction: column; align-items: flex-end; gap: 3px; }

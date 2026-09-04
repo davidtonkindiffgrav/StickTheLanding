@@ -27,8 +27,8 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
-  <link rel="stylesheet" href="/assets/nav.css?v=202609041" />
-  <link rel="stylesheet" href="/code-of-points/cop.css?v=202609041" />
+  <link rel="stylesheet" href="/assets/nav.css?v=202609042" />
+  <link rel="stylesheet" href="/code-of-points/cop.css?v=202609042" />
 </head>
 <body class="cop-body" data-cop-app="VT">
 
@@ -57,7 +57,7 @@
       <div class="cop-filter-row1">
         <div class="cop-search">
           <span class="cop-search-glyph" aria-hidden="true">⌕</span>
-          <input id="cop-q" type="text" placeholder="Search description or element number…" autocomplete="off" />
+          <input id="cop-q" type="text" placeholder="Search description, number or skill name…" autocomplete="off" />
           <button type="button" id="cop-q-clear" class="cop-search-clear" style="display:none">clear</button>
         </div>
         <div class="cop-sort">
@@ -74,6 +74,10 @@
         <div class="cop-filter-group">
           <span class="cop-label">Group</span>
           <div id="cop-group-chips" class="cop-chip-list"></div>
+        </div>
+        <div class="cop-filter-group">
+          <span class="cop-label">Skills</span>
+          <div class="cop-chip-list"><button type="button" id="cop-named-toggle" class="cop-chip group-chip">Named only</button></div>
         </div>
         <div class="cop-result-info">
           <span id="cop-result-count"></span>
@@ -95,6 +99,7 @@
       <div class="cop-modal-head-left">
         <span id="cop-modal-kicker" class="cop-modal-kicker"></span>
         <span id="cop-modal-number" class="cop-modal-number"></span>
+        <span id="cop-modal-aka" class="cop-modal-aka" style="display:none"></span>
       </div>
       <div class="cop-modal-head-right">
         <span class="cop-modal-value-col">
@@ -109,7 +114,7 @@
   </div>
 </div>
 
-<script src="/code-of-points/cop.js?v=202609041"></script>
-<script src="/assets/nav.js?v=202609041" defer></script>
+<script src="/code-of-points/cop.js?v=202609042"></script>
+<script src="/assets/nav.js?v=202609042" defer></script>
 </body>
 </html>

@@ -66,6 +66,7 @@
       groupChips: document.getElementById('cop-group-chips'),
       resultCount: document.getElementById('cop-result-count'),
       resetBtn: document.getElementById('cop-reset'),
+      namedToggle: document.getElementById('cop-named-toggle'),
       sections: document.getElementById('cop-sections'),
       modalBackdrop: document.getElementById('cop-modal-backdrop'),
       modalPanel: document.getElementById('cop-modal-panel')
@@ -78,7 +79,8 @@
       q: params.get('q') || '',
       diffs: (params.get('rating') || '').split(',').filter(Boolean),
       groups: (params.get('group') || '').split(',').filter(Boolean).map(function (g) { return 'Group ' + g; }),
-      sort: params.get('sort') === 'difficulty' ? 'difficulty' : 'number'
+      sort: params.get('sort') === 'difficulty' ? 'difficulty' : 'number',
+      named: params.get('named') === '1'
     };
 
     // Header + quicknav (static per apparatus, render once)
@@ -91,6 +93,7 @@
     els.search.value = state.q;
     updateSearchClear();
     updateSortButtons();
+    updateNamedToggle();
 
     Promise.all([
       fetch('/data/cop/' + app.file + '.json').then(function (r) { return r.json(); }),
@@ -123,10 +126,17 @@
     els.sortNum.addEventListener('click', function () { state.sort = 'number'; updateSortButtons(); syncUrl(); render(); });
     els.sortDiff.addEventListener('click', function () { state.sort = 'difficulty'; updateSortButtons(); syncUrl(); render(); });
     els.resetBtn.addEventListener('click', function () {
-      state.q = ''; state.diffs = []; state.groups = [];
+      state.q = ''; state.diffs = []; state.groups = []; state.named = false;
       els.search.value = '';
       updateSearchClear();
       buildChips();
+      updateNamedToggle();
+      syncUrl();
+      render();
+    });
+    els.namedToggle.addEventListener('click', function () {
+      state.named = !state.named;
+      updateNamedToggle();
       syncUrl();
       render();
     });
@@ -141,6 +151,7 @@
       els.sortNum.classList.toggle('active', state.sort === 'number');
       els.sortDiff.classList.toggle('active', state.sort === 'difficulty');
     }
+    function updateNamedToggle() { els.namedToggle.classList.toggle('active', state.named); }
 
     function buildChips() {
       var ratings = uniqueSorted(state.data.map(function (e) { return e.difficulty_rating; }).filter(Boolean));
@@ -190,6 +201,7 @@
       if (state.diffs.length) p.set('rating', state.diffs.join(','));
       if (state.groups.length) p.set('group', state.groups.map(function (g) { return g.replace('Group ', ''); }).join(','));
       if (state.sort !== 'number') p.set('sort', state.sort);
+      if (state.named) p.set('named', '1');
       var qs = p.toString();
       var url = location.pathname + (qs ? '?' + qs : '') + location.hash;
       history.replaceState(null, '', url);
@@ -198,11 +210,13 @@
     function matchRecord(e) {
       if (state.diffs.length && state.diffs.indexOf(e.difficulty_rating) === -1) return false;
       if (state.groups.length && state.groups.indexOf(e.group) === -1) return false;
+      if (state.named && !e.aka) return false;
       if (!state.q.trim()) return true;
       var q = state.q.trim().toLowerCase();
       return (e.description || '').toLowerCase().indexOf(q) !== -1 ||
         String(e.number_float).indexOf(q) !== -1 ||
-        String(e.number_raw || '').toLowerCase().indexOf(q) !== -1;
+        String(e.number_raw || '').toLowerCase().indexOf(q) !== -1 ||
+        (e.aka || '').toLowerCase().indexOf(q) !== -1;
     }
 
     function toCard(e) {
@@ -213,12 +227,13 @@
         score: scoreLabel(e.difficulty_score),
         rating: badgeLabel(e.difficulty_rating),
         badgeCls: badgeClass(e.difficulty_rating),
+        aka: e.aka || '',
         img: '/assets/cop/' + e.image_path
       };
     }
 
     function render() {
-      var isFiltered = state.q.length > 0 || state.diffs.length > 0 || state.groups.length > 0;
+      var isFiltered = state.q.length > 0 || state.diffs.length > 0 || state.groups.length > 0 || state.named;
       els.resetBtn.style.display = isFiltered ? '' : 'none';
 
       var groups = uniqueSorted(state.data.map(function (e) { return e.group; })).sort(function (a, b) { return romanIndex(a) - romanIndex(b); });
@@ -290,7 +305,8 @@
         '<div class="cop-card">' +
           '<button type="button" class="cop-card-diagram" data-key="' + esc(card.number) + '"><img src="' + esc(card.img) + '" alt="' + esc(card.description) + '" loading="lazy" /></button>' +
           '<div class="cop-card-body">' +
-            '<div class="cop-card-meta"><span class="cop-card-number cop-mono">' + esc(card.number) + '</span>' +
+            '<div class="cop-card-meta"><span class="cop-card-meta-left"><span class="cop-card-number cop-mono">' + esc(card.number) + '</span>' +
+            (card.aka ? '<span class="cop-card-aka">' + esc(card.aka) + '</span>' : '') + '</span>' +
             '<span class="cop-card-meta-right"><span class="cop-card-score cop-mono">' + card.score + '</span>' +
             '<span class="cop-badge' + card.badgeCls + ' cop-mono">' + esc(card.rating) + '</span></span></div>' +
             '<p class="cop-card-desc">' + esc(card.description) + '</p>' +
@@ -325,6 +341,9 @@
       var badgeCls = badgeClass(e.difficulty_rating);
       document.getElementById('cop-modal-kicker').textContent = app.name + ' · ' + e.group;
       document.getElementById('cop-modal-number').textContent = e.number_float;
+      var akaEl = document.getElementById('cop-modal-aka');
+      akaEl.textContent = e.aka || '';
+      akaEl.style.display = e.aka ? '' : 'none';
       document.getElementById('cop-modal-score').textContent = 'Value ' + scoreLabel(e.difficulty_score);
       var badgeEl = document.getElementById('cop-modal-badge');
       badgeEl.className = 'cop-modal-badge cop-mono' + badgeCls;
