@@ -41,6 +41,7 @@ jobs:
             --exclude '_site' \
             --exclude '/*.py' \
             --exclude '/requirements.txt' \
+            --exclude '/unpublished' \
             --exclude '/tmp_page.txt' \
             --exclude '/tmp_decoded.txt'
       - name: Upload artifact
