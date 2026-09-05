@@ -177,9 +177,8 @@
 .cop-card-desc { margin: 0; font-size: 14px; line-height: 1.5; color: var(--cop-text-card); text-wrap: pretty; }
 .cop-variants { display: flex; flex-wrap: wrap; align-items: center; gap: 7px; padding-top: 10px; border-top: 1px dashed var(--cop-border-strong); }
 .cop-variants-label { font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: .12em; text-transform: uppercase; color: var(--cop-text-faint); }
-.cop-variant-btn { display: flex; align-items: center; gap: 6px; padding: 5px 9px; background: var(--cop-surface-raised); border: 1px solid var(--cop-border-btn); border-radius: 7px; cursor: pointer; font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--cop-text-card); font: inherit; }
+.cop-variant-btn { display: flex; align-items: center; padding: 5px 11px; background: var(--cop-surface-raised); border: 1px solid var(--cop-border-btn); border-radius: 7px; cursor: pointer; font-family: 'JetBrains Mono', monospace; font-size: 12px; font-weight: 700; color: var(--cop-text-card); font: inherit; }
 .cop-variant-btn:hover { border-color: var(--cop-border-hover); color: var(--cop-text-strong); }
-.cop-variant-btn .v-rating { color: var(--cop-text-faint); }
 
 /* Empty & loading states */
 .cop-empty { display: flex; flex-direction: column; align-items: center; gap: 12px; padding: 80px 20px; border: 1px dashed var(--cop-border-strong); border-radius: 14px; }

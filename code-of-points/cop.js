@@ -67,6 +67,7 @@
       resultCount: document.getElementById('cop-result-count'),
       resetBtn: document.getElementById('cop-reset'),
       namedToggle: document.getElementById('cop-named-toggle'),
+      expandToggle: document.getElementById('cop-expand-toggle'),
       sections: document.getElementById('cop-sections'),
       modalBackdrop: document.getElementById('cop-modal-backdrop'),
       modalPanel: document.getElementById('cop-modal-panel')
@@ -80,7 +81,8 @@
       diffs: (params.get('rating') || '').split(',').filter(Boolean),
       groups: (params.get('group') || '').split(',').filter(Boolean).map(function (g) { return 'Group ' + g; }),
       sort: params.get('sort') === 'difficulty' ? 'difficulty' : 'number',
-      named: params.get('named') === '1'
+      named: params.get('named') === '1',
+      expand: params.get('expand') === '1'
     };
 
     // Header + quicknav (static per apparatus, render once)
@@ -94,6 +96,7 @@
     updateSearchClear();
     updateSortButtons();
     updateNamedToggle();
+    updateExpandToggle();
 
     Promise.all([
       fetch('/data/cop/' + app.file + '.json').then(function (r) { return r.json(); }),
@@ -140,6 +143,12 @@
       syncUrl();
       render();
     });
+    els.expandToggle.addEventListener('click', function () {
+      state.expand = !state.expand;
+      updateExpandToggle();
+      syncUrl();
+      render();
+    });
 
     els.modalBackdrop.addEventListener('click', function (e) { if (e.target === els.modalBackdrop) closeModal(); });
     els.modalPanel.addEventListener('click', function (e) { e.stopPropagation(); });
@@ -152,6 +161,7 @@
       els.sortDiff.classList.toggle('active', state.sort === 'difficulty');
     }
     function updateNamedToggle() { els.namedToggle.classList.toggle('active', state.named); }
+    function updateExpandToggle() { els.expandToggle.classList.toggle('active', state.expand); }
 
     function buildChips() {
       var ratings = uniqueSorted(state.data.map(function (e) { return e.difficulty_rating; }).filter(Boolean));
@@ -202,6 +212,7 @@
       if (state.groups.length) p.set('group', state.groups.map(function (g) { return g.replace('Group ', ''); }).join(','));
       if (state.sort !== 'number') p.set('sort', state.sort);
       if (state.named) p.set('named', '1');
+      if (state.expand) p.set('expand', '1');
       var qs = p.toString();
       var url = location.pathname + (qs ? '?' + qs : '') + location.hash;
       history.replaceState(null, '', url);
@@ -238,25 +249,34 @@
 
       var groups = uniqueSorted(state.data.map(function (e) { return e.group; })).sort(function (a, b) { return romanIndex(a) - romanIndex(b); });
 
-      var families = {};
-      var order = [];
-      state.data.forEach(function (e) {
-        var base = String(e.number_float).split('_')[0];
-        if (!families[base]) { families[base] = []; order.push(base); }
-        families[base].push(e);
-      });
-
       var rows = [];
-      order.forEach(function (key) {
-        var members = families[key];
-        var kept = members.filter(matchRecord);
-        if (!kept.length) return;
-        var baseRec = kept.filter(function (e) { return !e.number_variant; })[0] || kept[0];
-        var variants = kept.filter(function (e) { return e !== baseRec; });
-        var card = toCard(baseRec);
-        card.variants = variants.map(toCard);
-        rows.push({ card: card, sortNum: baseRec.number_float_value, sortDiff: baseRec.difficulty_score == null ? 99 : baseRec.difficulty_score, group: baseRec.group });
-      });
+      if (state.expand) {
+        // Every matching record (base or variant) is its own card - no nesting.
+        state.data.filter(matchRecord).forEach(function (e) {
+          var card = toCard(e);
+          card.variants = [];
+          rows.push({ card: card, sortNum: e.number_float_value, sortDiff: e.difficulty_score == null ? 99 : e.difficulty_score, group: e.group });
+        });
+      } else {
+        var families = {};
+        var order = [];
+        state.data.forEach(function (e) {
+          var base = String(e.number_float).split('_')[0];
+          if (!families[base]) { families[base] = []; order.push(base); }
+          families[base].push(e);
+        });
+
+        order.forEach(function (key) {
+          var members = families[key];
+          var kept = members.filter(matchRecord);
+          if (!kept.length) return;
+          var baseRec = kept.filter(function (e) { return !e.number_variant; })[0] || kept[0];
+          var variants = kept.filter(function (e) { return e !== baseRec; });
+          var card = toCard(baseRec);
+          card.variants = variants.map(toCard);
+          rows.push({ card: card, sortNum: baseRec.number_float_value, sortDiff: baseRec.difficulty_score == null ? 99 : baseRec.difficulty_score, group: baseRec.group });
+        });
+      }
 
       var cmp = state.sort === 'number'
         ? function (a, b) { return a.sortNum - b.sortNum; }
@@ -321,7 +341,7 @@
         '<div class="cop-variants"><span class="cop-variants-label">Variants</span>' +
         variants.map(function (v) {
           var suffix = (v.raw.number_variant || '').toUpperCase();
-          return '<button type="button" class="cop-variant-btn" data-key="' + esc(v.number) + '"><span>' + esc(suffix) + '</span><span class="v-rating">' + esc(v.rating) + '</span></button>';
+          return '<button type="button" class="cop-variant-btn" data-key="' + esc(v.number) + '" title="Variant ' + esc(suffix) + '">' + esc(suffix) + '</button>';
         }).join('') +
         '</div>'
       );
