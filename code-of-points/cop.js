@@ -68,6 +68,7 @@
       resetBtn: document.getElementById('cop-reset'),
       namedToggle: document.getElementById('cop-named-toggle'),
       expandToggle: document.getElementById('cop-expand-toggle'),
+      symbolsToggle: document.getElementById('cop-symbols-toggle'),
       sections: document.getElementById('cop-sections'),
       modalBackdrop: document.getElementById('cop-modal-backdrop'),
       modalPanel: document.getElementById('cop-modal-panel')
@@ -82,7 +83,8 @@
       groups: (params.get('group') || '').split(',').filter(Boolean).map(function (g) { return 'Group ' + g; }),
       sort: params.get('sort') === 'difficulty' ? 'difficulty' : 'number',
       named: params.get('named') === '1',
-      expand: params.get('expand') === '1'
+      expand: params.get('expand') === '1',
+      showSymbols: params.get('symbols') !== '0'
     };
 
     // Header + quicknav (static per apparatus, render once)
@@ -97,6 +99,7 @@
     updateSortButtons();
     updateNamedToggle();
     updateExpandToggle();
+    updateSymbolsToggle();
 
     Promise.all([
       fetch('/data/cop/' + app.file + '.json').then(function (r) { return r.json(); }),
@@ -149,6 +152,12 @@
       syncUrl();
       render();
     });
+    els.symbolsToggle.addEventListener('click', function () {
+      state.showSymbols = !state.showSymbols;
+      updateSymbolsToggle();
+      syncUrl();
+      render();
+    });
 
     els.modalBackdrop.addEventListener('click', function (e) { if (e.target === els.modalBackdrop) closeModal(); });
     els.modalPanel.addEventListener('click', function (e) { e.stopPropagation(); });
@@ -162,6 +171,7 @@
     }
     function updateNamedToggle() { els.namedToggle.classList.toggle('active', state.named); }
     function updateExpandToggle() { els.expandToggle.classList.toggle('active', state.expand); }
+    function updateSymbolsToggle() { els.symbolsToggle.classList.toggle('active', state.showSymbols); }
 
     function buildChips() {
       var ratings = uniqueSorted(state.data.map(function (e) { return e.difficulty_rating; }).filter(Boolean));
@@ -213,6 +223,7 @@
       if (state.sort !== 'number') p.set('sort', state.sort);
       if (state.named) p.set('named', '1');
       if (state.expand) p.set('expand', '1');
+      if (!state.showSymbols) p.set('symbols', '0');
       var qs = p.toString();
       var url = location.pathname + (qs ? '?' + qs : '') + location.hash;
       history.replaceState(null, '', url);
@@ -239,7 +250,8 @@
         rating: badgeLabel(e.difficulty_rating),
         badgeCls: badgeClass(e.difficulty_rating),
         aka: e.aka || '',
-        img: '/assets/cop/' + e.image_path
+        img: '/assets/cop/' + e.image_path,
+        symbolImg: e.symbol_path ? '/assets/cop/' + e.symbol_path : ''
       };
     }
 
@@ -331,7 +343,17 @@
             '<span class="cop-badge' + card.badgeCls + ' cop-mono">' + esc(card.rating) + '</span></span></div>' +
             '<p class="cop-card-desc">' + esc(card.description) + '</p>' +
             (card.variants.length ? renderVariants(card.variants) : '') +
+            (state.showSymbols && card.symbolImg ? renderSymbolStrip(card.symbolImg, card.description) : '') +
           '</div>' +
+        '</div>'
+      );
+    }
+
+    function renderSymbolStrip(symbolImg, description) {
+      return (
+        '<div class="cop-symbol-strip">' +
+          '<span class="cop-symbol-label">Symbol Notation</span>' +
+          '<div class="cop-symbol-plate"><img src="' + esc(symbolImg) + '" alt="Symbol notation for ' + esc(description) + '" loading="lazy" /></div>' +
         '</div>'
       );
     }
@@ -371,6 +393,14 @@
       var diagramEl = document.getElementById('cop-modal-diagram');
       diagramEl.style.backgroundImage = 'url(/assets/cop/' + e.image_path + ')';
       diagramEl.setAttribute('aria-label', e.description);
+      var symbolWrap = document.getElementById('cop-modal-symbol-wrap');
+      var showSymbol = state.showSymbols && !!e.symbol_path;
+      symbolWrap.style.display = showSymbol ? '' : 'none';
+      if (showSymbol) {
+        var symbolEl = document.getElementById('cop-modal-symbol');
+        symbolEl.style.backgroundImage = 'url(/assets/cop/' + e.symbol_path + ')';
+        symbolEl.setAttribute('aria-label', 'Symbol notation for ' + e.description);
+      }
       document.getElementById('cop-modal-desc').textContent = e.description;
       els.modalBackdrop.style.display = 'grid';
       document.body.style.overflow = 'hidden';

@@ -180,6 +180,11 @@
 .cop-variant-btn { display: flex; align-items: center; padding: 5px 11px; background: var(--cop-surface-raised); border: 1px solid var(--cop-border-btn); border-radius: 7px; cursor: pointer; font-family: 'JetBrains Mono', monospace; font-size: 12px; font-weight: 700; color: var(--cop-text-card); font: inherit; }
 .cop-variant-btn:hover { border-color: var(--cop-border-hover); color: var(--cop-text-strong); }
 
+.cop-symbol-strip { display: flex; flex-direction: column; gap: 7px; padding-top: 10px; border-top: 1px dashed var(--cop-border-strong); }
+.cop-symbol-label { font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: .12em; text-transform: uppercase; color: var(--cop-text-faint); }
+.cop-symbol-plate { background: var(--cop-plate); border-radius: 8px; padding: 8px; }
+.cop-symbol-plate img { display: block; width: 100%; height: 46px; object-fit: contain; }
+
 /* Empty & loading states */
 .cop-empty { display: flex; flex-direction: column; align-items: center; gap: 12px; padding: 80px 20px; border: 1px dashed var(--cop-border-strong); border-radius: 14px; }
 .cop-empty-text { font-size: 17px; color: var(--cop-text-muted); }
@@ -203,6 +208,9 @@
 .cop-modal-close { display: grid; place-items: center; width: 34px; height: 34px; background: transparent; border: 1px solid var(--cop-border-btn); border-radius: 9px; color: var(--cop-text-muted); cursor: pointer; font-size: 15px; font: inherit; }
 .cop-modal-close:hover { border-color: var(--cop-border-hover); color: var(--cop-text-strong); }
 .cop-modal-diagram { height: 46vh; background-color: var(--cop-plate); background-size: contain; background-position: center; background-repeat: no-repeat; flex-shrink: 0; }
+.cop-modal-symbol-wrap { display: flex; flex-direction: column; gap: 8px; padding: 16px 22px 0; }
+.cop-modal-symbol-label { font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: .14em; text-transform: uppercase; color: var(--cop-text-faint); }
+.cop-modal-symbol { height: 100px; background-color: var(--cop-plate); background-size: contain; background-position: center; background-repeat: no-repeat; border-radius: 8px; }
 .cop-modal-desc { margin: 0; padding: 20px 22px 24px; font-size: 17px; line-height: 1.55; color: var(--cop-text); text-wrap: pretty; }
 @media (max-width: 560px) { .cop-modal-diagram { height: 34vh; } }
 

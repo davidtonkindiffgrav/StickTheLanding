@@ -9,11 +9,11 @@
   <script>!function(){document.documentElement.dataset.theme=localStorage.getItem('stl-theme')||(matchMedia('(prefers-color-scheme:dark)').matches?'dark':'light')}()</script>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Balance Beam · WAG Code of Points | Stick The Landing</title>
-  <meta name="description" content="All 300 Balance Beam elements from the Women's Artistic Gymnastics Code of Points 2025–2028: official diagrams, difficulty ratings and element numbers, searchable and filterable by group and rating." />
+  <meta name="description" content="All 335 Balance Beam elements from the Women's Artistic Gymnastics Code of Points 2025–2028: official diagrams, difficulty ratings and element numbers, searchable and filterable by group and rating." />
   <meta property="og:type"        content="website" />
   <meta property="og:site_name"   content="Stick The Landing" />
   <meta property="og:title"       content="Balance Beam · WAG Code of Points | Stick The Landing" />
-  <meta property="og:description" content="All 300 Balance Beam elements from the Women's Artistic Gymnastics Code of Points 2025–2028: official diagrams, difficulty ratings and element numbers." />
+  <meta property="og:description" content="All 335 Balance Beam elements from the Women's Artistic Gymnastics Code of Points 2025–2028: official diagrams, difficulty ratings and element numbers." />
   <meta property="og:url"         content="https://stickthelanding.com.au/code-of-points/wag/beam/" />
   <meta property="og:image"       content="https://stickthelanding.com.au/assets/favicons/android-chrome-512x512.png" />
   <meta name="twitter:card"       content="summary" />
@@ -27,8 +27,8 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
-  <link rel="stylesheet" href="/assets/nav.css?v=202609053" />
-  <link rel="stylesheet" href="/code-of-points/cop.css?v=202609053" />
+  <link rel="stylesheet" href="/assets/nav.css?v=202609061" />
+  <link rel="stylesheet" href="/code-of-points/cop.css?v=202609061" />
 </head>
 <body class="cop-body" data-cop-app="BB">
 
@@ -77,7 +77,7 @@
         </div>
         <div class="cop-filter-group">
           <span class="cop-label">Skills</span>
-          <div class="cop-chip-list"><button type="button" id="cop-named-toggle" class="cop-chip group-chip">Named only</button><button type="button" id="cop-expand-toggle" class="cop-chip group-chip">Expand variants</button></div>
+          <div class="cop-chip-list"><button type="button" id="cop-named-toggle" class="cop-chip group-chip">Named only</button><button type="button" id="cop-expand-toggle" class="cop-chip group-chip">Expand variants</button><button type="button" id="cop-symbols-toggle" class="cop-chip group-chip active">Show Symbol Notation</button></div>
         </div>
         <div class="cop-result-info">
           <span id="cop-result-count"></span>
@@ -110,11 +110,15 @@
       </div>
     </div>
     <div id="cop-modal-diagram" class="cop-modal-diagram" role="img"></div>
+    <div id="cop-modal-symbol-wrap" class="cop-modal-symbol-wrap" style="display:none">
+      <span class="cop-modal-symbol-label">Symbol Notation</span>
+      <div id="cop-modal-symbol" class="cop-modal-symbol" role="img"></div>
+    </div>
     <p id="cop-modal-desc" class="cop-modal-desc"></p>
   </div>
 </div>
 
-<script src="/code-of-points/cop.js?v=202609053"></script>
-<script src="/assets/nav.js?v=202609053" defer></script>
+<script src="/code-of-points/cop.js?v=202609061"></script>
+<script src="/assets/nav.js?v=202609061" defer></script>
 </body>
 </html>
