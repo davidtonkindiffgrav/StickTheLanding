@@ -319,7 +319,7 @@
       }
 
       els.sections.innerHTML = sections.map(renderSection).join('');
-      bindCardEvents();
+      bindCardEvents(sections);
     }
 
     function renderSection(sec) {
@@ -370,12 +370,67 @@
     }
 
     var cardIndex = {};
-    function bindCardEvents() {
+    function bindCardEvents(sections) {
       cardIndex = {};
       state.data.forEach(function (e) { cardIndex[e.number_float] = e; });
-      Array.prototype.forEach.call(els.sections.querySelectorAll('[data-key]'), function (btn) {
-        btn.addEventListener('click', function () { openModal(cardIndex[btn.dataset.key]); });
+
+      var allCards = [];
+      sections.forEach(function (sec) { sec.items.forEach(function (c) { allCards.push(c); }); });
+
+      Array.prototype.forEach.call(els.sections.querySelectorAll('.cop-card'), function (cardEl, i) {
+        var card = allCards[i];
+        var front = card;
+        var activeBtn = null;
+
+        cardEl.querySelector('.cop-card-diagram').addEventListener('click', function () {
+          openModal(front.raw);
+        });
+
+        Array.prototype.forEach.call(cardEl.querySelectorAll('.cop-variant-btn'), function (btn, vi) {
+          btn.addEventListener('click', function () {
+            if (activeBtn === btn) {
+              activeBtn.classList.remove('active');
+              activeBtn = null;
+              front = card;
+            } else {
+              if (activeBtn) activeBtn.classList.remove('active');
+              btn.classList.add('active');
+              activeBtn = btn;
+              front = card.variants[vi];
+            }
+            applyFront(cardEl, front);
+          });
+        });
       });
+    }
+
+    function applyFront(cardEl, front) {
+      var img = cardEl.querySelector('.cop-card-diagram img');
+      img.src = front.img;
+      img.alt = front.description;
+
+      var metaLeft = cardEl.querySelector('.cop-card-meta-left');
+      metaLeft.innerHTML = '<span class="cop-card-number cop-mono">' + esc(front.number) + '</span>' +
+        (front.aka ? '<span class="cop-card-aka">' + esc(front.aka) + '</span>' : '');
+
+      cardEl.querySelector('.cop-card-score').textContent = front.score;
+      var badge = cardEl.querySelector('.cop-badge');
+      badge.className = 'cop-badge' + front.badgeCls + ' cop-mono';
+      badge.textContent = front.rating;
+      cardEl.querySelector('.cop-card-desc').textContent = front.description;
+
+      var strip = cardEl.querySelector('.cop-symbol-strip');
+      if (state.showSymbols && front.symbolImg) {
+        if (!strip) {
+          cardEl.querySelector('.cop-card-body').insertAdjacentHTML('beforeend', renderSymbolStrip(front.symbolImg, front.description));
+        } else {
+          var simg = strip.querySelector('img');
+          simg.src = front.symbolImg;
+          simg.alt = 'Symbol notation for ' + front.description;
+        }
+      } else if (strip) {
+        strip.remove();
+      }
     }
 
     function openModal(e) {
