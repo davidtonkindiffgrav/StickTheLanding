@@ -163,8 +163,10 @@
 /* Element card */
 .cop-card { display: flex; flex-direction: column; background: var(--cop-surface); border: 1px solid var(--cop-border); border-radius: 14px; overflow: hidden; transition: border-color .16s; }
 .cop-card:hover { border-color: var(--cop-border-hover2); }
-.cop-card-diagram { display: block; width: 100%; padding: 0; background: var(--cop-plate); border: 0; border-bottom: 1px solid var(--cop-border); cursor: zoom-in; }
-.cop-card-diagram img { display: block; width: 100%; height: 132px; object-fit: contain; padding: 10px; }
+.cop-card-diagram { display: block; width: 100%; padding: 0; background: var(--cop-surface); border: 0; border-bottom: 1px solid var(--cop-border); cursor: zoom-in; }
+.cop-card-diagram img { display: block; width: 100%; height: 132px; object-fit: contain; padding: 10px; filter: invert(1); mix-blend-mode: screen; }
+[data-theme="light"] .cop-card-diagram { background: var(--cop-plate); }
+[data-theme="light"] .cop-card-diagram img { filter: none; mix-blend-mode: normal; }
 .cop-card-body { display: flex; flex-direction: column; gap: 10px; padding: 14px 16px 16px; }
 .cop-card-meta { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
 .cop-card-meta-left { display: flex; align-items: baseline; gap: 7px; min-width: 0; overflow: hidden; }
@@ -182,8 +184,10 @@
 
 .cop-symbol-strip { display: flex; flex-direction: column; gap: 7px; padding-top: 10px; border-top: 1px dashed var(--cop-border-strong); }
 .cop-symbol-label { font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: .12em; text-transform: uppercase; color: var(--cop-text-faint); }
-.cop-symbol-plate { background: var(--cop-plate); border-radius: 8px; padding: 8px; }
-.cop-symbol-plate img { display: block; width: 100%; height: 46px; object-fit: contain; }
+.cop-symbol-plate { background: var(--cop-surface); border-radius: 8px; padding: 8px; }
+.cop-symbol-plate img { display: block; width: 100%; height: 46px; object-fit: contain; filter: invert(1); mix-blend-mode: screen; }
+[data-theme="light"] .cop-symbol-plate { background: var(--cop-plate); }
+[data-theme="light"] .cop-symbol-plate img { filter: none; mix-blend-mode: normal; }
 
 /* Empty & loading states */
 .cop-empty { display: flex; flex-direction: column; align-items: center; gap: 12px; padding: 80px 20px; border: 1px dashed var(--cop-border-strong); border-radius: 14px; }
@@ -207,10 +211,11 @@
 .cop-modal-badge.missing { background: var(--cop-surface-raised); color: var(--cop-text-faint); border-color: var(--cop-border-btn); }
 .cop-modal-close { display: grid; place-items: center; width: 34px; height: 34px; background: transparent; border: 1px solid var(--cop-border-btn); border-radius: 9px; color: var(--cop-text-muted); cursor: pointer; font-size: 15px; font: inherit; }
 .cop-modal-close:hover { border-color: var(--cop-border-hover); color: var(--cop-text-strong); }
-.cop-modal-diagram { height: 46vh; background-color: var(--cop-plate); background-size: contain; background-position: center; background-repeat: no-repeat; flex-shrink: 0; }
+.cop-modal-diagram { height: 46vh; background-color: transparent; background-size: contain; background-position: center; background-repeat: no-repeat; flex-shrink: 0; filter: invert(1); mix-blend-mode: screen; }
 .cop-modal-symbol-wrap { display: flex; flex-direction: column; gap: 8px; padding: 16px 22px 0; }
 .cop-modal-symbol-label { font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: .14em; text-transform: uppercase; color: var(--cop-text-faint); }
-.cop-modal-symbol { height: 100px; background-color: var(--cop-plate); background-size: contain; background-position: center; background-repeat: no-repeat; border-radius: 8px; }
+.cop-modal-symbol { height: 100px; background-color: transparent; background-size: contain; background-position: center; background-repeat: no-repeat; border-radius: 8px; filter: invert(1); mix-blend-mode: screen; }
+[data-theme="light"] .cop-modal-diagram, [data-theme="light"] .cop-modal-symbol { background-color: var(--cop-plate); filter: none; mix-blend-mode: normal; }
 .cop-modal-desc { margin: 0; padding: 20px 22px 24px; font-size: 17px; line-height: 1.55; color: var(--cop-text); text-wrap: pretty; }
 @media (max-width: 560px) { .cop-modal-diagram { height: 34vh; } }
 
