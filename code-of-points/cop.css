@@ -181,7 +181,8 @@
 .cop-variants-label { font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: .12em; text-transform: uppercase; color: var(--cop-text-faint); }
 .cop-variant-btn { display: flex; align-items: center; padding: 5px 11px; background: var(--cop-surface-raised); border: 1px solid var(--cop-border-btn); border-radius: 7px; cursor: pointer; font-family: 'JetBrains Mono', monospace; font-size: 12px; font-weight: 700; color: var(--cop-text-card); font: inherit; }
 .cop-variant-btn:hover { border-color: var(--cop-border-hover); color: var(--cop-text-strong); }
-.cop-variant-btn.active { background: var(--cop-active-bg); border-color: var(--cop-active-border); color: var(--cop-active-text); }
+.cop-variant-btn.active { background: var(--cop-active-border); border-color: var(--cop-active-border); color: #fff; box-shadow: 0 0 0 3px var(--cop-active-bg); }
+.cop-variant-btn.active:hover { border-color: var(--cop-active-border); color: #fff; }
 
 .cop-symbol-strip { display: flex; flex-direction: column; gap: 7px; padding-top: 10px; border-top: 1px dashed var(--cop-border-strong); }
 .cop-symbol-label { font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: .12em; text-transform: uppercase; color: var(--cop-text-faint); }
