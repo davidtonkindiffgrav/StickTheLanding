@@ -381,6 +381,15 @@
       "logo": null
     },
     {
+      "code": "EUR/MOY",
+      "name": "Eureka / Moyhu (Joint)",
+      "region": "Regional West",
+      "aliases": [
+        "EUREKA GYMNASTICS CLUB / MOYHU GYMNASTICS CLUB"
+      ],
+      "logo": null
+    },
+    {
       "code": "EUR/STA",
       "name": "Eureka / Stawell (Joint)",
       "region": "Regional West",
@@ -792,7 +801,8 @@
       "name": "Moyhu and District Youth Club Inc",
       "region": "Regional NE",
       "aliases": [
-        "MOYHU"
+        "MOYHU",
+        "MOYHU GYMNASTICS CLUB"
       ],
       "logo": null
     },
@@ -824,6 +834,7 @@
       "aliases": [
         "NATIMUK",
         "NATIMUK & DISTRICT GYMNASTICS CLUB",
+        "NATIMUK & DISTRICT GYMNASTIC CLUB",
         "NATIMUK & DISTRICT",
         "NATIMUK & DISTRICT GYMNASTIC CLUB IND."
       ],

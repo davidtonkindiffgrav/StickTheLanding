@@ -56,6 +56,7 @@
 
   "name_corrections": {
     "_comment": "Global athlete name corrections — applied whenever the wrong spelling is seen regardless of competition. Format: { \"Wrong Spelling\": \"Correct Spelling\" }",
+    "Maddie Hayward": "Maddison Hayward",
     "Sienna Caputo": "Sienna Caputa",
     "Tilly Obrien": "Tilly O'Brien",
     "Ema Oliveria": "Ema Oliveira",

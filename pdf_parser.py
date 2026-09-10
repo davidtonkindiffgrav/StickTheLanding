@@ -1026,9 +1026,9 @@ def parse_team_results(text_pages, pdf_path, sport="WAG"):
 def parse_scoreholder(text_pages, pdf_path, sport="WAG"):
     """Parse scoreholder.com PDFs.
 
-    Athlete line:  rank name score(rank) ×6 total
+    Athlete line:  rank name score(rank) x(4 for WAG, 6 for MAG) total
     Next line:     club/gym full name (to be alias-mapped later)
-    Remaining lines: detail rows (SV B E ND breakdown) — ignored.
+    Remaining lines: detail rows (SV [B] E ND breakdown) — ignored.
 
     Team pages ("Level N - Team" header, no All-around) list one row per
     club squad (e.g. "1 PIT L1 Team ... 161.700") matched by the same row
@@ -1039,16 +1039,21 @@ def parse_scoreholder(text_pages, pdf_path, sport="WAG"):
     """
     file_meta = parse_filename_meta(pdf_path, sport=sport)
 
-    # Level + age_group from page header e.g. "Level 2 - All-around > Open"
+    # Level + age_group/division from page header e.g. "Level 2 - All-around > Open"
+    # or "Level 5 - All-around > Division 3" (Eureka Invitational style).
     _hdr_re = re.compile(
-        r"Level\s+(\d+)\s*[-–]\s*All.?[Aa]round\s*[>|]\s*(\w+)", re.IGNORECASE
+        r"Level\s+(\d+)\s*[-–]\s*All.?[Aa]round\s*[>|]\s*(Division\s+\d+|\w+)", re.IGNORECASE
     )
-    # Team page header e.g. "Level 1 - Team"
-    _team_hdr_re = re.compile(r"Level\s+(\d+)\s*[-–]\s*Team\b", re.IGNORECASE)
+    # Team page header e.g. "Level 1 - Team" or "Level 3 Part A - Team"
+    # (the "Part" letter marks a parallel-scheduling split, not a division;
+    # pool_labels_for_group() in build_results.py handles display labeling).
+    _team_hdr_re = re.compile(r"Level\s+(\d+)(?:\s+Part\s+\w+)?\s*[-–]\s*Team\b", re.IGNORECASE)
     # Score token with rank annotation: "9.200 (1)" / "8.900 (1=)" / "9.400 (3T)"
     _SH = r"[\d.]+\s*\(\d+[=T]?\)"
+    _num_app = 4 if sport == "WAG" else 6
+    _score_groups = r"\s+".join(f"({_SH})" for _ in range(_num_app))
     _athlete_re = re.compile(
-        rf"^(\d+[=T]?)\s+(.+?)\s+({_SH})\s+({_SH})\s+({_SH})\s+({_SH})\s+({_SH})\s+({_SH})\s+([\d.]+)\s*$"
+        rf"^(\d+[=T]?)\s+(.+?)\s+{_score_groups}\s+([\d.]+)\s*$"
     )
     # Lines that are never club names
     _skip_line = re.compile(
@@ -1056,22 +1061,30 @@ def parse_scoreholder(text_pages, pdf_path, sport="WAG"):
         re.IGNORECASE
     )
 
-    events_by_key      = {}   # (level, age_group) → list of AA results
-    team_events_by_lvl = {}   # level → list of Team results
+    events_by_key      = {}   # (level, division, age_group) → list of AA results
+    team_events_by_key = {}   # (level, division) → list of Team results
 
     for text in text_pages:
         if not text:
             continue
 
         level     = file_meta.get("level")
+        division  = file_meta.get("division")
         age_group = file_meta.get("age_group")
         is_team   = file_meta.get("event_type") == "Team"
 
         hdr_m = _hdr_re.search(text)
         if hdr_m:
             level = int(hdr_m.group(1))
-            ag_raw = hdr_m.group(2).strip().lower()
-            age_group = "Open" if ag_raw == "open" else "Under" if "under" in ag_raw else ag_raw.title()
+            raw = hdr_m.group(2).strip()
+            div_m = re.match(r"division\s+(\d+)", raw, re.IGNORECASE)
+            if div_m:
+                division = int(div_m.group(1))
+                age_group = None
+            else:
+                division = None
+                ag_raw = raw.lower()
+                age_group = "Open" if ag_raw == "open" else "Under" if "under" in ag_raw else raw.title()
             is_team = False
         else:
             team_hdr_m = _team_hdr_re.search(text)
@@ -1083,9 +1096,9 @@ def parse_scoreholder(text_pages, pdf_path, sport="WAG"):
             continue
 
         if is_team:
-            target = team_events_by_lvl.setdefault(level, [])
+            target = team_events_by_key.setdefault((level, division), [])
         else:
-            target = events_by_key.setdefault((level, age_group), [])
+            target = events_by_key.setdefault((level, division, age_group), [])
 
         lines = [l.rstrip() for l in text.splitlines() if l.strip()]
         pending = None
@@ -1099,9 +1112,9 @@ def parse_scoreholder(text_pages, pdf_path, sport="WAG"):
             m = _athlete_re.match(line)
             if m:
                 rank_str = m.group(1).rstrip("=T")
-                raw_scores = [re.match(r"([\d.]+)", g).group(1) for g in m.groups()[2:8]]
+                raw_scores = [re.match(r"([\d.]+)", g).group(1) for g in m.groups()[2:2 + _num_app]]
                 scores = [_parse_score(s) for s in raw_scores]
-                total = _parse_score(m.group(9))
+                total = _parse_score(m.groups()[-1])
                 row = {
                     "rank":  _parse_rank(rank_str),
                     "bib":   None,
@@ -1117,19 +1130,30 @@ def parse_scoreholder(text_pages, pdf_path, sport="WAG"):
                 pending = row
                 continue
 
-            if pending is not None and pending["club"] is None:
-                if not _skip_line.match(line):
+            if pending is not None:
+                if _skip_line.match(line):
+                    continue
+                if pending["club"] is None:
                     pending["club"] = line.strip()
+                    pending["_club_await_wrap"] = True
+                    continue
+                if pending.pop("_club_await_wrap", False):
+                    # A club/gym name that wraps to a second PDF line (e.g.
+                    # "Natimuk & District Gymnastic" / "Club") gets reordered
+                    # after the numeric detail row by text extraction; catch
+                    # that one trailing fragment before giving up on it.
+                    if not re.search(r"\d", line):
+                        pending["club"] = f"{pending['club']} {line.strip()}"
                     pending = None
 
     events = [
-        {"level": lvl, "division": None, "age_group": ag, "event_type": "AA", "results": results}
-        for (lvl, ag), results in events_by_key.items()
+        {"level": lvl, "division": div, "age_group": ag, "event_type": "AA", "results": results}
+        for (lvl, div, ag), results in events_by_key.items()
         if results
     ]
     events += [
-        {"level": lvl, "division": None, "age_group": None, "event_type": "Team", "results": results}
-        for lvl, results in team_events_by_lvl.items()
+        {"level": lvl, "division": div, "age_group": None, "event_type": "Team", "results": results}
+        for (lvl, div), results in team_events_by_key.items()
         if results
     ]
     return events
