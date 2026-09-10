@@ -155,6 +155,21 @@ def _parse_cyc_source_meta(source_file):
     return f"Session {session}"
 
 
+# Eureka Invitational (scoreholder.com) names files "Session N - Level L Part
+# P <event>.pdf", e.g. "Session 1 - Level 3 Part A Team.pdf" — the "Part"
+# letter is a scheduling split (too many teams for one session), not a GV
+# division, confirmed by each part printing its own independent 1..N ranking
+# in the source PDF.
+def _parse_eureka_source_meta(source_file):
+    if not source_file:
+        return None
+    fname = source_file.replace("\\", "/").rsplit("/", 1)[-1]
+    m = re.search(r"\bPart\s+([A-Za-z])\b", fname, re.IGNORECASE)
+    if not m:
+        return None
+    return f"Part {m.group(1).upper()}"
+
+
 # Old-style ProScore filenames (pre-dating the "MEET_Women_S3A_L5U.pdf"
 # convention) don't encode a session number, so _parse_source_meta can't
 # label them. These two events' own PDF pages print "Session: 4" and
@@ -226,6 +241,11 @@ def pool_labels_for_group(rows_by_event: dict) -> dict:
         if all(cyc_labels.values()) and len(set(cyc_labels.values())) == len(cyc_labels):
             return cyc_labels
 
+        eureka_labels = {eid: _parse_eureka_source_meta(rows[0].get("source_file") if rows else None)
+                         for eid, rows in rows_by_event.items()}
+        if all(eureka_labels.values()) and len(set(eureka_labels.values())) == len(eureka_labels):
+            return eureka_labels
+
     return labels
 
 
@@ -265,11 +285,6 @@ def sorted_etypes(div_tree: dict) -> list:
 
 
 # ── Formatting ─────────────────────────────────────────────────────────────────
-
-def _is_mixed_club(code: str) -> bool:
-    import re
-    return "/" in code or bool(re.match(r"^MX\d", code, re.I)) or bool(re.match(r"^MIX$", code, re.I))
-
 
 def fmt(v) -> str:
     if v is None:
@@ -437,9 +452,6 @@ def render_page(comp: sqlite3.Row, tree: dict, sport: str, club_names: dict = No
                 for j, eid in enumerate(sorted(rows_by_event.keys())):
                     block_id = f"{panel_id}-{safe_id(div_key or 'x')}-{safe_id(etype)}" + (f"-{j+1}" if len(rows_by_event) > 1 else "")
                     rows_to_render = rows_by_event[eid]
-                    if etype == "Team":
-                        rows_to_render = [r for r in rows_to_render
-                                          if not _is_mixed_club(r.get("club") or "")]
                     if etype == "Team" and isinstance(lvl, int) and lvl in (3, 4, 5):
                         rows_to_render = [r for r in rows_to_render if (r.get("total") or 0) >= 40]
 
