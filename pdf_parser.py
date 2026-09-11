@@ -1044,10 +1044,13 @@ def parse_scoreholder(text_pages, pdf_path, sport="WAG"):
     _hdr_re = re.compile(
         r"Level\s+(\d+)\s*[-–]\s*All.?[Aa]round\s*[>|]\s*(Division\s+\d+|\w+)", re.IGNORECASE
     )
-    # Team page header e.g. "Level 1 - Team" or "Level 3 Part A - Team"
+    # Team page header e.g. "Level 1 - Team", "Level 3 Part A - Team", or
+    # "Level 5 Div 2 - Team" (scoreholder.com style — division before the dash).
     # (the "Part" letter marks a parallel-scheduling split, not a division;
     # pool_labels_for_group() in build_results.py handles display labeling).
-    _team_hdr_re = re.compile(r"Level\s+(\d+)(?:\s+Part\s+\w+)?\s*[-–]\s*Team\b", re.IGNORECASE)
+    _team_hdr_re = re.compile(
+        r"Level\s+(\d+)(?:\s+Div\s+(\d+)|\s+Part\s+\w+)?\s*[-–]\s*Team\b", re.IGNORECASE
+    )
     # Score token with rank annotation: "9.200 (1)" / "8.900 (1=)" / "9.400 (3T)"
     _SH = r"[\d.]+\s*\(\d+[=T]?\)"
     _num_app = 4 if sport == "WAG" else 6
@@ -1064,14 +1067,18 @@ def parse_scoreholder(text_pages, pdf_path, sport="WAG"):
     events_by_key      = {}   # (level, division, age_group) → list of AA results
     team_events_by_key = {}   # (level, division) → list of Team results
 
+    # Carried across pages: a section (AA or Team) can span several PDF pages,
+    # and only the first page of each section repeats the header line — later
+    # pages just continue the listing, so level/division/is_team must persist
+    # rather than reset to the filename defaults on every page.
+    level     = file_meta.get("level")
+    division  = file_meta.get("division")
+    age_group = file_meta.get("age_group")
+    is_team   = file_meta.get("event_type") == "Team"
+
     for text in text_pages:
         if not text:
             continue
-
-        level     = file_meta.get("level")
-        division  = file_meta.get("division")
-        age_group = file_meta.get("age_group")
-        is_team   = file_meta.get("event_type") == "Team"
 
         hdr_m = _hdr_re.search(text)
         if hdr_m:
@@ -1090,6 +1097,8 @@ def parse_scoreholder(text_pages, pdf_path, sport="WAG"):
             team_hdr_m = _team_hdr_re.search(text)
             if team_hdr_m:
                 level = int(team_hdr_m.group(1))
+                if team_hdr_m.group(2):
+                    division = int(team_hdr_m.group(2))
                 is_team = True
 
         if level is None:
