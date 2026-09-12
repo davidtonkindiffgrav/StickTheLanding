@@ -164,9 +164,11 @@ def _clean_name(name):
 
     ProScore glues footnote markers straight onto the name with no separating
     delimiter: "*" flags a tied placing, "#" flags a guest/non-scoring entry.
-    Both are stripped here so they never end up parsed as part of the name.
+    Occasionally the marker is instead printed as a standalone token between
+    first and last name (e.g. "Maddison * Sheather"). All these cases are
+    stripped here so the marker never ends up parsed as part of the name.
     """
-    name = re.sub(r"^[\*#\s]+|[\*#\s]+$", "", name)
+    name = re.sub(r"\s*[\*#]+\s*", " ", name).strip()
     # Some result sheets render hyphenated surnames as "Word - Word" instead of
     # "Word-Word" (e.g. "Brand - Starkey"). Collapse it back to a tight hyphen.
     name = re.sub(r"(?<=[A-Za-z])\s+-\s+(?=[A-Za-z])", "-", name)
@@ -819,9 +821,15 @@ def _gym_code_from_team_name(raw):
     designator is always 3 characters (e.g. 'BLU', 'RED', 'ATB', 'FUN').
     Spaced fonts may insert spaces within each code ('CAS CS BLU' → 'CASCS BLU').
     Collapse all whitespace, then strip the trailing 3-char team designator.
+
+    When a club fields only one team, ProScore sometimes prints a standalone
+    "*"/"#" footnote marker in place of the designator (e.g. "FLY *"). Left
+    in, that gets miscounted as 3 designator characters and mangles the gym
+    code down to a single letter - strip it first.
     """
     # Strip literal "Team " prefix some PDFs inject before the gym code
     clean = re.sub(r"(?i)^team\s+", "", raw.strip())
+    clean = re.sub(r"\s*[\*#]+\s*$", "", clean)
     collapsed = re.sub(r"\s+", "", clean).upper()
     return collapsed[:-3] if len(collapsed) > 3 else collapsed
 
