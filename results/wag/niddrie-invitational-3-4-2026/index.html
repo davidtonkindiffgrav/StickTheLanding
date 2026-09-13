@@ -24,8 +24,8 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600;700&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
-  <link rel="stylesheet" href="/assets/nav.css?v=202608261000" />
-  <link rel="stylesheet" href="/results/results.css?v=202608261000" />
+  <link rel="stylesheet" href="/assets/nav.css?v=202609131837" />
+  <link rel="stylesheet" href="/results/results.css?v=202609131837" />
 </head>
 <body class="results-page">
 
@@ -53,6 +53,7 @@
 
 <script>
 function switchTab(btn) {
+  if (typeof deHideTip === 'function') deHideTip();
   document.querySelectorAll('.rtab').forEach(b => b.classList.remove('active'));
   document.querySelectorAll('.level-panel').forEach(p => p.classList.remove('active'));
   btn.classList.add('active');
@@ -62,6 +63,8 @@ function switchTab(btn) {
 function sortTable(th) {
   const table = th.closest('table');
   const tbody = table.querySelector('tbody');
+  tbody.querySelectorAll('tr.de-expand-row').forEach(r => r.remove());
+  tbody.querySelectorAll('tr.de-expanded').forEach(r => r.classList.remove('de-expanded'));
   const col   = +th.dataset.col;
   const asc   = th.dataset.dir !== 'asc';
   table.querySelectorAll('th[data-col]').forEach(h => {
@@ -83,7 +86,91 @@ function sortTable(th) {
     })
     .forEach(r => tbody.appendChild(r));
 }
+
+function deTipEl() {
+  let el = document.getElementById('de-tip-box');
+  if (!el) {
+    el = document.createElement('div');
+    el.id = 'de-tip-box';
+    el.className = 'de-tip';
+    el.setAttribute('role', 'tooltip');
+    document.body.appendChild(el);
+  }
+  return el;
+}
+
+function deTipContentFor(td) {
+  if (td.dataset.colKey) {
+    const rowData = JSON.parse(td.closest('tr').dataset.deRow || '{}');
+    const v = rowData[td.dataset.colKey] || {d:'-', e:'-'};
+    return '<div class="de-tip-row"><span>D</span><span>' + v.d + '</span></div>'
+         + '<div class="de-tip-row"><span>E</span><span>' + v.e + '</span></div>';
+  }
+  return '<div class="de-tip-row"><span>D</span><span>' + td.dataset.d + '</span></div>'
+       + '<div class="de-tip-row"><span>E</span><span>' + td.dataset.e + '</span></div>';
+}
+
+function deShowTip(td) {
+  const tip = deTipEl();
+  tip.innerHTML = deTipContentFor(td);
+  tip.classList.add('visible');
+  const tw = tip.offsetWidth, th = tip.offsetHeight;
+  const r = td.getBoundingClientRect();
+  let x = r.left + r.width / 2 - tw / 2, y = r.bottom + 8;
+  if (y + th > window.innerHeight - 8) y = r.top - th - 8;
+  tip.style.left = Math.max(8, Math.min(x, window.innerWidth - tw - 8)) + 'px';
+  tip.style.top  = Math.max(8, y) + 'px';
+}
+function deHideTip() {
+  deTipEl().classList.remove('visible');
+}
+
+function deExpandRow(tr) {
+  const table = tr.closest('table');
+  const cols = JSON.parse(table.dataset.deCols || '[]');
+  const rowData = JSON.parse(tr.dataset.deRow || '{}');
+  const items = cols.map(function (lbl) {
+    const v = rowData[lbl];
+    return '<div class="de-expand-item"><span class="de-label">' + lbl + '</span>'
+         + '<span class="de-vals">' + (v ? ('D ' + v.d + ' \u00b7 E ' + v.e) : '\u2013') + '</span></div>';
+  }).join('');
+  const colspan = table.querySelector('thead tr').children.length;
+  const newTr = document.createElement('tr');
+  newTr.className = 'de-expand-row';
+  newTr.innerHTML = '<td colspan="' + colspan + '"><div class="de-expand-grid">' + items
+    + '<button type="button" class="de-collapse-btn">Collapse</button></div></td>';
+  newTr.querySelector('.de-collapse-btn').addEventListener('click', function (e) {
+    e.stopPropagation();
+    deCollapseRow(tr);
+  });
+  tr.after(newTr);
+  tr.classList.add('de-expanded');
+}
+function deCollapseRow(tr) {
+  if (tr.nextElementSibling && tr.nextElementSibling.classList.contains('de-expand-row')) {
+    tr.nextElementSibling.remove();
+  }
+  tr.classList.remove('de-expanded');
+}
+function deToggleRow(tr) {
+  if (tr.nextElementSibling && tr.nextElementSibling.classList.contains('de-expand-row')) {
+    deCollapseRow(tr);
+  } else {
+    deExpandRow(tr);
+  }
+}
+
+document.querySelectorAll('td.score-interactive').forEach(function (td) {
+  td.addEventListener('mouseenter', function () { deShowTip(td); });
+  td.addEventListener('mouseleave', deHideTip);
+});
+document.querySelectorAll('tr[data-de-row]').forEach(function (tr) {
+  tr.classList.add('de-row-clickable');
+  tr.addEventListener('click', function () { deToggleRow(tr); });
+});
+document.addEventListener('scroll', deHideTip, { passive: true });
+
 </script>
-<script src="/assets/nav.js?v=202608261000" defer></script>
+<script src="/assets/nav.js?v=202609131837" defer></script>
 </body>
 </html>

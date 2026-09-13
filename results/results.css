@@ -242,6 +242,57 @@ body.results-page {
 .results-table td.score.silver { color: #dce8f5; font-weight: 700; }
 .results-table td.score.bronze { color: #cd7f32; font-weight: 700; }
 
+.results-table td.score.score-interactive {
+  cursor: pointer;
+  text-decoration: underline dotted;
+  text-underline-offset: 3px;
+  text-decoration-color: rgba(201,164,255,0.5);
+}
+.results-table td.score.score-interactive:hover { color: #c9a4ff; }
+
+.results-table tbody tr.de-row-clickable { cursor: pointer; }
+.results-table tbody tr.de-row-clickable:hover { background: rgba(201,164,255,0.06); }
+
+/* ── D/E BREAKDOWN TOOLTIP + EXPAND ROW ─────────────────────────────────────── */
+
+.de-tip {
+  position: fixed;
+  z-index: 9999;
+  background: #1e1e2e;
+  color: #e8e8f0;
+  border: 1px solid #232944;
+  border-radius: 8px;
+  padding: 8px 10px;
+  font: 500 0.78rem/1.4 'JetBrains Mono', monospace;
+  min-width: 90px;
+  max-width: 220px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .12s;
+  box-shadow: 0 4px 16px rgba(0,0,0,.5);
+}
+.de-tip.visible { opacity: 1; }
+.de-tip .de-tip-row { display: flex; justify-content: space-between; gap: 10px; }
+
+tr.de-expand-row td {
+  background: #111425;
+  padding: 10px 14px;
+}
+.de-expand-grid { display: flex; flex-wrap: wrap; align-items: center; gap: 14px; }
+.de-expand-item { display: flex; flex-direction: column; min-width: 64px; }
+.de-expand-item .de-label { font: 700 .68rem 'JetBrains Mono', monospace; color: #5d6285; text-transform: uppercase; }
+.de-expand-item .de-vals  { font: 600 .8rem 'JetBrains Mono', monospace; color: #c5c9e0; }
+.de-collapse-btn {
+  margin-left: auto;
+  background: none;
+  border: 1px solid #3a3f5c;
+  color: #c9a4ff;
+  border-radius: 5px;
+  padding: 4px 8px;
+  font: 600 .7rem 'JetBrains Mono', monospace;
+  cursor: pointer;
+}
+
 /* ── COMPETITIONS INDEX ─────────────────────────────────────────────────────── */
 
 .ci-main {
@@ -440,6 +491,13 @@ body.results-page {
   html:not([data-theme="dark"]) .results-table td.score.gold   { color: #b8860b; }
   html:not([data-theme="dark"]) .results-table td.score.silver { color: #3d5a76; }
   html:not([data-theme="dark"]) .results-table td.score.bronze { color: #a0522d; }
+  html:not([data-theme="dark"]) .results-table td.score.score-interactive:hover { color: #6b5ce7; }
+  html:not([data-theme="dark"]) .results-table tbody tr.de-row-clickable:hover { background: rgba(107,92,231,0.06); }
+  html:not([data-theme="dark"]) .de-tip { background: #ffffff; color: #1a1a2a; border-color: #d4d4e8; }
+  html:not([data-theme="dark"]) tr.de-expand-row td { background: #f4f4f8; }
+  html:not([data-theme="dark"]) .de-expand-item .de-label { color: #5a5a78; }
+  html:not([data-theme="dark"]) .de-expand-item .de-vals  { color: #3a3a52; }
+  html:not([data-theme="dark"]) .de-collapse-btn { border-color: #d4d4e8; color: #6b5ce7; }
   html:not([data-theme="dark"]) .ci-season { color: #4a4a68; border-bottom-color: #d4d4e8; }
   html:not([data-theme="dark"]) .ci-season::before { color: #9296b4; }
   html:not([data-theme="dark"]) .ci-season:hover { color: #1a1a2a; }
@@ -496,6 +554,13 @@ html[data-theme="light"] .results-table td.score:last-child { color: #1a1a2a; }
 html[data-theme="light"] .results-table td.score.gold   { color: #b8860b; }
 html[data-theme="light"] .results-table td.score.silver { color: #3d5a76; }
 html[data-theme="light"] .results-table td.score.bronze { color: #a0522d; }
+html[data-theme="light"] .results-table td.score.score-interactive:hover { color: #6b5ce7; }
+html[data-theme="light"] .results-table tbody tr.de-row-clickable:hover { background: rgba(107,92,231,0.06); }
+html[data-theme="light"] .de-tip { background: #ffffff; color: #1a1a2a; border-color: #d4d4e8; }
+html[data-theme="light"] tr.de-expand-row td { background: #f4f4f8; }
+html[data-theme="light"] .de-expand-item .de-label { color: #5a5a78; }
+html[data-theme="light"] .de-expand-item .de-vals  { color: #3a3a52; }
+html[data-theme="light"] .de-collapse-btn { border-color: #d4d4e8; color: #6b5ce7; }
 html[data-theme="light"] .ci-season { color: #4a4a68; border-bottom-color: #d4d4e8; }
 html[data-theme="light"] .ci-season::before { color: #9296b4; }
 html[data-theme="light"] .ci-season:hover { color: #1a1a2a; }

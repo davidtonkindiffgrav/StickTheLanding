@@ -1,8 +1,26 @@
 [
   {
     "sport": "wag",
+    "comp_id": "metro-north-central-wag-regional-championships-2026",
+    "name": "Metro North Central WAG Regional Championships",
+    "date": "2026-09-06"
+  },
+  {
+    "sport": "wag",
+    "comp_id": "metro-east-wag-regional-championships-2026",
+    "name": "Metro East WAG Regional Championships",
+    "date": "2026-09-05"
+  },
+  {
+    "sport": "wag",
     "comp_id": "north-east-wag-regional-championships-2026",
     "name": "North East WAG Regional Championships",
+    "date": "2026-09-05"
+  },
+  {
+    "sport": "wag",
+    "comp_id": "west-region-wag-regional-championships-2026",
+    "name": "West Region WAG Regional Championships",
     "date": "2026-09-05"
   },
   {
@@ -115,9 +133,9 @@
   },
   {
     "sport": "wag",
-    "comp_id": "metro-north-central-wag-regional-championships-2026",
-    "name": "Metro North Central WAG Regional Championships",
-    "date": "2026-06-09"
+    "comp_id": "warrnambool-invite-2026",
+    "name": "Warrnambool Invite",
+    "date": "2026-07-04"
   },
   {
     "sport": "wag",
@@ -145,21 +163,21 @@
   },
   {
     "sport": "wag",
-    "comp_id": "metro-east-wag-regional-championships-2026",
-    "name": "Metro East WAG Regional Championships",
-    "date": "2026-05-09"
+    "comp_id": "wag-trial-2-and-border-challenge-trial-2-2026",
+    "name": "WAG Trial 2 and Border Challenge Trial 2",
+    "date": "2026-05-03"
   },
   {
-    "sport": "wag",
-    "comp_id": "west-region-wag-regional-championships-2026",
-    "name": "West Region WAG Regional Championships",
-    "date": "2026-05-09"
+    "sport": "mag",
+    "comp_id": "state-trial-2-level-5-8u-2026",
+    "name": "State Trial 2 - Level 5-8U",
+    "date": "2026-05-03"
   },
   {
-    "sport": "wag",
-    "comp_id": "warrnambool-invite-2026",
-    "name": "Warrnambool Invite",
-    "date": "2026-05-07"
+    "sport": "mag",
+    "comp_id": "state-trial-2-level-8o-senior-2026",
+    "name": "State Trial 2 - Level 8O - Senior",
+    "date": "2026-05-02"
   },
   {
     "sport": "wag",
@@ -184,12 +202,6 @@
     "comp_id": "sgc-mag-level-5-senior-invitational-2026",
     "name": "SGC MAG Level 5-Senior Invitational",
     "date": "2026-04-12"
-  },
-  {
-    "sport": "mag",
-    "comp_id": "state-trial-2-level-5-8u-2026",
-    "name": "State Trial 2 - Level 5-8U",
-    "date": "2026-04-05"
   },
   {
     "sport": "mag",
@@ -223,39 +235,9 @@
   },
   {
     "sport": "wag",
-    "comp_id": "wag-trial-2-and-border-challenge-trial-2-2026",
-    "name": "WAG Trial 2 and Border Challenge Trial 2",
-    "date": "2026-03-05"
-  },
-  {
-    "sport": "mag",
-    "comp_id": "state-trial-2-level-8o-senior-2026",
-    "name": "State Trial 2 - Level 8O - Senior",
-    "date": "2026-02-05"
-  },
-  {
-    "sport": "wag",
-    "comp_id": "warrnambool-invite-2025",
-    "name": "Warrnambool Invite",
-    "date": "2025-12-07"
-  },
-  {
-    "sport": "mag",
-    "comp_id": "state-trial-1-2025",
-    "name": "State Trial 1",
-    "date": "2025-12-04"
-  },
-  {
-    "sport": "wag",
     "comp_id": "natimuk-district-gymnastic-club-annual-invitational-competition-and-wag-lat-2025",
     "name": "Natimuk & District Gymnastic Club Annual Invitational Competition and WAG LAT",
     "date": "2025-11-11"
-  },
-  {
-    "sport": "wag",
-    "comp_id": "flyaway-invitational-2025",
-    "name": "Flyaway Invitational",
-    "date": "2025-11-06"
   },
   {
     "sport": "wag",
@@ -274,6 +256,12 @@
     "comp_id": "junior-victorian-championships-2025",
     "name": "Junior Victorian Championships",
     "date": "2025-10-17"
+  },
+  {
+    "sport": "wag",
+    "comp_id": "melton-invitational-2025",
+    "name": "Melton Invitational",
+    "date": "2025-10-04"
   },
   {
     "sport": "wag",
@@ -312,6 +300,12 @@
     "date": "2025-09-13"
   },
   {
+    "sport": "wag",
+    "comp_id": "btyc-junior-invite-2025",
+    "name": "BTYC Junior Invite",
+    "date": "2025-09-06"
+  },
+  {
     "sport": "mag",
     "comp_id": "pit-invitational-2025",
     "name": "PIT Invitational",
@@ -324,10 +318,22 @@
     "date": "2025-08-30"
   },
   {
+    "sport": "wag",
+    "comp_id": "aerodynamix-invitational-2025",
+    "name": "Aerodynamix Invitational",
+    "date": "2025-08-24"
+  },
+  {
     "sport": "mag",
     "comp_id": "sgc-junior-invite-2025",
     "name": "SGC Junior Invite",
     "date": "2025-08-24"
+  },
+  {
+    "sport": "wag",
+    "comp_id": "niddrie-invitational-2025",
+    "name": "Niddrie Invitational",
+    "date": "2025-08-23"
   },
   {
     "sport": "mag",
@@ -340,6 +346,12 @@
     "comp_id": "waverley-classic-2025",
     "name": "Waverley Classic",
     "date": "2025-08-15"
+  },
+  {
+    "sport": "wag",
+    "comp_id": "casey-classic-2025",
+    "name": "Casey Classic",
+    "date": "2025-08-02"
   },
   {
     "sport": "wag",
@@ -361,33 +373,21 @@
   },
   {
     "sport": "wag",
+    "comp_id": "warrnambool-invite-2025",
+    "name": "Warrnambool Invite",
+    "date": "2025-07-12"
+  },
+  {
+    "sport": "wag",
     "comp_id": "casey-cup-2025",
     "name": "Casey Cup",
     "date": "2025-06-22"
   },
   {
     "sport": "wag",
-    "comp_id": "aerodynamix-invitational-2025",
-    "name": "Aerodynamix Invitational",
-    "date": "2025-06-21"
-  },
-  {
-    "sport": "wag",
-    "comp_id": "melton-invitational-2025",
-    "name": "Melton Invitational",
-    "date": "2025-06-10"
-  },
-  {
-    "sport": "wag",
-    "comp_id": "btyc-junior-invite-2025",
-    "name": "BTYC Junior Invite",
-    "date": "2025-06-09"
-  },
-  {
-    "sport": "wag",
-    "comp_id": "mlc-senior-star-classic-2025",
-    "name": "MLC Senior Star Classic",
-    "date": "2025-06-04"
+    "comp_id": "flyaway-invitational-2025",
+    "name": "Flyaway Invitational",
+    "date": "2025-06-07"
   },
   {
     "sport": "wag",
@@ -409,9 +409,27 @@
   },
   {
     "sport": "wag",
-    "comp_id": "casey-classic-2025",
-    "name": "Casey Classic",
-    "date": "2025-05-08"
+    "comp_id": "border-challenge-trial-1-2025",
+    "name": "Border Challenge Trial 1",
+    "date": "2025-05-10"
+  },
+  {
+    "sport": "wag",
+    "comp_id": "border-challenge-trial-2-2025",
+    "name": "Border Challenge Trial 2",
+    "date": "2025-05-10"
+  },
+  {
+    "sport": "wag",
+    "comp_id": "state-trial-2-2025",
+    "name": "State Trial 2",
+    "date": "2025-05-03"
+  },
+  {
+    "sport": "mag",
+    "comp_id": "state-trial-2-2025",
+    "name": "State Trial 2",
+    "date": "2025-05-03"
   },
   {
     "sport": "wag",
@@ -426,10 +444,16 @@
     "date": "2025-04-13"
   },
   {
+    "sport": "mag",
+    "comp_id": "state-trial-1-2025",
+    "name": "State Trial 1",
+    "date": "2025-04-12"
+  },
+  {
     "sport": "wag",
-    "comp_id": "state-trial-2-2025",
-    "name": "State Trial 2",
-    "date": "2025-04-05"
+    "comp_id": "mlc-senior-star-classic-2025",
+    "name": "MLC Senior Star Classic",
+    "date": "2025-04-06"
   },
   {
     "sport": "mag",
@@ -463,33 +487,9 @@
   },
   {
     "sport": "mag",
-    "comp_id": "state-trial-2-2025",
-    "name": "State Trial 2",
-    "date": "2025-03-05"
-  },
-  {
-    "sport": "wag",
-    "comp_id": "niddrie-invitational-2025",
-    "name": "Niddrie Invitational",
-    "date": "2025-02-08"
-  },
-  {
-    "sport": "mag",
     "comp_id": "knox-mag-5-10-invitational-2025",
     "name": "Knox MAG 5-10 Invitational",
-    "date": "2025-02-03"
-  },
-  {
-    "sport": "wag",
-    "comp_id": "border-challenge-trial-1-2025",
-    "name": "Border Challenge Trial 1",
-    "date": "2025-01-06"
-  },
-  {
-    "sport": "wag",
-    "comp_id": "border-challenge-trial-2-2025",
-    "name": "Border Challenge Trial 2",
-    "date": "2025-01-06"
+    "date": "2025-03-02"
   },
   {
     "sport": "wag",
@@ -511,8 +511,32 @@
   },
   {
     "sport": "wag",
+    "comp_id": "metro-south-regional-championships-2024",
+    "name": "Metro South Regional Championships",
+    "date": "2024-09-07"
+  },
+  {
+    "sport": "wag",
+    "comp_id": "metro-west-regional-championships-2024",
+    "name": "Metro West Regional Championships",
+    "date": "2024-09-07"
+  },
+  {
+    "sport": "wag",
     "comp_id": "metro-east-regional-championships-2024",
     "name": "Metro East Regional Championships",
+    "date": "2024-09-01"
+  },
+  {
+    "sport": "wag",
+    "comp_id": "north-central-regional-championships-2024",
+    "name": "North Central Regional Championships",
+    "date": "2024-09-01"
+  },
+  {
+    "sport": "wag",
+    "comp_id": "north-east-regional-championships-2024",
+    "name": "North East Regional Championships",
     "date": "2024-09-01"
   },
   {
@@ -559,6 +583,18 @@
   },
   {
     "sport": "wag",
+    "comp_id": "aerodynamix-invitational-2024",
+    "name": "Aerodynamix Invitational",
+    "date": "2024-08-03"
+  },
+  {
+    "sport": "wag",
+    "comp_id": "warrnambool-invite-2024",
+    "name": "Warrnambool Invite",
+    "date": "2024-08-03"
+  },
+  {
+    "sport": "wag",
     "comp_id": "knox-invitational-2024",
     "name": "Knox Invitational",
     "date": "2024-07-20"
@@ -574,18 +610,6 @@
     "comp_id": "ymca-geelong-invitational-2024",
     "name": "YMCA Geelong Invitational",
     "date": "2024-07-13"
-  },
-  {
-    "sport": "wag",
-    "comp_id": "metro-south-regional-championships-2024",
-    "name": "Metro South Regional Championships",
-    "date": "2024-07-09"
-  },
-  {
-    "sport": "wag",
-    "comp_id": "metro-west-regional-championships-2024",
-    "name": "Metro West Regional Championships",
-    "date": "2024-07-09"
   },
   {
     "sport": "wag",
@@ -631,12 +655,6 @@
   },
   {
     "sport": "wag",
-    "comp_id": "warrnambool-invite-2024",
-    "name": "Warrnambool Invite",
-    "date": "2024-04-08"
-  },
-  {
-    "sport": "wag",
     "comp_id": "wag-senior-victorian-championships-2024",
     "name": "WAG Senior Victorian Championships",
     "date": "2024-04-05"
@@ -672,10 +690,10 @@
     "date": "2024-03-10"
   },
   {
-    "sport": "wag",
-    "comp_id": "aerodynamix-invitational-2024",
-    "name": "Aerodynamix Invitational",
-    "date": "2024-03-08"
+    "sport": "mag",
+    "comp_id": "mag-state-team-trial-1-2024",
+    "name": "MAG State Team Trial 1",
+    "date": "2024-03-02"
   },
   {
     "sport": "wag",
@@ -688,23 +706,5 @@
     "comp_id": "btyc-mag-senior-invite-2024",
     "name": "BTYC MAG Senior Invite",
     "date": "2024-02-17"
-  },
-  {
-    "sport": "wag",
-    "comp_id": "north-east-regional-championships-2024",
-    "name": "North East Regional Championships",
-    "date": "2024-02-09"
-  },
-  {
-    "sport": "mag",
-    "comp_id": "mag-state-team-trial-1-2024",
-    "name": "MAG State Team Trial 1",
-    "date": "2024-02-03"
-  },
-  {
-    "sport": "wag",
-    "comp_id": "north-central-regional-championships-2024",
-    "name": "North Central Regional Championships",
-    "date": "2024-01-09"
   }
 ]

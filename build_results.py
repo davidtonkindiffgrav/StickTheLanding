@@ -44,6 +44,105 @@ MAG_AA_COLS  = [("floor","FX"), ("pommel","PH"), ("rings","SR"), ("vault","VT"),
 # For MAG apparatus-specific events: which DB column holds the score
 MAG_APP_COL  = {"FX":"floor","PH":"pommel","SR":"rings","VT":"vault","PB":"pbars","HB":"hbar"}
 
+# D/E breakdown: db_column -> (d_column, e_column). "total" excluded, it's a sum.
+DE_COLS = {
+    "vault": ("vault_d", "vault_e"), "bars":  ("bars_d",  "bars_e"),
+    "beam":  ("beam_d",  "beam_e"),  "floor": ("floor_d", "floor_e"),
+    "pommel":("pommel_d","pommel_e"),"rings": ("rings_d", "rings_e"),
+    "pbars": ("pbars_d", "pbars_e"), "hbar":  ("hbar_d",  "hbar_e"),
+}
+DE_MIN_LEVEL = 7  # D/E breakdown only shown for Level 7+ (optional-routine levels)
+
+# D/E hover tooltip + click-to-expand row for Level 7+ scores. Plain string
+# (not an f-string) so it can be spliced into render_page's template without
+# having to double every JS brace. Score cells with D/E show a peek tooltip
+# on hover; clicking anywhere on an eligible row toggles the full per-
+# apparatus breakdown as an inline row underneath.
+DE_SCRIPT = """
+function deTipEl() {
+  let el = document.getElementById('de-tip-box');
+  if (!el) {
+    el = document.createElement('div');
+    el.id = 'de-tip-box';
+    el.className = 'de-tip';
+    el.setAttribute('role', 'tooltip');
+    document.body.appendChild(el);
+  }
+  return el;
+}
+
+function deTipContentFor(td) {
+  if (td.dataset.colKey) {
+    const rowData = JSON.parse(td.closest('tr').dataset.deRow || '{}');
+    const v = rowData[td.dataset.colKey] || {d:'-', e:'-'};
+    return '<div class="de-tip-row"><span>D</span><span>' + v.d + '</span></div>'
+         + '<div class="de-tip-row"><span>E</span><span>' + v.e + '</span></div>';
+  }
+  return '<div class="de-tip-row"><span>D</span><span>' + td.dataset.d + '</span></div>'
+       + '<div class="de-tip-row"><span>E</span><span>' + td.dataset.e + '</span></div>';
+}
+
+function deShowTip(td) {
+  const tip = deTipEl();
+  tip.innerHTML = deTipContentFor(td);
+  tip.classList.add('visible');
+  const tw = tip.offsetWidth, th = tip.offsetHeight;
+  const r = td.getBoundingClientRect();
+  let x = r.left + r.width / 2 - tw / 2, y = r.bottom + 8;
+  if (y + th > window.innerHeight - 8) y = r.top - th - 8;
+  tip.style.left = Math.max(8, Math.min(x, window.innerWidth - tw - 8)) + 'px';
+  tip.style.top  = Math.max(8, y) + 'px';
+}
+function deHideTip() {
+  deTipEl().classList.remove('visible');
+}
+
+function deExpandRow(tr) {
+  const table = tr.closest('table');
+  const cols = JSON.parse(table.dataset.deCols || '[]');
+  const rowData = JSON.parse(tr.dataset.deRow || '{}');
+  const items = cols.map(function (lbl) {
+    const v = rowData[lbl];
+    return '<div class="de-expand-item"><span class="de-label">' + lbl + '</span>'
+         + '<span class="de-vals">' + (v ? ('D ' + v.d + ' \\u00b7 E ' + v.e) : '\\u2013') + '</span></div>';
+  }).join('');
+  const colspan = table.querySelector('thead tr').children.length;
+  const newTr = document.createElement('tr');
+  newTr.className = 'de-expand-row';
+  newTr.innerHTML = '<td colspan="' + colspan + '"><div class="de-expand-grid">' + items
+    + '<button type="button" class="de-collapse-btn">Collapse</button></div></td>';
+  newTr.querySelector('.de-collapse-btn').addEventListener('click', function (e) {
+    e.stopPropagation();
+    deCollapseRow(tr);
+  });
+  tr.after(newTr);
+  tr.classList.add('de-expanded');
+}
+function deCollapseRow(tr) {
+  if (tr.nextElementSibling && tr.nextElementSibling.classList.contains('de-expand-row')) {
+    tr.nextElementSibling.remove();
+  }
+  tr.classList.remove('de-expanded');
+}
+function deToggleRow(tr) {
+  if (tr.nextElementSibling && tr.nextElementSibling.classList.contains('de-expand-row')) {
+    deCollapseRow(tr);
+  } else {
+    deExpandRow(tr);
+  }
+}
+
+document.querySelectorAll('td.score-interactive').forEach(function (td) {
+  td.addEventListener('mouseenter', function () { deShowTip(td); });
+  td.addEventListener('mouseleave', deHideTip);
+});
+document.querySelectorAll('tr[data-de-row]').forEach(function (tr) {
+  tr.classList.add('de-row-clickable');
+  tr.addEventListener('click', function () { deToggleRow(tr); });
+});
+document.addEventListener('scroll', deHideTip, { passive: true });
+"""
+
 EVENT_ORDER  = {"AA":0,"FX":1,"PH":2,"SR":3,"VT":4,"PB":5,"HB":6,"Team":99}
 EVENT_LABEL  = {
     "AA":"All Around","Team":"Team",
@@ -83,8 +182,15 @@ def fetch_rows(con, comp_id: str, sport: str):
     rows = con.execute("""
         SELECT e.id AS event_id, e.level, e.division, e.event_type, e.source_file,
                r.rank, r.athlete, r.club, r.team_name,
-               r.vault, r.bars, r.beam, r.floor, r.total,
-               r.pommel, r.rings, r.pbars, r.hbar,
+               r.vault, r.vault_d, r.vault_e,
+               r.bars,  r.bars_d,  r.bars_e,
+               r.beam,  r.beam_d,  r.beam_e,
+               r.floor, r.floor_d, r.floor_e,
+               r.total,
+               r.pommel, r.pommel_d, r.pommel_e,
+               r.rings,  r.rings_d,  r.rings_e,
+               r.pbars,  r.pbars_d,  r.pbars_e,
+               r.hbar,   r.hbar_d,   r.hbar_e,
                r.age_bracket, r.age_bracket_rank
         FROM events e JOIN results r ON r.event_id = e.id
         WHERE e.competition_id = ?
@@ -335,6 +441,9 @@ def render_table(rows: list, event_type: str, sport: str, club_names: dict = Non
     club_names = club_names or {}
     cols       = table_cols(event_type, sport)
     is_team    = event_type == "Team"
+    allow_expand   = event_type == "AA"
+    de_app_cols    = [(col, lbl) for col, lbl in cols if col != "total" and col in DE_COLS]
+    de_cols_labels = [lbl for _, lbl in de_app_cols]
 
     # Top-3 per apparatus column (skip 'total' — rank # already covers it)
     col_top3 = {}
@@ -385,8 +494,21 @@ def render_table(rows: list, event_type: str, sport: str, club_names: dict = Non
             name_cell = f'<td class="name">{r.get("athlete") or "-"}</td>'
             club_cell = f'<td class="club">{full_name}</td>'
 
+        # D/E breakdown: Level 7+ only, never for Team rows (D/E is an
+        # optional-routine concept; Levels 5-6 are compulsory and any D/E
+        # found there is a data-quality anomaly, not something to surface).
+        lvl = r.get("level")
+        lvl_ok = not is_team and isinstance(lvl, (int, float)) and lvl >= DE_MIN_LEVEL
+        de_row = {}
+        if lvl_ok:
+            for col, lbl in de_app_cols:
+                d_col, e_col = DE_COLS[col]
+                d_val, e_val = r.get(d_col), r.get(e_col)
+                if d_val is not None and e_val is not None:
+                    de_row[lbl] = {"d": fmt(d_val), "e": fmt(e_val)}
+
         score_cells = []
-        for col, _ in cols:
+        for col, lbl in cols:
             raw    = r.get(col)
             medal  = ""
             if col != "total" and raw is not None:
@@ -394,13 +516,30 @@ def render_table(rows: list, event_type: str, sport: str, club_names: dict = Non
                     medal = col_top3.get(col, {}).get(float(raw), "")
                 except (TypeError, ValueError):
                     pass
-            cls = f'score{" " + medal if medal else ""}'
-            score_cells.append(f'<td class="{cls}">{fmt(raw)}</td>')
+            cls   = f'score{" " + medal if medal else ""}'
+            attrs = ""
+            if col != "total" and lbl in de_row:
+                cls += " score-interactive"
+                if allow_expand:
+                    attrs = f' data-col-key="{lbl}"'
+                else:
+                    attrs = f' data-d="{de_row[lbl]["d"]}" data-e="{de_row[lbl]["e"]}"'
+            score_cells.append(f'<td class="{cls}"{attrs}>{fmt(raw)}</td>')
 
-        body_rows.append(f"<tr>{rank_cell}{name_cell}{club_cell}{''.join(score_cells)}</tr>")
+        row_attrs = ""
+        if allow_expand and de_row:
+            de_json = json.dumps(de_row, separators=(",", ":")).replace("'", "&#39;")
+            row_attrs = f" data-de-row='{de_json}'"
+
+        body_rows.append(f"<tr{row_attrs}>{rank_cell}{name_cell}{club_cell}{''.join(score_cells)}</tr>")
+
+    table_attrs = ""
+    if allow_expand and de_cols_labels:
+        de_cols_json = json.dumps(de_cols_labels, separators=(",", ":")).replace("'", "&#39;")
+        table_attrs = f" data-de-cols='{de_cols_json}'"
 
     return (
-        '<div class="table-wrap"><table class="results-table">'
+        f'<div class="table-wrap"><table class="results-table"{table_attrs}>'
         f'<thead><tr>{rank_th}{name_th_el}{club_th}{head_cells}</tr></thead>'
         f'<tbody>{"".join(body_rows)}</tbody>'
         '</table></div>'
@@ -551,6 +690,7 @@ def render_page(comp: sqlite3.Row, tree: dict, sport: str, club_names: dict = No
 
 <script>
 function switchTab(btn) {{
+  if (typeof deHideTip === 'function') deHideTip();
   document.querySelectorAll('.rtab').forEach(b => b.classList.remove('active'));
   document.querySelectorAll('.level-panel').forEach(p => p.classList.remove('active'));
   btn.classList.add('active');
@@ -560,6 +700,8 @@ function switchTab(btn) {{
 function sortTable(th) {{
   const table = th.closest('table');
   const tbody = table.querySelector('tbody');
+  tbody.querySelectorAll('tr.de-expand-row').forEach(r => r.remove());
+  tbody.querySelectorAll('tr.de-expanded').forEach(r => r.classList.remove('de-expanded'));
   const col   = +th.dataset.col;
   const asc   = th.dataset.dir !== 'asc';
   table.querySelectorAll('th[data-col]').forEach(h => {{
@@ -581,6 +723,7 @@ function sortTable(th) {{
     }})
     .forEach(r => tbody.appendChild(r));
 }}
+{DE_SCRIPT}
 </script>
 <script src="/assets/nav.js?v={BUILD_VER}" defer></script>
 </body>
@@ -1110,6 +1253,57 @@ body.results-page {
 .results-table td.score.silver { color: #dce8f5; font-weight: 700; }
 .results-table td.score.bronze { color: #cd7f32; font-weight: 700; }
 
+.results-table td.score.score-interactive {
+  cursor: pointer;
+  text-decoration: underline dotted;
+  text-underline-offset: 3px;
+  text-decoration-color: rgba(201,164,255,0.5);
+}
+.results-table td.score.score-interactive:hover { color: #c9a4ff; }
+
+.results-table tbody tr.de-row-clickable { cursor: pointer; }
+.results-table tbody tr.de-row-clickable:hover { background: rgba(201,164,255,0.06); }
+
+/* ── D/E BREAKDOWN TOOLTIP + EXPAND ROW ─────────────────────────────────────── */
+
+.de-tip {
+  position: fixed;
+  z-index: 9999;
+  background: #1e1e2e;
+  color: #e8e8f0;
+  border: 1px solid #232944;
+  border-radius: 8px;
+  padding: 8px 10px;
+  font: 500 0.78rem/1.4 'JetBrains Mono', monospace;
+  min-width: 90px;
+  max-width: 220px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .12s;
+  box-shadow: 0 4px 16px rgba(0,0,0,.5);
+}
+.de-tip.visible { opacity: 1; }
+.de-tip .de-tip-row { display: flex; justify-content: space-between; gap: 10px; }
+
+tr.de-expand-row td {
+  background: #111425;
+  padding: 10px 14px;
+}
+.de-expand-grid { display: flex; flex-wrap: wrap; align-items: center; gap: 14px; }
+.de-expand-item { display: flex; flex-direction: column; min-width: 64px; }
+.de-expand-item .de-label { font: 700 .68rem 'JetBrains Mono', monospace; color: #5d6285; text-transform: uppercase; }
+.de-expand-item .de-vals  { font: 600 .8rem 'JetBrains Mono', monospace; color: #c5c9e0; }
+.de-collapse-btn {
+  margin-left: auto;
+  background: none;
+  border: 1px solid #3a3f5c;
+  color: #c9a4ff;
+  border-radius: 5px;
+  padding: 4px 8px;
+  font: 600 .7rem 'JetBrains Mono', monospace;
+  cursor: pointer;
+}
+
 /* ── COMPETITIONS INDEX ─────────────────────────────────────────────────────── */
 
 .ci-main {
@@ -1308,6 +1502,13 @@ body.results-page {
   html:not([data-theme="dark"]) .results-table td.score.gold   { color: #b8860b; }
   html:not([data-theme="dark"]) .results-table td.score.silver { color: #3d5a76; }
   html:not([data-theme="dark"]) .results-table td.score.bronze { color: #a0522d; }
+  html:not([data-theme="dark"]) .results-table td.score.score-interactive:hover { color: #6b5ce7; }
+  html:not([data-theme="dark"]) .results-table tbody tr.de-row-clickable:hover { background: rgba(107,92,231,0.06); }
+  html:not([data-theme="dark"]) .de-tip { background: #ffffff; color: #1a1a2a; border-color: #d4d4e8; }
+  html:not([data-theme="dark"]) tr.de-expand-row td { background: #f4f4f8; }
+  html:not([data-theme="dark"]) .de-expand-item .de-label { color: #5a5a78; }
+  html:not([data-theme="dark"]) .de-expand-item .de-vals  { color: #3a3a52; }
+  html:not([data-theme="dark"]) .de-collapse-btn { border-color: #d4d4e8; color: #6b5ce7; }
   html:not([data-theme="dark"]) .ci-season { color: #4a4a68; border-bottom-color: #d4d4e8; }
   html:not([data-theme="dark"]) .ci-season::before { color: #9296b4; }
   html:not([data-theme="dark"]) .ci-season:hover { color: #1a1a2a; }
@@ -1364,6 +1565,13 @@ html[data-theme="light"] .results-table td.score:last-child { color: #1a1a2a; }
 html[data-theme="light"] .results-table td.score.gold   { color: #b8860b; }
 html[data-theme="light"] .results-table td.score.silver { color: #3d5a76; }
 html[data-theme="light"] .results-table td.score.bronze { color: #a0522d; }
+html[data-theme="light"] .results-table td.score.score-interactive:hover { color: #6b5ce7; }
+html[data-theme="light"] .results-table tbody tr.de-row-clickable:hover { background: rgba(107,92,231,0.06); }
+html[data-theme="light"] .de-tip { background: #ffffff; color: #1a1a2a; border-color: #d4d4e8; }
+html[data-theme="light"] tr.de-expand-row td { background: #f4f4f8; }
+html[data-theme="light"] .de-expand-item .de-label { color: #5a5a78; }
+html[data-theme="light"] .de-expand-item .de-vals  { color: #3a3a52; }
+html[data-theme="light"] .de-collapse-btn { border-color: #d4d4e8; color: #6b5ce7; }
 html[data-theme="light"] .ci-season { color: #4a4a68; border-bottom-color: #d4d4e8; }
 html[data-theme="light"] .ci-season::before { color: #9296b4; }
 html[data-theme="light"] .ci-season:hover { color: #1a1a2a; }
