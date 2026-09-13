@@ -1,6 +1,12 @@
 [
   {
     "sport": "wag",
+    "comp_id": "north-east-wag-regional-championships-2026",
+    "name": "North East WAG Regional Championships",
+    "date": "2026-09-05"
+  },
+  {
+    "sport": "wag",
     "comp_id": "cyc-junior-invitational-2026",
     "name": "CYC Junior Invitational",
     "date": "2026-08-29"
@@ -109,6 +115,12 @@
   },
   {
     "sport": "wag",
+    "comp_id": "metro-north-central-wag-regional-championships-2026",
+    "name": "Metro North Central WAG Regional Championships",
+    "date": "2026-06-09"
+  },
+  {
+    "sport": "wag",
     "comp_id": "senior-victorian-championships-2026",
     "name": "Senior Victorian Championships",
     "date": "2026-05-22"
@@ -130,6 +142,18 @@
     "comp_id": "waverley-invite-2026",
     "name": "Waverley Invite",
     "date": "2026-05-10"
+  },
+  {
+    "sport": "wag",
+    "comp_id": "metro-east-wag-regional-championships-2026",
+    "name": "Metro East WAG Regional Championships",
+    "date": "2026-05-09"
+  },
+  {
+    "sport": "wag",
+    "comp_id": "west-region-wag-regional-championships-2026",
+    "name": "West Region WAG Regional Championships",
+    "date": "2026-05-09"
   },
   {
     "sport": "wag",
