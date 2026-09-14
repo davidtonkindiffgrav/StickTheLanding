@@ -1,6 +1,12 @@
 [
   {
     "sport": "wag",
+    "comp_id": "south-east-region-wag-regional-championships-2026",
+    "name": "South East Region WAG Regional Championships",
+    "date": "2026-09-13"
+  },
+  {
+    "sport": "wag",
     "comp_id": "metro-north-central-wag-regional-championships-2026",
     "name": "Metro North Central WAG Regional Championships",
     "date": "2026-09-06"
