@@ -3,5 +3,6 @@ Allow: /
 Disallow: /data/
 Disallow: /news/posts/_template/
 Disallow: /team-picker/
+Disallow: /partners/
 
 Sitemap: https://stickthelanding.com.au/sitemap.xml
