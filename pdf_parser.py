@@ -968,8 +968,25 @@ def parse_team_results(text_pages, pdf_path, sport="WAG"):
         # excluded, matching the "combined team counts as the numbered
         # division" convention already used for "L7D1,7U" style filenames.
         if page_level is None and re.search(r"all\s*levels", text, re.IGNORECASE):
+            # Restrict candidate siblings to the same session when the TEAM
+            # file's own name declares one (e.g. "S6A") — folders can hold
+            # multiple sessions' files together (e.g. "Session 6" holding
+            # both S6A and S6B MEET_*.pdf), which would otherwise make the
+            # sibling level/division set ambiguous.
+            own_session_m = re.search(r"_S(\d+[A-Za-z]?)_", Path(pdf_path).name)
+            own_session = own_session_m.group(1) if own_session_m else None
+
+            def _sib_session(sib_path):
+                m = re.search(r"_S(\d+[A-Za-z]?)_", sib_path.name)
+                return m.group(1) if m else None
+
+            all_sibs = list(Path(pdf_path).parent.glob("MEET_*.pdf"))
+            sibs = [s for s in all_sibs if _sib_session(s) == own_session] if own_session else all_sibs
+            if not sibs:
+                sibs = all_sibs
+
             sib_pairs = set()
-            for sib in Path(pdf_path).parent.glob("MEET_*.pdf"):
+            for sib in sibs:
                 sib_meta = parse_filename_meta(sib, sport=sport)
                 if sib_meta.get("level") is not None and sib_meta.get("division") is not None:
                     sib_pairs.add((sib_meta["level"], sib_meta["division"]))

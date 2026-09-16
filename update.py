@@ -125,6 +125,23 @@ def normalise_clubs(competitions: list, aliases: dict, overrides: dict, con=None
         session_votes = {}   # (level, division) -> set of resolved codes, from named athletes
         pending_team  = []   # (r, raw, key) ambiguous team-only results awaiting pass 2
 
+        # A club that appears under its OWN distinct raw code somewhere else in this
+        # same competition can't also be what an ambiguous code means here — the
+        # meet's own software already had a separate code for it. E.g. if "DOL"
+        # shows up directly in this comp, "DGC" here can't mean Dolphin, since the
+        # organisers would have just printed "DOL" for those athletes too.
+        direct_codes = set()
+        for ev in comp.get("events", []):
+            for r in ev.get("results", []):
+                raw0 = (r.get("club") or "").upper()
+                if raw0 in ambiguous_codes:
+                    continue
+                if raw0 in aliases:
+                    direct_codes.add(aliases[raw0])
+                else:
+                    stripped = _strip_colour(raw0, aliases)
+                    direct_codes.add(stripped if stripped else raw0)
+
         for ev in comp.get("events", []):
             key = (ev.get("level"), ev.get("division"))
             for r in ev.get("results", []):
@@ -135,9 +152,13 @@ def normalise_clubs(competitions: list, aliases: dict, overrides: dict, con=None
 
                 if raw in ambiguous_codes and cur is not None:
                     candidates = ambiguous_codes[raw]
+                    # Narrow candidates to ones NOT already used as their own direct
+                    # code in this competition; fall back to the full list if that
+                    # would eliminate every candidate.
+                    effective = [c for c in candidates if c not in direct_codes] or candidates
                     if athlete:
                         tally = {}
-                        for code in candidates:
+                        for code in effective:
                             cur.execute(
                                 "SELECT COUNT(*) FROM results WHERE athlete = ? AND club = ?",
                                 (athlete, code),
@@ -151,6 +172,15 @@ def normalise_clubs(competitions: list, aliases: dict, overrides: dict, con=None
                                 f"[AUTO]  {comp_name}: {raw} -> {supported[0]} "
                                 f"(athlete {athlete}; history {tally})"
                             )
+                        elif len(effective) == 1:
+                            r["club"] = effective[0]
+                            session_votes.setdefault(key, set()).add(effective[0])
+                            log.append(
+                                f"[AUTO]  {comp_name}: {raw} -> {effective[0]} "
+                                f"(athlete {athlete}; no history either way, but "
+                                f"{[c for c in candidates if c != effective[0]]} "
+                                f"already used directly in this comp)"
+                            )
                         else:
                             r["club"] = aliases.get(raw, raw)
                             log.append(
@@ -158,6 +188,13 @@ def normalise_clubs(competitions: list, aliases: dict, overrides: dict, con=None
                                 f"ambiguous (history {tally}) - defaulted to "
                                 f"{r['club']}, NEEDS REVIEW"
                             )
+                    elif len(effective) == 1:
+                        r["club"] = effective[0]
+                        log.append(
+                            f"[AUTO]  {comp_name}: {raw} (team) -> {effective[0]} "
+                            f"({[c for c in candidates if c != effective[0]]} "
+                            f"already used directly in this comp)"
+                        )
                     else:
                         r["club"] = aliases.get(raw, raw)
                         pending_team.append((r, raw, key))

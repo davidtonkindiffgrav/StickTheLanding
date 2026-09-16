@@ -306,6 +306,18 @@
     <priority>0.6</priority>
   </url>
   <url>
+    <loc>https://stickthelanding.com.au/results/wag/metro-south-wag-regional-championships-2026/</loc>
+    <lastmod>2026-09-12</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://stickthelanding.com.au/results/wag/metro-west-wag-regional-championships-2026/</loc>
+    <lastmod>2026-09-12</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
     <loc>https://stickthelanding.com.au/results/wag/metro-north-central-wag-regional-championships-2026/</loc>
     <lastmod>2026-09-06</lastmod>
     <changefreq>monthly</changefreq>
@@ -330,25 +342,25 @@
     <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://stickthelanding.com.au/results/wag/cyc-junior-invitational-2026/</loc>
-    <lastmod>2026-08-29</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.6</priority>
-  </url>
-  <url>
     <loc>https://stickthelanding.com.au/results/wag/ekga-invitational-2026/</loc>
     <lastmod>2026-08-29</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://stickthelanding.com.au/results/wag/eclipse-invitational-2026/</loc>
-    <lastmod>2026-08-22</lastmod>
+    <loc>https://stickthelanding.com.au/results/wag/cyc-junior-invitational-2026/</loc>
+    <lastmod>2026-08-29</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://stickthelanding.com.au/results/wag/eureka-invitational-2026/</loc>
+    <lastmod>2026-08-22</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://stickthelanding.com.au/results/wag/eclipse-invitational-2026/</loc>
     <lastmod>2026-08-22</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
@@ -588,12 +600,6 @@
     <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://stickthelanding.com.au/results/wag/metro-south-regional-championships-2025/</loc>
-    <lastmod>2025-09-13</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.6</priority>
-  </url>
-  <url>
     <loc>https://stickthelanding.com.au/results/wag/metro-west-regional-championships-2025/</loc>
     <lastmod>2025-09-13</lastmod>
     <changefreq>monthly</changefreq>
@@ -601,6 +607,12 @@
   </url>
   <url>
     <loc>https://stickthelanding.com.au/results/wag/south-east-regional-championships-2025/</loc>
+    <lastmod>2025-09-13</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://stickthelanding.com.au/results/wag/metro-south-regional-championships-2025/</loc>
     <lastmod>2025-09-13</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>

@@ -7,6 +7,18 @@
   },
   {
     "sport": "wag",
+    "comp_id": "metro-south-wag-regional-championships-2026",
+    "name": "Metro South WAG Regional Championships",
+    "date": "2026-09-12"
+  },
+  {
+    "sport": "wag",
+    "comp_id": "metro-west-wag-regional-championships-2026",
+    "name": "Metro West WAG Regional Championships",
+    "date": "2026-09-12"
+  },
+  {
+    "sport": "wag",
     "comp_id": "metro-north-central-wag-regional-championships-2026",
     "name": "Metro North Central WAG Regional Championships",
     "date": "2026-09-06"
@@ -31,26 +43,26 @@
   },
   {
     "sport": "wag",
-    "comp_id": "cyc-junior-invitational-2026",
-    "name": "CYC Junior Invitational",
-    "date": "2026-08-29"
-  },
-  {
-    "sport": "wag",
     "comp_id": "ekga-invitational-2026",
     "name": "EKGA Invitational",
     "date": "2026-08-29"
   },
   {
     "sport": "wag",
-    "comp_id": "eclipse-invitational-2026",
-    "name": "Eclipse Invitational",
-    "date": "2026-08-22"
+    "comp_id": "cyc-junior-invitational-2026",
+    "name": "CYC Junior Invitational",
+    "date": "2026-08-29"
   },
   {
     "sport": "wag",
     "comp_id": "eureka-invitational-2026",
     "name": "Eureka Invitational",
+    "date": "2026-08-22"
+  },
+  {
+    "sport": "wag",
+    "comp_id": "eclipse-invitational-2026",
+    "name": "Eclipse Invitational",
     "date": "2026-08-22"
   },
   {
@@ -289,12 +301,6 @@
   },
   {
     "sport": "wag",
-    "comp_id": "metro-south-regional-championships-2025",
-    "name": "Metro South Regional Championships",
-    "date": "2025-09-13"
-  },
-  {
-    "sport": "wag",
     "comp_id": "metro-west-regional-championships-2025",
     "name": "Metro West Regional Championships",
     "date": "2025-09-13"
@@ -303,6 +309,12 @@
     "sport": "wag",
     "comp_id": "south-east-regional-championships-2025",
     "name": "South East Regional Championships",
+    "date": "2025-09-13"
+  },
+  {
+    "sport": "wag",
+    "comp_id": "metro-south-regional-championships-2025",
+    "name": "Metro South Regional Championships",
     "date": "2025-09-13"
   },
   {
