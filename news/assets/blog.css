@@ -265,6 +265,10 @@ html[data-theme="dark"] .l57-table .short { color: #e08a85; }
 .l57-table tr.short-row td { color: var(--muted); }
 .watch-flag { font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.5px; color: var(--accent); background: var(--accent-glow); padding: 1px 5px; border-radius: 4px; }
 
+.post-table.states-table td:first-child, .post-table.states-table th:first-child { width: auto; min-width: 115px; }
+.post-table.states-table td:not(:first-child), .post-table.states-table th:not(:first-child) { width: 70px; text-align: center; }
+.post-table.states-table td:not(:first-child) { font-size: 1.05rem; font-weight: 700; }
+
 .region-jump-nav {
   display: flex;
   flex-wrap: wrap;
