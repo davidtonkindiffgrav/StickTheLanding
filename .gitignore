@@ -2,6 +2,7 @@ dev/
 experiments/
 analysis_2026_states/
 l4_tracking/
+l3_tracking/
 __pycache__/
 *.pyc
 *.pyo
