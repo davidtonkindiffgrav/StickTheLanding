@@ -1,0 +1,227 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>L3 Fantasy Team Builder (private)</title>
+<style>
+  :root { color-scheme: light dark; }
+  body { font-family: system-ui, sans-serif; margin: 2rem; background: #fafafa; color: #1a1a1a; }
+  h1 { font-size: 1.25rem; margin-bottom: 0.25rem; }
+  h2 { font-size: 1.05rem; margin: 2rem 0 0.25rem; }
+  p.note { color: #666; margin-top: 0; font-size: 0.85rem; max-width: 70ch; }
+  p.desc { color: #444; font-size: 0.9rem; margin: 0 0 1rem; }
+  nav { font-size: 0.85rem; margin-bottom: 0.5rem; }
+  nav a { color: #06c; }
+  .benchmark { background: #fff; border: 1px solid #ddd; border-radius: 6px; padding: 0.75rem 1rem; font-size: 0.9rem; margin: 1rem 0; }
+  .benchmark b { font-variant-numeric: tabular-nums; }
+  .controls-row { display: flex; gap: 1rem; align-items: center; flex-wrap: wrap; margin: 0.5rem 0 1rem; }
+  .toggle { display: inline-flex; border: 1px solid #ccc; border-radius: 6px; overflow: hidden; }
+  .toggle button { border: none; background: #fff; padding: 0.5rem 1rem; font-size: 0.9rem; cursor: pointer; color: #444; }
+  .toggle button.active { background: #06c; color: #fff; font-weight: 600; }
+  .toggle button:not(.active):hover { background: #eee; }
+  #injurySelect { font-size: 0.9rem; padding: 0.45rem 0.6rem; border: 1px solid #ccc; border-radius: 6px; background: #fff; color: #1a1a1a; }
+  .out-note { font-size: 0.85rem; color: #c33; font-weight: 600; }
+  tr.excluded { opacity: 0.45; text-decoration: line-through; }
+  table.roster-table { border-collapse: collapse; width: 100%; background: #fff; font-size: 0.88rem; margin: 0.5rem 0 1.5rem; }
+  table.roster-table th, table.roster-table td { border: 1px solid #ddd; padding: 0.35rem 0.6rem; text-align: right; }
+  table.roster-table th:first-child, table.roster-table td:first-child { text-align: left; }
+  table.roster-table th { background: #eee; font-weight: 600; }
+  td.gain-pos { color: #2a2; font-weight: 600; }
+  .teams { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+  .team-card { background: #fff; border: 1px solid #ddd; border-radius: 6px; padding: 1rem; }
+  .team-card.place-1 { border-color: #2a2; }
+  .team-card.place-2 { border-color: #a90; }
+  .team-card.place-other { border-color: #c33; }
+  .team-card h3 { margin: 0 0 0.15rem; font-size: 1rem; }
+  .team-card .total { font-size: 1.6rem; font-weight: 600; font-variant-numeric: tabular-nums; }
+  .team-card .place { font-size: 0.8rem; font-weight: 600; }
+  .place-1 .place { color: #2a2; }
+  .place-2 .place { color: #a90; }
+  .place-other .place { color: #c33; }
+  table.squad { border-collapse: collapse; width: 100%; font-size: 0.85rem; margin-top: 0.5rem; }
+  table.squad th, table.squad td { padding: 0.3rem 0.4rem; text-align: left; border-bottom: 1px solid #eee; }
+  table.squad th { color: #888; font-weight: 500; text-transform: uppercase; font-size: 0.7rem; }
+  td.aa-score { text-align: right; font-variant-numeric: tabular-nums; }
+  tr.scorer { font-weight: 600; }
+  tr.backup { color: #777; }
+  tr.backup td.aa-score { color: #777; }
+  tr.total-row td { font-weight: 700; border-top: 2px solid #ccc; border-bottom: none; padding-top: 0.5rem; }
+  label.blur-toggle { font-size: 0.9rem; display: flex; align-items: center; gap: 0.35rem; cursor: pointer; }
+  body.blur-active .athlete-name, body.blur-active #injurySelect { filter: blur(6px); }
+  @media (max-width: 800px) { .teams { grid-template-columns: 1fr; } }
+  @media (prefers-color-scheme: dark) {
+    body { background: #1a1a1a; color: #e8e8e8; }
+    .benchmark, .team-card { background: #222; border-color: #444; }
+    .team-card.place-1 { border-color: #4c4; }
+    .team-card.place-2 { border-color: #db3; }
+    .team-card.place-other { border-color: #e55; }
+    table.squad th, table.squad td { border-color: #333; }
+    p.note, table.squad th { color: #999; }
+    p.desc { color: #ccc; }
+    tr.backup { color: #aaa; }
+    tr.backup td.aa-score { color: #aaa; }
+    tr.total-row td { border-top-color: #555; }
+    nav a { color: #6cf; }
+    .place-1 .place { color: #4c4; }
+    .place-2 .place { color: #db3; }
+    .place-other .place { color: #e55; }
+    table.roster-table { background: #222; }
+    table.roster-table th, table.roster-table td { border-color: #444; }
+    table.roster-table th { background: #2a2a2a; }
+    td.gain-pos { color: #4c4; }
+    .toggle { border-color: #444; }
+    .toggle button { background: #222; color: #ccc; }
+    .toggle button.active { background: #6cf; color: #111; }
+    .toggle button:not(.active):hover { background: #2a2a2a; }
+    #injurySelect { background: #222; color: #e8e8e8; border-color: #444; }
+    .out-note { color: #e55; }
+  }
+</style>
+</head>
+<body>
+<nav><a href="view.html">All results</a> | <a href="athletes.html">Athlete averages</a> | <a href="history.html">Athlete history</a> | <span>Team builder</span></nav>
+<h1 id="clubTitle">Fantasy Team Builder (private)</h1>
+<div class="controls-row">
+  <div class="toggle" id="metricToggle">
+    <button data-metric="best">Best AA (ceiling)</button>
+    <button data-metric="avg">Average AA (consistency)</button>
+  </div>
+  <label for="injurySelect">Injured / unavailable:</label>
+  <select id="injurySelect"><option value="none">Nobody, full roster</option></select>
+  <label class="blur-toggle"><input type="checkbox" id="blurToggle"> Blur names</label>
+</div>
+<p class="note" id="noteText"></p>
+<p class="out-note" id="outNote" hidden></p>
+<div class="benchmark" id="benchmark"></div>
+
+<h2 style="margin-top:1rem" id="rosterHeading"></h2>
+<p class="desc" id="rosterDesc"></p>
+<table class="roster-table" id="rosterTable">
+  <thead>
+    <tr><th>Athlete</th><th>Vault</th><th>Bars</th><th>Beam</th><th>Floor</th><th id="rosterAAHeader">AA</th><th>Best Comp AA</th><th>Gain</th></tr>
+  </thead>
+  <tbody></tbody>
+</table>
+
+<div id="versions"></div>
+
+<script src="results.js"></script>
+<script src="teams.js"></script>
+<script>
+document.getElementById("clubTitle").textContent = `${TEAMS.club}: Fantasy Team Builder (private)`;
+
+const rivals = TEAMS.rivalBenchmarks.slice(0, 3).map(r =>
+  `${r.team_name} (${r.club}) ${r.total} at ${r.comp}`
+).join(" &nbsp;|&nbsp; ");
+document.getElementById("benchmark").innerHTML =
+  `Rest of field (real Level 3 Division 1 team totals across the 3 tracked comps): ` +
+  `best rival <b>${TEAMS.rivalBest}</b>, second-best rival <b>${TEAMS.rivalSecondBest}</b>.<br>` +
+  `<span style="font-size:0.8rem;color:#888">Top rivals: ${rivals}</span>`;
+
+const injurySelect = document.getElementById("injurySelect");
+TEAMS.athletes.forEach(a => {
+  const opt = document.createElement("option");
+  opt.value = a; opt.textContent = `${a} out`;
+  injurySelect.appendChild(opt);
+});
+
+function squadRows(team) {
+  return `
+    ${team.scoring.map(s => `<tr class="scorer"><td class="athlete-name">${s.athlete}</td><td class="aa-score">${s.metricAA}</td></tr>`).join("")}
+    ${team.backup.map(s => `<tr class="backup"><td class="athlete-name">${s.athlete}</td><td class="aa-score">${s.metricAA}</td></tr>`).join("")}
+    <tr class="total-row"><td>Team total (top 3)</td><td class="aa-score">${team.total}</td></tr>
+  `;
+}
+
+function placeClass(rank) {
+  return rank === 1 ? "place-1" : rank === 2 ? "place-2" : "place-other";
+}
+
+function teamCard(team, aaLabel) {
+  const p = team.placement;
+  const cls = placeClass(p.rank);
+  // Clearing the single toughest rival is what actually secures 1st or 2nd, so
+  // the margin is always shown against that rival, not the 2nd-best one.
+  const diff = team.total - TEAMS.rivalBest;
+  const margin = diff >= 0
+    ? `beats the toughest rival (${TEAMS.rivalBest}) by ${diff.toFixed(3)}`
+    : `falls short of the toughest rival (${TEAMS.rivalBest}) by ${Math.abs(diff).toFixed(3)}`;
+  return `
+    <div class="team-card ${cls}">
+      <h3>${team.label}</h3>
+      <div class="total">${team.total}</div>
+      <div class="place">Would place ${p.label} against real rivals, ${margin}</div>
+      <table class="squad"><thead><tr><th>Athlete</th><th>${aaLabel}</th></tr></thead>
+        <tbody>${squadRows(team)}</tbody>
+      </table>
+    </div>
+  `;
+}
+
+let currentMetric = "best";
+let currentInjury = "none";
+
+function render() {
+  const metricLabel = TEAMS.scenarios[currentInjury][currentMetric].label;
+  const desc = TEAMS.metricDescriptions[currentMetric];
+  const versions = TEAMS.scenarios[currentInjury][currentMetric].versions;
+
+  document.getElementById("noteText").textContent = desc;
+
+  const outNote = document.getElementById("outNote");
+  if (currentInjury === "none") {
+    outNote.hidden = true;
+  } else {
+    outNote.hidden = false;
+    outNote.innerHTML = `<span class="athlete-name">${currentInjury}</span> is marked out, both scenarios below are rebuilt from the remaining ${TEAMS.athletes.length - 1} athletes.`;
+  }
+
+  document.getElementById("rosterHeading").textContent = `Roster: ${metricLabel} vs best actual comp AA`;
+  document.getElementById("rosterDesc").textContent =
+    `Ranked on ${metricLabel}. Gain is ${metricLabel} minus her best AA from any single actual comp. ` +
+    `The full 10-athlete roster is always shown here; the injury selector only affects the squads below.`;
+  document.getElementById("rosterAAHeader").textContent = metricLabel;
+
+  document.querySelector("#rosterTable tbody").innerHTML = TEAMS.fullRoster[currentMetric].map(r => `
+    <tr class="${r.athlete === currentInjury ? "excluded" : ""}">
+      <td class="athlete-name">${r.athlete}${r.athlete === currentInjury ? " (out)" : ""}</td>
+      <td>${r.vault}</td>
+      <td>${r.bars}</td>
+      <td>${r.beam}</td>
+      <td>${r.floor}</td>
+      <td>${r.metricAA}</td>
+      <td>${r.bestCompAA}</td>
+      <td class="${r.gain > 0 ? "gain-pos" : ""}">${r.gain > 0 ? "+" : ""}${r.gain}</td>
+    </tr>
+  `).join("");
+
+  document.getElementById("versions").innerHTML = versions.map(v => `
+    <h2>${v.name}</h2>
+    <p class="desc">${v.description}</p>
+    <div class="teams">
+      ${teamCard(v.teamA, metricLabel)}
+      ${teamCard(v.teamB, metricLabel)}
+    </div>
+  `).join("");
+}
+
+document.querySelectorAll("#metricToggle button").forEach(btn => {
+  btn.addEventListener("click", () => {
+    document.querySelectorAll("#metricToggle button").forEach(b => b.classList.remove("active"));
+    btn.classList.add("active");
+    currentMetric = btn.dataset.metric;
+    render();
+  });
+});
+injurySelect.addEventListener("change", () => {
+  currentInjury = injurySelect.value;
+  render();
+});
+document.getElementById("blurToggle").addEventListener("change", e => {
+  document.body.classList.toggle("blur-active", e.target.checked);
+});
+document.querySelector('#metricToggle button[data-metric="best"]').classList.add("active");
+render();
+</script>
+</body>
+</html>
