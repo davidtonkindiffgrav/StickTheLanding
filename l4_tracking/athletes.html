@@ -1,0 +1,262 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>L4 Athlete Averages (private)</title>
+<style>
+  :root { color-scheme: light dark; }
+  body { font-family: system-ui, sans-serif; margin: 2rem; background: #fafafa; color: #1a1a1a; }
+  h1 { font-size: 1.25rem; margin-bottom: 0.25rem; }
+  p.note { color: #666; margin-top: 0; font-size: 0.85rem; }
+  nav { font-size: 0.85rem; margin-bottom: 0.5rem; }
+  nav a { color: #06c; }
+  .controls { display: flex; gap: 0.75rem; margin: 1rem 0; flex-wrap: wrap; align-items: center; }
+  input, select { font-size: 0.9rem; padding: 0.35rem 0.5rem; }
+  table { border-collapse: collapse; width: 100%; background: #fff; font-size: 0.9rem; }
+  th, td { border: 1px solid #ddd; padding: 0.4rem 0.6rem; text-align: left; white-space: nowrap; }
+  th { background: #eee; cursor: pointer; user-select: none; position: sticky; top: 0; }
+  th:hover { background: #e0e0e0; }
+  th.sorted-asc::after { content: " \25B2"; font-size: 0.75em; }
+  th.sorted-desc::after { content: " \25BC"; font-size: 0.75em; }
+  th.grp, td.grp { border-left: 2px solid #bbb; }
+  tbody tr:nth-child(even) { background: #f7f7f7; }
+  td.num { text-align: right; font-variant-numeric: tabular-nums; }
+  th.col-club, td.col-club { width: 40ch; max-width: 40ch; overflow: hidden; text-overflow: ellipsis; }
+  .count { font-size: 0.85rem; color: #666; margin-top: 0.5rem; }
+  label.blur-toggle { font-size: 0.9rem; display: flex; align-items: center; gap: 0.35rem; cursor: pointer; }
+  body.blur-active .athlete-name { filter: blur(6px); }
+  td.diff-pos { color: #2a2; }
+  td.diff-neg { color: #c33; }
+  .div-avg-box { background: #fff; border: 1px solid #ddd; border-radius: 6px; padding: 0.6rem 0.9rem; font-size: 0.85rem; margin: 0.75rem 0; display: flex; flex-wrap: wrap; gap: 0.4rem 1.5rem; }
+  .div-avg-box .lbl { color: #666; }
+  .div-avg-box .n { color: #888; }
+  @media (prefers-color-scheme: dark) {
+    body { background: #1a1a1a; color: #e8e8e8; }
+    table, td, th { background: #222; border-color: #444; }
+    th { background: #2a2a2a; }
+    th:hover { background: #333; }
+    th.grp, td.grp { border-left-color: #555; }
+    tbody tr:nth-child(even) { background: #262626; }
+    p.note, .count { color: #999; }
+    nav a { color: #6cf; }
+    td.diff-pos { color: #4c4; }
+    td.diff-neg { color: #e55; }
+    .div-avg-box { background: #222; border-color: #444; }
+    .div-avg-box .lbl { color: #999; }
+    .div-avg-box .n { color: #999; }
+  }
+</style>
+</head>
+<body>
+<nav><a href="view.html">All results</a> | <span>Athlete averages</span> | <a href="history.html">Athlete history</a> | <a href="teams.html">Team builder</a></nav>
+<h1>Level 4 Athlete Averages &amp; Personal Bests (private tracker)</h1>
+<p class="note">Not on the live site, GV policy is no public individual scores below Level 5. Computed from every imported result; re-run export_json.py after new imports and reload this page.</p>
+
+<div class="div-avg-box" id="divAvgBox"></div>
+
+<div class="controls">
+  <input id="search" type="text" placeholder="Search athlete...">
+  <select id="clubFilter"><option value="">All clubs</option></select>
+  <label class="blur-toggle"><input type="checkbox" id="blurToggle"> Blur names</label>
+</div>
+
+<table id="tbl">
+  <thead>
+    <tr>
+      <th data-key="athlete">Athlete</th>
+      <th data-key="club" class="col-club">Club</th>
+      <th data-key="comps" class="num">Comps</th>
+      <th data-key="vaultAvg" class="num grp">Vault Avg</th>
+      <th data-key="vaultPB" class="num">Vault PB</th>
+      <th data-key="barsAvg" class="num grp">Bars Avg</th>
+      <th data-key="barsPB" class="num">Bars PB</th>
+      <th data-key="beamAvg" class="num grp">Beam Avg</th>
+      <th data-key="beamPB" class="num">Beam PB</th>
+      <th data-key="floorAvg" class="num grp">Floor Avg</th>
+      <th data-key="floorPB" class="num">Floor PB</th>
+      <th data-key="aaAvg" class="num grp">AA Avg</th>
+      <th data-key="aaPB" class="num">AA PB</th>
+      <th data-key="aaDiffAvg" class="num grp">AA +/- Div Avg</th>
+    </tr>
+  </thead>
+  <tbody></tbody>
+</table>
+<div class="count"></div>
+
+<script src="results.js"></script>
+<script>
+const APPARATUS = ["vault", "bars", "beam", "floor"];
+
+function round3(v) {
+  return Math.round(v * 1000) / 1000;
+}
+
+// Division average AA per competition+division, across every tracked athlete
+// (the whole field, not just the one being aggregated). Zero scores are
+// excluded, a scratch/DNS-looking 0.000 would otherwise drag the field
+// average down.
+function computeDivisionAvgAA() {
+  const groups = new Map();
+  for (const r of RESULTS) {
+    if (r.aa === null || r.aa === undefined || r.aa === 0) continue;
+    const key = r.competition + "||" + r.division;
+    if (!groups.has(key)) groups.set(key, []);
+    groups.get(key).push(r.aa);
+  }
+  const out = new Map();
+  for (const [key, vals] of groups) out.set(key, vals.reduce((a, b) => a + b, 0) / vals.length);
+  return out;
+}
+const DIVISION_AVG_AA = computeDivisionAvgAA();
+
+// One row per competition+division with its whole-field AA average (same
+// exclusion rule as DIVISION_AVG_AA), for the reference box at the top.
+function divisionSummaries() {
+  const groups = new Map();
+  for (const r of RESULTS) {
+    if (r.aa === null || r.aa === undefined || r.aa === 0) continue;
+    const key = r.competition + "||" + r.division;
+    if (!groups.has(key)) groups.set(key, { competition: r.competition, division: r.division, date: r.date, scores: [] });
+    groups.get(key).scores.push(r.aa);
+  }
+  return [...groups.values()]
+    .map(g => ({
+      competition: g.competition, division: g.division, date: g.date,
+      avg: round3(g.scores.reduce((a, b) => a + b, 0) / g.scores.length), n: g.scores.length,
+    }))
+    .sort((a, b) => (a.date || "").localeCompare(b.date || "") || String(a.division).localeCompare(String(b.division)));
+}
+
+document.getElementById("divAvgBox").innerHTML =
+  '<span class="lbl">Division AA averages (whole field, 0 scores excluded):</span>' +
+  divisionSummaries().map(s =>
+    `<span><b>${s.competition} Div ${s.division}</b>: ${s.avg} <span class="n">(n=${s.n})</span></span>`
+  ).join("");
+
+// null when the row itself has no usable AA (missing or 0) or its division has no average.
+function diffFromDivisionAvg(r) {
+  if (r.aa === null || r.aa === undefined || r.aa === 0) return null;
+  const divAvg = DIVISION_AVG_AA.get(r.competition + "||" + r.division);
+  return divAvg === undefined ? null : r.aa - divAvg;
+}
+
+function fmtDiff(v) {
+  if (v === null || v === undefined) return "-";
+  return (v > 0 ? "+" : "") + round3(v);
+}
+
+function diffClass(v) {
+  if (v === null || v === undefined) return "";
+  return v > 0 ? "diff-pos" : v < 0 ? "diff-neg" : "";
+}
+
+function aggregate(results) {
+  const groups = new Map();
+  for (const r of results) {
+    const key = r.athlete + "||" + (r.club || "");
+    if (!groups.has(key)) {
+      groups.set(key, { athlete: r.athlete, club: r.club, comps: 0, scores: { vault: [], bars: [], beam: [], floor: [], aa: [] }, diffs: [] });
+    }
+    const g = groups.get(key);
+    g.comps += 1;
+    for (const app of [...APPARATUS, "aa"]) {
+      if (r[app] !== null && r[app] !== undefined) g.scores[app].push(r[app]);
+    }
+    const diff = diffFromDivisionAvg(r);
+    if (diff !== null) g.diffs.push(diff);
+  }
+  return [...groups.values()].map(g => {
+    const row = { athlete: g.athlete, club: g.club, comps: g.comps };
+    for (const app of [...APPARATUS, "aa"]) {
+      const vals = g.scores[app];
+      const key = app === "aa" ? "aa" : app;
+      if (vals.length) {
+        row[key + "Avg"] = round3(vals.reduce((a, b) => a + b, 0) / vals.length);
+        row[key + "PB"] = round3(Math.max(...vals));
+      } else {
+        row[key + "Avg"] = null;
+        row[key + "PB"] = null;
+      }
+    }
+    row.aaDiffAvg = g.diffs.length ? round3(g.diffs.reduce((a, b) => a + b, 0) / g.diffs.length) : null;
+    return row;
+  });
+}
+
+const ATHLETES = aggregate(RESULTS);
+
+let sortKey = "athlete", sortDir = 1;
+
+const clubSel = document.getElementById("clubFilter");
+[...new Set(ATHLETES.map(a => a.club).filter(Boolean))].sort().forEach(c => {
+  const opt = document.createElement("option");
+  opt.value = c; opt.textContent = c;
+  clubSel.appendChild(opt);
+});
+
+function fmt(v) {
+  return (v === null || v === undefined) ? "-" : v;
+}
+
+function render() {
+  const q = document.getElementById("search").value.trim().toLowerCase();
+  const club = clubSel.value;
+  let rows = ATHLETES.filter(a =>
+    (!club || a.club === club) &&
+    (!q || a.athlete.toLowerCase().includes(q))
+  );
+  rows.sort((a, b) => {
+    let av = a[sortKey], bv = b[sortKey];
+    if (typeof av === "string") av = av.toLowerCase();
+    if (typeof bv === "string") bv = bv.toLowerCase();
+    if (av === null || av === undefined) av = -Infinity;
+    if (bv === null || bv === undefined) bv = -Infinity;
+    if (av < bv) return -1 * sortDir;
+    if (av > bv) return 1 * sortDir;
+    return 0;
+  });
+
+  const tbody = document.querySelector("#tbl tbody");
+  tbody.innerHTML = rows.map(a => `
+    <tr>
+      <td class="athlete-name">${a.athlete}</td>
+      <td class="col-club">${fmt(a.club)}</td>
+      <td class="num">${a.comps}</td>
+      <td class="num grp">${fmt(a.vaultAvg)}</td>
+      <td class="num">${fmt(a.vaultPB)}</td>
+      <td class="num grp">${fmt(a.barsAvg)}</td>
+      <td class="num">${fmt(a.barsPB)}</td>
+      <td class="num grp">${fmt(a.beamAvg)}</td>
+      <td class="num">${fmt(a.beamPB)}</td>
+      <td class="num grp">${fmt(a.floorAvg)}</td>
+      <td class="num">${fmt(a.floorPB)}</td>
+      <td class="num grp">${fmt(a.aaAvg)}</td>
+      <td class="num">${fmt(a.aaPB)}</td>
+      <td class="num grp ${diffClass(a.aaDiffAvg)}">${fmtDiff(a.aaDiffAvg)}</td>
+    </tr>
+  `).join("");
+  document.querySelector(".count").textContent = `${rows.length} athlete(s)`;
+
+  document.querySelectorAll("th[data-key]").forEach(th => {
+    th.classList.remove("sorted-asc", "sorted-desc");
+    if (th.dataset.key === sortKey) th.classList.add(sortDir === 1 ? "sorted-asc" : "sorted-desc");
+  });
+}
+
+document.querySelectorAll("th[data-key]").forEach(th => {
+  th.addEventListener("click", () => {
+    const key = th.dataset.key;
+    if (sortKey === key) sortDir *= -1; else { sortKey = key; sortDir = 1; }
+    render();
+  });
+});
+document.getElementById("search").addEventListener("input", render);
+clubSel.addEventListener("change", render);
+document.getElementById("blurToggle").addEventListener("change", e => {
+  document.body.classList.toggle("blur-active", e.target.checked);
+});
+
+render();
+</script>
+</body>
+</html>

@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>L4 Results (private)</title>
+<style>
+  :root { color-scheme: light dark; }
+  body { font-family: system-ui, sans-serif; margin: 2rem; background: #fafafa; color: #1a1a1a; }
+  h1 { font-size: 1.25rem; margin-bottom: 0.25rem; }
+  p.note { color: #666; margin-top: 0; font-size: 0.85rem; }
+  .controls { display: flex; gap: 0.75rem; margin: 1rem 0; flex-wrap: wrap; align-items: center; }
+  input, select { font-size: 0.9rem; padding: 0.35rem 0.5rem; }
+  table { border-collapse: collapse; width: 100%; background: #fff; font-size: 0.9rem; }
+  th, td { border: 1px solid #ddd; padding: 0.4rem 0.6rem; text-align: left; white-space: nowrap; }
+  th { background: #eee; cursor: pointer; user-select: none; position: sticky; top: 0; }
+  th:hover { background: #e0e0e0; }
+  th.sorted-asc::after { content: " \25B2"; font-size: 0.75em; }
+  th.sorted-desc::after { content: " \25BC"; font-size: 0.75em; }
+  tbody tr:nth-child(even) { background: #f7f7f7; }
+  td.num { text-align: right; font-variant-numeric: tabular-nums; }
+  th.col-club, td.col-club { width: 40ch; max-width: 40ch; overflow: hidden; text-overflow: ellipsis; }
+  .count { font-size: 0.85rem; color: #666; margin-top: 0.5rem; }
+  nav { font-size: 0.85rem; margin-bottom: 0.5rem; }
+  nav a { color: #06c; }
+  label.blur-toggle { font-size: 0.9rem; display: flex; align-items: center; gap: 0.35rem; cursor: pointer; }
+  body.blur-active .athlete-name { filter: blur(6px); }
+  @media (prefers-color-scheme: dark) {
+    body { background: #1a1a1a; color: #e8e8e8; }
+    table, td, th { background: #222; border-color: #444; }
+    th { background: #2a2a2a; }
+    th:hover { background: #333; }
+    tbody tr:nth-child(even) { background: #262626; }
+    p.note, .count { color: #999; }
+    nav a { color: #6cf; }
+  }
+</style>
+</head>
+<body>
+<nav><span>All results</span> | <a href="athletes.html">Athlete averages</a> | <a href="history.html">Athlete history</a> | <a href="teams.html">Team builder</a></nav>
+<h1>Level 4 Individual Results (private tracker)</h1>
+<p class="note">Not on the live site, GV policy is no public individual scores below Level 5. Data lives in l4_tracking.db; re-run export_json.py after new imports.</p>
+
+<div class="controls">
+  <input id="search" type="text" placeholder="Search athlete or club...">
+  <select id="compFilter"><option value="">All competitions</option></select>
+  <label class="blur-toggle"><input type="checkbox" id="blurToggle"> Blur names</label>
+</div>
+
+<table id="tbl">
+  <thead>
+    <tr>
+      <th data-key="athlete">Athlete</th>
+      <th data-key="club" class="col-club">Club</th>
+      <th data-key="competition">Competition</th>
+      <th data-key="date">Date</th>
+      <th data-key="division">Div</th>
+      <th data-key="vault" class="num">Vault</th>
+      <th data-key="bars" class="num">Bars</th>
+      <th data-key="beam" class="num">Beam</th>
+      <th data-key="floor" class="num">Floor</th>
+      <th data-key="aa" class="num">AA</th>
+      <th data-key="rank">Rank</th>
+    </tr>
+  </thead>
+  <tbody></tbody>
+</table>
+<div class="count"></div>
+
+<script src="results.js"></script>
+<script>
+let sortKey = "date", sortDir = 1;
+
+const compSel = document.getElementById("compFilter");
+[...new Set(RESULTS.map(r => r.competition))].sort().forEach(c => {
+  const opt = document.createElement("option");
+  opt.value = c; opt.textContent = c;
+  compSel.appendChild(opt);
+});
+
+function fmt(v) {
+  return (v === null || v === undefined) ? "-" : v;
+}
+
+function render() {
+  const q = document.getElementById("search").value.trim().toLowerCase();
+  const comp = compSel.value;
+  let rows = RESULTS.filter(r =>
+    (!comp || r.competition === comp) &&
+    (!q || r.athlete.toLowerCase().includes(q) || (r.club || "").toLowerCase().includes(q))
+  );
+  rows.sort((a, b) => {
+    let av = a[sortKey], bv = b[sortKey];
+    if (sortKey === "rank") { av = parseInt(av) || 0; bv = parseInt(bv) || 0; }
+    if (av === null) av = -Infinity;
+    if (bv === null) bv = -Infinity;
+    if (av < bv) return -1 * sortDir;
+    if (av > bv) return 1 * sortDir;
+    return 0;
+  });
+
+  const tbody = document.querySelector("#tbl tbody");
+  tbody.innerHTML = rows.map(r => `
+    <tr>
+      <td class="athlete-name">${r.athlete}</td>
+      <td class="col-club">${fmt(r.club)}</td>
+      <td>${r.competition}</td>
+      <td>${fmt(r.date)}</td>
+      <td>${fmt(r.division)}</td>
+      <td class="num">${fmt(r.vault)}</td>
+      <td class="num">${fmt(r.bars)}</td>
+      <td class="num">${fmt(r.beam)}</td>
+      <td class="num">${fmt(r.floor)}</td>
+      <td class="num">${fmt(r.aa)}</td>
+      <td>${fmt(r.rank)}</td>
+    </tr>
+  `).join("");
+  document.querySelector(".count").textContent = `${rows.length} result(s)`;
+
+  document.querySelectorAll("th[data-key]").forEach(th => {
+    th.classList.remove("sorted-asc", "sorted-desc");
+    if (th.dataset.key === sortKey) th.classList.add(sortDir === 1 ? "sorted-asc" : "sorted-desc");
+  });
+}
+
+document.querySelectorAll("th[data-key]").forEach(th => {
+  th.addEventListener("click", () => {
+    const key = th.dataset.key;
+    if (sortKey === key) sortDir *= -1; else { sortKey = key; sortDir = 1; }
+    render();
+  });
+});
+document.getElementById("search").addEventListener("input", render);
+compSel.addEventListener("change", render);
+document.getElementById("blurToggle").addEventListener("change", e => {
+  document.body.classList.toggle("blur-active", e.target.checked);
+});
+
+render();
+</script>
+</body>
+</html>

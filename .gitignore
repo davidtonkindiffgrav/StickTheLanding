@@ -1,7 +1,13 @@
 dev/
 experiments/
 analysis_2026_states/
-l4_tracking/
+l4_tracking/*
+!l4_tracking/view.html
+!l4_tracking/athletes.html
+!l4_tracking/history.html
+!l4_tracking/teams.html
+!l4_tracking/results.js
+!l4_tracking/teams.js
 l3_tracking/*
 !l3_tracking/view.html
 !l3_tracking/athletes.html
