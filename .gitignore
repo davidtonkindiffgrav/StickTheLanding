@@ -2,13 +2,7 @@ dev/
 experiments/
 analysis_2026_states/
 l4_tracking/
-l3_tracking/*
-!l3_tracking/view.html
-!l3_tracking/athletes.html
-!l3_tracking/history.html
-!l3_tracking/teams.html
-!l3_tracking/results.js
-!l3_tracking/teams.js
+l3_tracking/
 __pycache__/
 *.pyc
 *.pyo
