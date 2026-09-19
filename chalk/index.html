@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="robots" content="noindex,nofollow" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Stick The Landing</title>
+  <style>
+    :root{ --bg:#0f0f13; --surface:#1a1a24; --border:#2e2e42; --accent:#7c6dfa; --text:#e8e8f0; --muted:#8888aa; }
+    *,*::before,*::after{box-sizing:border-box}
+    html,body{margin:0;padding:0;height:100%;background:var(--bg);color:var(--text);
+      font-family:system-ui,-apple-system,"Segoe UI",sans-serif;
+      display:flex;align-items:center;justify-content:center}
+    .gate{background:var(--surface);border:1px solid var(--border);border-radius:12px;
+      padding:32px 28px;width:100%;max-width:320px;text-align:center;margin:20px}
+    .gate h1{font-size:1.05rem;font-weight:700;margin:0 0 6px}
+    .gate p{font-size:.85rem;color:var(--muted);margin:0 0 20px;line-height:1.5}
+    .gate input{width:100%;background:#111118;border:1px solid var(--border);border-radius:8px;
+      color:var(--text);font-size:1.4rem;letter-spacing:.15em;text-align:center;
+      padding:12px;margin-bottom:14px}
+    .gate input:focus{outline:none;border-color:var(--accent)}
+    .gate button{width:100%;background:var(--accent);border:none;color:#fff;font-weight:600;
+      font-size:.95rem;padding:12px;border-radius:8px;cursor:pointer}
+    .gate button:hover{opacity:.92}
+    .err{color:#e66767;font-size:.8rem;min-height:1.2em;margin-top:12px}
+  </style>
+</head>
+<body>
+  <div class="gate">
+    <h1>Stick The Landing</h1>
+    <p>This page is private. Enter the PIN from your card to continue.</p>
+    <form id="pin-form" autocomplete="off">
+      <input type="text" inputmode="numeric" pattern="[0-9]*" id="pin" maxlength="8" placeholder="PIN" autofocus />
+      <button type="submit">Continue</button>
+      <div class="err" id="err"></div>
+    </form>
+  </div>
+  <script>
+    var DEST = '/partners/chalk-active/index.html';
+    var PIN = '2027';
+    var KEY = 'stl-chalk-pin-ok';
+    if (sessionStorage.getItem(KEY) === '1') location.replace(DEST);
+    document.getElementById('pin-form').addEventListener('submit', function(e){
+      e.preventDefault();
+      var val = document.getElementById('pin').value.trim();
+      if (val === PIN) {
+        sessionStorage.setItem(KEY, '1');
+        location.replace(DEST);
+      } else {
+        document.getElementById('err').textContent = 'Incorrect PIN, try again.';
+        document.getElementById('pin').select();
+      }
+    });
+  </script>
+</body>
+</html>
