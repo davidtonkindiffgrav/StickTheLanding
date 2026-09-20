@@ -4,5 +4,17 @@
   "assets": {
     "directory": "./",
     "not_found_handling": "404-page"
-  }
+  },
+  "d1_databases": [
+    {
+      "binding": "DB_WAG",
+      "database_name": "stickthelanding-wag",
+      "database_id": "727d8f29-c627-41ec-aa8d-faa598293de4"
+    },
+    {
+      "binding": "DB_MAG",
+      "database_name": "stickthelanding-mag",
+      "database_id": "f952e134-fc74-42be-93f7-45b304a1830e"
+    }
+  ]
 }

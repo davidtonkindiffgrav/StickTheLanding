@@ -15,3 +15,4 @@ data/links_2025_wag.json
 test.py
 testResults.txt
 assets/images/judgingsymbols/
+.wrangler/
