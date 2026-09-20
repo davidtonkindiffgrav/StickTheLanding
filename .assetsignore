@@ -1,5 +1,8 @@
 .git
 .github
+.wrangler
+/worker
+/wrangler.jsonc
 /*.py
 requirements.txt
 unpublished

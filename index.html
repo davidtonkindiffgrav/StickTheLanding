@@ -24,7 +24,6 @@
   <script type="application/ld+json">
   {"@context":"https://schema.org","@type":"WebSite","name":"Stick The Landing","url":"https://stickthelanding.com.au","description":"Season leaderboards for Victorian artistic gymnastics - WAG and MAG competition scores across every level, apparatus, and round of the Victorian season."}
   </script>
-  <script src="sql/sql-wasm.js?v=1.14.1"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
   <link rel="apple-touch-icon" sizes="180x180" href="/assets/favicons/apple-touch-icon.png" />
   <link rel="icon" type="image/png" sizes="32x32" href="/assets/favicons/favicon-32x32.png" />
@@ -587,64 +586,40 @@ let _browseCompId     = null;
 // ─────────────────────────────────────────────────────────────────────────────
 // DB init (lazy - only called when a sport is entered)
 // ─────────────────────────────────────────────────────────────────────────────
-// Downloads the whole .db file for a sport once and opens it as an in-memory
-// sql.js database. GitHub Pages' CDN corrupts partial byte-range reads of
-// these files (gzips the range and reports Content-Range against the
-// compressed length), so we no longer do lazy page-at-a-time reads - a single
-// whole-file fetch sidesteps that entirely and every query after the initial
-// load is purely in-memory, no further network involved.
-let _sqlJsPromise = null;
-function _getSqlJs() {
-  if (!_sqlJsPromise) {
-    _sqlJsPromise = initSqlJs({ locateFile: (f) => new URL("sql/" + f + "?v=1.14.1", location.href).toString() });
-  }
-  return _sqlJsPromise;
-}
-
-// Loads a sql.js DB handle for the given sport, independent of the global DB/currentSport.
-// Used both by initDB() (the site's primary sport) and the club page's lazy alt-sport loader.
+// Queries go to the Worker API (worker/index.js), which runs them against D1
+// and returns rows already scrubbed of redacted athletes. This used to
+// download the whole stick_WAG.db/stick_MAG.db file and query it in-browser
+// with sql.js; the .exec(sql, params) shape here is kept identical to that
+// old sql.js handle on purpose, so every query call site elsewhere in this
+// file is unchanged. Redaction masking that used to happen once, client-side,
+// right after the DB loaded, now happens server-side on every response
+// instead (see maskRows in worker/index.js) since D1 stores the real name at
+// rest and there's no disposable in-memory copy to mutate the way sql.js had.
 async function loadSportDbHandle(sport) {
-  const cfgResp = await fetch(new URL(`data/dbconfig_${sport}.json`, location.href).toString(), { cache: "no-cache" });
-  const dbCfg   = await cfgResp.json();
-  const dbUrl   = new URL(`data/stick_${sport}.db?v=${dbCfg.fileLength}.${dbCfg.rev || 0}`, location.href).toString();
-
-  const [SQL, resp] = await Promise.all([_getSqlJs(), fetch(dbUrl)]);
-  if (!resp.ok) throw new Error("Failed to fetch database: " + resp.status);
-  const buf   = await resp.arrayBuffer();
-  const rawDb = new SQL.Database(new Uint8Array(buf));
-  _maskRedactedAthletes(rawDb);
-  return { exec: (sql, params) => rawDb.exec(sql, params || []) };
+  const endpoint = new URL(`api/${sport.toLowerCase()}/query`, location.href).toString();
+  return {
+    exec: async (sql, params) => {
+      const resp = await fetch(endpoint, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ sql, params: params || [] }),
+      });
+      if (!resp.ok) {
+        const detail = await resp.json().catch(() => ({}));
+        throw new Error(detail.error || `Query failed (${resp.status})`);
+      }
+      return resp.json();
+    },
+  };
 }
 
-// Athletes flagged via redact_athlete.py (athletes.redacted = 1) get their name
-// overwritten in-memory, right after the .db loads, with every letter replaced
-// by underscores (e.g. "Emma Smith" -> "____ _____"). Every query for the rest
-// of the session - rankings, profiles, club rosters, graphs - reads this masked
-// value, since it runs before anything else touches the db. The underlying data
-// on disk is untouched, so flagging is fully reversible.
-// Masked names always start with a literal underscore (see mask_name above).
-// GLOB (unlike LIKE) treats '_' as a literal char, not a single-char wildcard,
-// so this cleanly matches only masked rows with no escaping needed.
-const NOT_REDACTED = "r.athlete NOT GLOB '_*'";
-
-function _maskRedactedAthletes(rawDb) {
-  try {
-    rawDb.create_function("mask_name", (name) => {
-      if (name == null) return name;
-      return String(name).trim().split(/\s+/).map((w) => "_".repeat(w.length)).join(" ");
-    });
-    rawDb.run(`
-      UPDATE results SET athlete = mask_name(athlete)
-      WHERE athlete IN (SELECT name FROM athletes WHERE redacted = 1)
-    `);
-    rawDb.run(`
-      UPDATE athletes SET name = mask_name(name), nickname = NULL, image = NULL
-      WHERE redacted = 1
-    `);
-  } catch (_) {
-    // Older cached .db without the redacted column - nothing to mask yet.
-  }
-}
+// Athletes flagged via redact_athlete.py (athletes.redacted = 1) have their
+// name masked (e.g. "Emma Smith" -> "____ _____") by the Worker before a
+// response ever reaches the browser. This excludes them from club stats/
+// highlights that are meant to skip redacted athletes entirely (masking
+// alone isn't exclusion - a masked row would still count toward a roster
+// size or a perfect-10 tally).
+const NOT_REDACTED = "r.athlete NOT IN (SELECT name FROM athletes WHERE redacted = 1)";
 
 async function initDB() {
   if (DB) return;
