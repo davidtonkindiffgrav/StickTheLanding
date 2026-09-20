@@ -1,0 +1,11 @@
+.git
+.github
+/*.py
+requirements.txt
+unpublished
+tmp_page.txt
+tmp_decoded.txt
+__pycache__/
+*.pyc
+*.pyo
+temp/
