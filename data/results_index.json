@@ -6,6 +6,12 @@
     "date": "2026-09-13"
   },
   {
+    "sport": "mag",
+    "comp_id": "mag-junior-qualifier-team-championships-2026",
+    "name": "MAG Junior Qualifier & Team Championships",
+    "date": "2026-09-13"
+  },
+  {
     "sport": "wag",
     "comp_id": "metro-south-wag-regional-championships-2026",
     "name": "Metro South WAG Regional Championships",
@@ -40,6 +46,12 @@
     "comp_id": "west-region-wag-regional-championships-2026",
     "name": "West Region WAG Regional Championships",
     "date": "2026-09-05"
+  },
+  {
+    "sport": "mag",
+    "comp_id": "myc-junior-mag-invitational-2026",
+    "name": "MYC Junior MAG Invitational",
+    "date": "2026-08-30"
   },
   {
     "sport": "wag",
