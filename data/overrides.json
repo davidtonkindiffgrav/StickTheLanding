@@ -33,6 +33,12 @@
     "MYC Junior MAG Invitational": {
       "BLU": "BTY"
     },
+    "Mildura Gymnastics Centre WAG Competition": {
+      "B": "BGS",
+      "M": "MIL",
+      "N": "NAT",
+      "R": "RGA"
+    },
     "MAG Senior Victorian Championship": {
       "PI1": "PIT", "BTA": "BTY", "BTB": "BTY", "DO1": "DOL", "NA1": "NAT"
     },

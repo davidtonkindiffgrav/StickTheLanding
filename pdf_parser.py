@@ -10,6 +10,7 @@ Team Results PDFs are skipped in all cases.
 """
 
 import datetime
+import itertools
 import json
 import re
 import sys
@@ -1910,6 +1911,167 @@ def parse_gymp_team(full_text, level, division):
 
 
 # ---------------------------------------------------------------------------
+# Spreadsheet-export grid parser (Mildura Gymnastics Centre WAG Competition style)
+# ---------------------------------------------------------------------------
+
+# Detection: a block header such as "LEVEL 5 DIV3 Floor Beam Bars Vault Total"
+GRID_HDR_RE = re.compile(
+    r"^LEVEL\s+\d+\s+DIV\S*\s+Floor\s+Beam\s+Bars\s+Vault\s+(?:Total|Teams?)\s*$",
+    re.IGNORECASE | re.MULTILINE,
+)
+_GRID_APPS = ["floor", "beam", "bars", "vault"]
+_GRID_NUM_RE = re.compile(r"^\d+(?:\.\d+)?$")
+# Individual label ends in a club-letter + level/division code, e.g. "Mia Yetman ML5 D3"
+# (sometimes glued to the surname: "Ava TsakonakosRL5 D3").
+_GRID_CODE_RE = re.compile(r"\s*([A-Z])L\d+\s*D\d+\s*$")
+# Trailing team designators that aren't part of the club name ("T1", "L4D2")
+_GRID_TEAM_SUFFIX_RE = re.compile(r"\s+(?:T\d+|L\d+\s*D\d+)$", re.IGNORECASE)
+
+
+def _grid_rows(page):
+    """Yield each text row as [(token, x0, x1)], splitting on horizontal gaps > 2pt."""
+    by_top = {}
+    for c in sorted(page.chars, key=lambda c: (round(c["top"]), c["x0"])):
+        by_top.setdefault(round(c["top"]), []).append(c)
+    for top in sorted(by_top):
+        cs = by_top[top]
+        toks, cur = [], [cs[0]]
+        for a, b in zip(cs, cs[1:]):
+            if b["x0"] - a["x1"] > 2:
+                toks.append(cur)
+                cur = [b]
+            else:
+                cur.append(b)
+        toks.append(cur)
+        out = [("".join(c["text"] for c in tk).strip(), tk[0]["x0"], tk[-1]["x1"]) for tk in toks]
+        yield [t for t in out if t[0]]
+
+
+def _grid_interpret(nums, centers, team):
+    """Work out which numbers are placings and which are scores.
+
+    Placings are only printed for the top few, and a gymnast can be missing an
+    apparatus, so every place/score assignment is tried and only those whose
+    apparatus scores sum to the printed total survive. Returns the list of
+    distinct valid (scores, total, printed_rank) readings.
+    """
+    sols = {}
+    n = len(nums)
+    for roles in itertools.product("PS", repeat=n):
+        if team:
+            if n < 3 or roles[-2:] != ("S", "P"):
+                continue
+            body, rb, total, rank = nums[:-2], roles[:-2], nums[-2], nums[-1]
+        else:
+            if roles[-1] != "S":
+                continue
+            if n >= 3 and roles[-2] == "P" and roles[-3] == "S":
+                body, rb, total, rank = nums[:-2], roles[:-2], nums[-1], nums[-2]
+            else:
+                body, rb, total, rank = nums[:-1], roles[:-1], nums[-1], None
+        n_scores = rb.count("S")
+        ok, scores, last, pending = True, {}, -1, False
+        for (t, x0, x1), role in zip(body, rb):
+            if role == "P":
+                if "." in t or pending:
+                    ok = False
+                    break
+                pending = True
+            else:
+                # All four present -> they're in column order. Otherwise use
+                # the nearest header column to tell which apparatus is missing.
+                app = last + 1 if n_scores == 4 else \
+                    min(range(4), key=lambda i: abs(centers[i] - (x0 + x1) / 2))
+                if app <= last or app > 3:
+                    ok = False
+                    break
+                last = app
+                scores[_GRID_APPS[app]] = float(t)
+                pending = False
+        if not ok or pending or not scores:
+            continue
+        if rank is not None and "." in rank[0]:
+            continue
+        if abs(sum(scores.values()) - float(total[0])) > 0.0015:
+            continue
+        key = (tuple(sorted(scores.items())), float(total[0]), rank[0] if rank else None)
+        sols[key] = (scores, float(total[0]), int(rank[0]) if rank else None)
+    return list(sols.values())
+
+
+def parse_grid(pdf_path):
+    """Parse spreadsheet-export result sheets (Mildura Gymnastics Centre style).
+
+    Each block starts with "LEVEL N DIVx Floor Beam Bars Vault Total|Team(s)".
+    Individual rows: Name + club-letter code (e.g. "ML5 D3"), then per apparatus
+    an optional place followed by the score, then an optional overall rank and
+    the total. Team rows: team label, then per apparatus optional place + score,
+    then total and rank. Ranks are only printed for the top few, so individual
+    ranks are recomputed from totals (dense, matching GV sheets) for everyone.
+    """
+    events = {}
+    with pdfplumber.open(pdf_path) as pdf:
+        for page in pdf.pages:
+            hdr = None
+            for toks in _grid_rows(page):
+                line = " ".join(t[0] for t in toks)
+                if GRID_HDR_RE.match(line):
+                    m = re.match(r"LEVEL\s+(\d+)\s+DIV\s*(\d+)", line, re.IGNORECASE)
+                    try:
+                        centers = [next((t[1] + t[2]) / 2 for t in toks if t[0].lower() == a) for a in _GRID_APPS]
+                    except StopIteration:
+                        hdr = None
+                        continue
+                    is_team = bool(re.search(r"\bTeams?\s*$", line, re.IGNORECASE))
+                    hdr = (int(m.group(1)), int(m.group(2)), is_team, centers)
+                    events.setdefault(hdr[:3], [])
+                    continue
+                if hdr is None:
+                    continue
+                nums = [t for t in toks if _GRID_NUM_RE.match(t[0])]
+                label = re.sub(r"\s+", " ", " ".join(t[0] for t in toks if not _GRID_NUM_RE.match(t[0]))).strip()
+                if not nums or not label:
+                    continue
+                level, div, is_team, centers = hdr
+                sols = _grid_interpret(nums, centers, is_team)
+                if len(sols) != 1:
+                    print(f"  [WARN] {Path(pdf_path).name}: L{level} D{div} row {label!r} has "
+                          f"{len(sols)} valid readings - skipped")
+                    continue
+                scores, total, printed_rank = sols[0]
+                rec = {"vault": scores.get("vault"), "bars": scores.get("bars"),
+                       "beam": scores.get("beam"), "floor": scores.get("floor"),
+                       "total": total, "printed_rank": printed_rank}
+                if is_team:
+                    rec.update(athlete=None, team_name=label,
+                               club=_GRID_TEAM_SUFFIX_RE.sub("", label).strip())
+                else:
+                    cm = _GRID_CODE_RE.search(label)
+                    if not cm:
+                        print(f"  [WARN] {Path(pdf_path).name}: no club code in {label!r} - skipped")
+                        continue
+                    rec.update(athlete=label[:cm.start()].strip(), club=cm.group(1))
+                events[(level, div, is_team)].append(rec)
+
+    out = []
+    for (level, div, is_team), results in events.items():
+        if not results:
+            continue
+        totals = sorted({r["total"] for r in results}, reverse=True)
+        for r in results:
+            r["rank"] = totals.index(r["total"]) + 1
+            printed = r.pop("printed_rank")
+            if printed is not None and printed != r["rank"]:
+                print(f"  [WARN] {Path(pdf_path).name}: L{level} D{div} "
+                      f"{r.get('athlete') or r.get('team_name')} printed rank {printed}, "
+                      f"computed {r['rank']} - using computed")
+        results.sort(key=lambda r: r["rank"])
+        out.append({"level": level, "division": div, "age_group": None,
+                    "event_type": "Team" if is_team else "AA", "results": results})
+    return out
+
+
+# ---------------------------------------------------------------------------
 # WG scoring program parser (Natimuk Invitational style)
 # ---------------------------------------------------------------------------
 
@@ -2059,6 +2221,11 @@ def parse_pdf(pdf_path, sport="WAG"):
         else:
             events = parse_scoreholder(text_pages, pdf_path, sport=sport)
         return (events, "scoreholder") if events else ([], "scoreholder-empty")
+
+    # Spreadsheet-export grid (Mildura Gymnastics Centre style)
+    if GRID_HDR_RE.search(full_text):
+        events = parse_grid(pdf_path)
+        return (events, "grid") if events else ([], "grid-empty")
 
     # WG scoring program (Natimuk style)
     if WG_HDR_RE.search(full_text):

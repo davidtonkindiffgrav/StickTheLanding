@@ -1,6 +1,12 @@
 [
   {
     "sport": "wag",
+    "comp_id": "mildura-gymnastics-centre-wag-competition-2026",
+    "name": "Mildura Gymnastics Centre WAG Competition",
+    "date": "2026-09-20"
+  },
+  {
+    "sport": "wag",
     "comp_id": "south-east-region-wag-regional-championships-2026",
     "name": "South East Region WAG Regional Championships",
     "date": "2026-09-13"

@@ -758,6 +758,25 @@
       "logo": null
     },
     {
+      "code": "MIL/NAT",
+      "name": "Mildura / Natimuk (Joint)",
+      "region": "Regional West",
+      "aliases": [
+        "MILDURA/NATIMUK"
+      ],
+      "logo": null
+    },
+    {
+      "code": "BGS/NAT",
+      "name": "Ballarat Gymsports / Natimuk (Joint)",
+      "region": "Regional West",
+      "aliases": [
+        "BALLARATGYMSPORTS/NATIMUK",
+        "BALLARAT GYMSPORTS/NATIMUK"
+      ],
+      "logo": null
+    },
+    {
       "code": "MLC",
       "name": "MLC Gymnastics Club",
       "region": "Metro East",
@@ -976,6 +995,16 @@
         "RIN"
       ],
       "logo": "assets/logos/RIV.png"
+    },
+    {
+      "code": "RGA",
+      "name": "Riverland Gymnastics Academy",
+      "region": "Interstate",
+      "aliases": [
+        "RIVERLAND GYMNASTICS ACADEMY",
+        "RIVERLANDGYMNASTICSACADEMY"
+      ],
+      "logo": "assets/logos/RGA.png"
     },
     {
       "code": "SBY",

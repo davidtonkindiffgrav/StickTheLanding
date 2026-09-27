@@ -312,6 +312,15 @@ _EVENT_SESSION_OVERRIDES = {
     4006: "9A", 4007: "9B", 4008: "9",
 }
 
+# Explicit pool-tag labels for events whose label can't be derived from the
+# source filename (applied even when the event is alone in its group).
+# Mildura Gymnastics Centre WAG Competition 2026 (mildura-gymnastics-centre-
+# wag-competition-2026): the Level 5 "DIV1/u" block is the Under age split,
+# stored as Division 1 like every other WAG Under field.
+_EVENT_POOL_LABELS = {
+    4363: "Under",
+}
+
 
 def pool_labels_for_group(rows_by_event: dict) -> dict:
     """rows_by_event: {event_id: [row_dict, ...]}. Returns {event_id: label_or_None}."""
@@ -588,6 +597,7 @@ def render_page(comp: sqlite3.Row, tree: dict, sport: str, club_names: dict = No
                 lbl = EVENT_LABEL.get(etype, etype)
                 rows_by_event = div_tree[etype]
                 labels = pool_labels_for_group(rows_by_event)
+                labels.update({e: _EVENT_POOL_LABELS[e] for e in rows_by_event if e in _EVENT_POOL_LABELS})
                 for j, eid in enumerate(sorted(rows_by_event.keys())):
                     block_id = f"{panel_id}-{safe_id(div_key or 'x')}-{safe_id(etype)}" + (f"-{j+1}" if len(rows_by_event) > 1 else "")
                     rows_to_render = rows_by_event[eid]
