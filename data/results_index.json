@@ -43,12 +43,6 @@
   },
   {
     "sport": "wag",
-    "comp_id": "metro-east-wag-regional-championships-2026",
-    "name": "Metro East WAG Regional Championships",
-    "date": "2026-09-05"
-  },
-  {
-    "sport": "wag",
     "comp_id": "north-east-wag-regional-championships-2026",
     "name": "North East WAG Regional Championships",
     "date": "2026-09-05"
@@ -57,6 +51,12 @@
     "sport": "wag",
     "comp_id": "west-region-wag-regional-championships-2026",
     "name": "West Region WAG Regional Championships",
+    "date": "2026-09-05"
+  },
+  {
+    "sport": "wag",
+    "comp_id": "metro-east-wag-regional-championships-2026",
+    "name": "Metro East WAG Regional Championships",
     "date": "2026-09-05"
   },
   {
@@ -139,12 +139,6 @@
   },
   {
     "sport": "wag",
-    "comp_id": "casey-cup-2026",
-    "name": "Casey Cup",
-    "date": "2026-07-25"
-  },
-  {
-    "sport": "wag",
     "comp_id": "jets-july-invitational-2026",
     "name": "Jets July Invitational",
     "date": "2026-07-25"
@@ -153,6 +147,12 @@
     "sport": "wag",
     "comp_id": "y-invitational-2026",
     "name": "Y Invitational",
+    "date": "2026-07-25"
+  },
+  {
+    "sport": "wag",
+    "comp_id": "casey-cup-2026",
+    "name": "Casey Cup",
     "date": "2026-07-25"
   },
   {
