@@ -71,6 +71,21 @@ tr.team td.who { font-weight: 600; }
 .chip-pink   { background: var(--pink-bg);   color: var(--pink-fg); }
 .chip-purple { background: var(--purple-bg); color: var(--purple-fg); }
 .chip-black  { background: var(--black-bg);  color: var(--black-fg); }
+[hidden] { display: none !important; }
+.views { display: inline-flex; border: 1px solid var(--accent); border-radius: 6px; overflow: hidden; }
+.toolbar .views button { background: transparent; color: var(--accent); border-radius: 0; }
+.toolbar .views button[aria-pressed="true"] { background: var(--accent); color: var(--bg); }
+/* Compact view: the yearbook-print look. Small type, run-in event labels, newspaper columns. */
+.sheet { border: 1px solid var(--rule); background: var(--bg); padding: 22px 24px; font-size: 12px; line-height: 1.32;
+  columns: 3 210px; column-gap: 22px; column-rule: 1px solid var(--rule); }
+.sheet h3 { font-family: var(--font-display); font-weight: 700; font-size: 14.5px; line-height: 1.1; margin: 9px 0 2px;
+  color: var(--accent); break-after: avoid; text-wrap: balance; }
+.sheet h3:first-child { margin-top: 0; }
+.sheet h3 .d { font-family: var(--font-body); font-weight: 400; font-size: 11px; color: var(--muted); white-space: nowrap; }
+.sheet p { margin: 0 0 2px; break-inside: avoid; }
+.sheet p b.ev { font-weight: 700; }
+.sheet .fl { font-style: italic; color: var(--muted); }
+@media (max-width: 480px) { .sheet { padding: 14px; } }
 .notes { color: var(--muted); font-size: 14px; display: grid; gap: 6px; border-top: 1px solid var(--rule); padding-top: 16px; }
 .notes p { margin: 0; max-width: 70ch; }
 @media (max-width: 480px) { col.c-ev { width: 34%; } td, th { padding: 6px 5px; } }
@@ -84,9 +99,13 @@ tr.team td.who { font-weight: 600; }
     <h1>2026 Competition Results</h1>
     <p class="lede">15 WAG competitions, 91 team placings and 296 individual all-around placings. Teams and individuals are listed for each event; individual placings start at Level 5.</p>
     <div class="toolbar">
+      <div class="views" role="group" aria-label="View">
+        <button type="button" id="view-table" aria-pressed="true">Table view</button>
+        <button type="button" id="view-compact" aria-pressed="false">Compact view</button>
+      </div>
       <button type="button" id="copy-formatted">Copy formatted results</button>
       <button type="button" id="copy-raw">Copy raw data</button>
-      <span class="hint" id="select-hint" aria-live="polite">Formatted pastes as tables into Word or Google Docs. Raw data pastes into Excel or Google Sheets.</span>
+      <span class="hint" id="select-hint" aria-live="polite">Formatted copies the view you are looking at into Word or Google Docs. Raw data pastes into Excel or Google Sheets.</span>
     </div>
   </header>
 
@@ -107,6 +126,7 @@ tr.team td.who { font-weight: 600; }
 <section class="comp"><header class="comp-head"><h2>Metro East WAG Regional Championships</h2><p class="comp-date">5 September 2026</p></header><div class="table-wrap"><table><colgroup><col class="c-ev"><col class="c-who"><col class="c-pl"></colgroup><thead><tr><th>Event</th><th>Team / Gymnast</th><th class="pl">Placing</th></tr></thead><tbody><tr class="team ev-first"><td class="ev" rowspan="1">Level 3 Division 1</td><td class="who">Team</td><td class="pl podium">1st</td></tr><tr class="team ev-first"><td class="ev" rowspan="1">Level 3 Division 2</td><td class="who">Team</td><td class="pl podium">1st</td></tr><tr class="team ev-first"><td class="ev" rowspan="1">Level 3 Division 3</td><td class="who">Team</td><td class="pl podium">3rd</td></tr><tr class="team ev-first"><td class="ev" rowspan="2">Level 4 Division 1</td><td class="who">Team <span class="chip chip-pink">Pink</span></td><td class="pl podium">1st</td></tr><tr class="team"><td class="who">Team <span class="chip chip-orange">Orange</span></td><td class="pl podium">2nd</td></tr><tr class="team ev-first"><td class="ev" rowspan="1">Level 4 Division 2</td><td class="who">Team</td><td class="pl podium">2nd</td></tr><tr class="team ev-first"><td class="ev" rowspan="7">Level 5 Division 1</td><td class="who">Team</td><td class="pl podium">1st</td></tr><tr class="ind"><td class="who">Luckshetha Mauran</td><td class="pl podium">1st</td></tr><tr class="ind"><td class="who">Lily Chiu</td><td class="pl">4th</td></tr><tr class="ind"><td class="who">Lara Lockwood</td><td class="pl">5th</td></tr><tr class="ind"><td class="who">Mila Eurell</td><td class="pl">6th</td></tr><tr class="ind"><td class="who">Meghan Korla <span class="pool">(Under)</span></td><td class="pl podium">1st</td></tr><tr class="ind"><td class="who">Aubree Martin <span class="pool">(Under)</span></td><td class="pl podium">2nd</td></tr><tr class="team ev-first"><td class="ev" rowspan="7">Level 5 Division 2</td><td class="who">Team</td><td class="pl podium">1st</td></tr><tr class="ind"><td class="who">Bella-Maree Moxon</td><td class="pl podium">1st</td></tr><tr class="ind"><td class="who">Ivy Drake</td><td class="pl podium">2nd</td></tr><tr class="ind"><td class="who">Lara Bachnak</td><td class="pl">4th</td></tr><tr class="ind"><td class="who">Vimbiso Kamba</td><td class="pl">5th</td></tr><tr class="ind"><td class="who">Talyssa Nguyen</td><td class="pl">6th</td></tr><tr class="ind"><td class="who">Veronica Pavlovic</td><td class="pl">8th</td></tr><tr class="team ev-first"><td class="ev" rowspan="11">Level 5 Division 3</td><td class="who">Team <span class="chip chip-orange">Orange</span></td><td class="pl podium">1st</td></tr><tr class="team"><td class="who">Team <span class="chip chip-purple">Purple</span></td><td class="pl podium">3rd</td></tr><tr class="ind"><td class="who">Skylah Jones</td><td class="pl podium">2nd</td></tr><tr class="ind"><td class="who">Charlee de Jager</td><td class="pl podium">3rd</td></tr><tr class="ind"><td class="who">Ava Ward</td><td class="pl">6th</td></tr><tr class="ind"><td class="who">Scarlett Bolt</td><td class="pl">7th</td></tr><tr class="ind"><td class="who">Alayna Tonks</td><td class="pl">8th</td></tr><tr class="ind"><td class="who">Halle Brennan</td><td class="pl">11th</td></tr><tr class="ind"><td class="who">Lyla Kearins</td><td class="pl">14th</td></tr><tr class="ind"><td class="who">Scarlett Pratt</td><td class="pl">18th</td></tr><tr class="ind"><td class="who">Hazel Kaur</td><td class="pl">30th</td></tr><tr class="team ev-first"><td class="ev" rowspan="5">Level 6 Division 2</td><td class="who">Team</td><td class="pl podium">2nd</td></tr><tr class="ind"><td class="who">Dhyuthishri Sendil</td><td class="pl">5th</td></tr><tr class="ind"><td class="who">Tinara Wijendra Arachchige</td><td class="pl">7th</td></tr><tr class="ind"><td class="who">Olivia Baillie</td><td class="pl">13th</td></tr><tr class="ind"><td class="who">Madi Jaeggi</td><td class="pl">17th</td></tr><tr class="team ev-first"><td class="ev" rowspan="11">Level 7 Division 1</td><td class="who">Team <span class="chip chip-pink">Pink</span></td><td class="pl podium">1st</td></tr><tr class="team"><td class="who">Team <span class="chip chip-orange">Orange</span></td><td class="pl">4th</td></tr><tr class="ind"><td class="who">Lottie Studer</td><td class="pl">4th</td></tr><tr class="ind"><td class="who">Phoebe Lloyd</td><td class="pl">5th</td></tr><tr class="ind"><td class="who">Isla Saffin</td><td class="pl">8th</td></tr><tr class="ind"><td class="who">Peyton Baldwin</td><td class="pl">9th</td></tr><tr class="ind"><td class="who">Elena van Eijk</td><td class="pl">11th</td></tr><tr class="ind"><td class="who">Quinn Dunlop</td><td class="pl">13th</td></tr><tr class="ind"><td class="who">Indigo Gration <span class="pool">(Under)</span></td><td class="pl podium">1st</td></tr><tr class="ind"><td class="who">Zara Madzivire <span class="pool">(Under)</span></td><td class="pl podium">3rd</td></tr><tr class="ind"><td class="who">Hallie Clarke <span class="pool">(Under)</span></td><td class="pl">4th</td></tr><tr class="team ev-first"><td class="ev" rowspan="5">Level 7 Division 2</td><td class="who">Team</td><td class="pl podium">1st</td></tr><tr class="ind"><td class="who">Liza Hyndman</td><td class="pl podium">1st</td></tr><tr class="ind"><td class="who">Elexus Orsino</td><td class="pl">5th</td></tr><tr class="ind"><td class="who">Matayha Nwesser</td><td class="pl">9th</td></tr><tr class="ind"><td class="who">Marlee Magee</td><td class="pl">10th</td></tr></tbody></table></div></section>
 <section class="comp"><header class="comp-head"><h2>Jets State of Mind Invitational</h2><p class="comp-date">10 October 2026</p></header><div class="table-wrap"><table><colgroup><col class="c-ev"><col class="c-who"><col class="c-pl"></colgroup><thead><tr><th>Event</th><th>Team / Gymnast</th><th class="pl">Placing</th></tr></thead><tbody><tr class="team ev-first"><td class="ev" rowspan="1">Level 3 Division 1</td><td class="who">Team</td><td class="pl podium">1st</td></tr><tr class="team ev-first"><td class="ev" rowspan="1">Level 3 Division 2</td><td class="who">Team</td><td class="pl podium">1st</td></tr><tr class="team ev-first"><td class="ev" rowspan="2">Level 4 Division 1</td><td class="who">Team <span class="chip chip-pink">Pink</span></td><td class="pl podium">1st</td></tr><tr class="team"><td class="who">Team <span class="chip chip-orange">Orange</span></td><td class="pl podium">2nd</td></tr><tr class="team ev-first"><td class="ev" rowspan="7">Level 5 Division 1</td><td class="who">Team</td><td class="pl podium">1st</td></tr><tr class="ind"><td class="who">Lara Lockwood</td><td class="pl podium">1st</td></tr><tr class="ind"><td class="who">Luckshetha Mauran</td><td class="pl podium">3rd</td></tr><tr class="ind"><td class="who">Aubree Martin</td><td class="pl">4th</td></tr><tr class="ind"><td class="who">Meghan Korla</td><td class="pl">5th</td></tr><tr class="ind"><td class="who">Lily Chiu</td><td class="pl">11th</td></tr><tr class="ind"><td class="who">Mila Eurell</td><td class="pl">12th</td></tr><tr class="team ev-first"><td class="ev" rowspan="6">Level 5 Division 2</td><td class="who">Team</td><td class="pl podium">1st</td></tr><tr class="ind"><td class="who">Ivy Drake</td><td class="pl podium">1st</td></tr><tr class="ind"><td class="who">Bella-Maree Moxon</td><td class="pl podium">2nd</td></tr><tr class="ind"><td class="who">Lara Bachnak</td><td class="pl">8th</td></tr><tr class="ind"><td class="who">Talyssa Nguyen</td><td class="pl">9th</td></tr><tr class="ind"><td class="who">Veronica Pavlovic</td><td class="pl">15th</td></tr><tr class="team ev-first"><td class="ev" rowspan="11">Level 7 Division 1</td><td class="who">Team</td><td class="pl podium">1st</td></tr><tr class="ind"><td class="who">Indigo Gration</td><td class="pl podium">1st</td></tr><tr class="ind"><td class="who">Elena van Eijk</td><td class="pl podium">2nd</td></tr><tr class="ind"><td class="who">Lottie Studer</td><td class="pl podium">3rd</td></tr><tr class="ind"><td class="who">Phoebe Lloyd</td><td class="pl podium">3rd</td></tr><tr class="ind"><td class="who">Hallie Clarke</td><td class="pl">4th</td></tr><tr class="ind"><td class="who">Quinn Dunlop</td><td class="pl">5th</td></tr><tr class="ind"><td class="who">Arianna Naidu</td><td class="pl">6th</td></tr><tr class="ind"><td class="who">Isla Saffin</td><td class="pl">13th</td></tr><tr class="ind"><td class="who">Zara Madzivire</td><td class="pl">19th</td></tr><tr class="ind"><td class="who">Peyton Baldwin</td><td class="pl">20th</td></tr><tr class="team ev-first"><td class="ev" rowspan="5">Level 7 Division 2</td><td class="who">Team</td><td class="pl podium">1st</td></tr><tr class="ind"><td class="who">Liza Hyndman</td><td class="pl podium">1st</td></tr><tr class="ind"><td class="who">Elexus Orsino</td><td class="pl podium">2nd</td></tr><tr class="ind"><td class="who">Matayha Nwesser</td><td class="pl">7th</td></tr><tr class="ind"><td class="who">Marlee Magee</td><td class="pl">13th</td></tr></tbody></table></div></section>
   </main>
+  <main id="compact" class="sheet" hidden></main>
 
   <footer class="notes">
     <p>Placings are all-around (AA) placings. Where a team colour is shown, MAGA entered more than one team in that event.</p>
@@ -179,6 +199,84 @@ function formatted() {
   return { html: html.join(""), text: text.join("\n") };
 }
 
+// Compact view: one run-in paragraph per event, built from DATA so both views always match.
+function shortEvent(e) { return e.replace(" Division ", " Div "); }
+function shortDate(d) { return d.replace(/ \d{4}$/, ""); }
+function compactModel() {
+  var comps = [];
+  DATA.forEach(function (r) {
+    var c = comps[comps.length - 1];
+    if (!c || c.name !== r.comp) { c = { name: r.comp, date: r.date, events: [] }; comps.push(c); }
+    var e = c.events[c.events.length - 1];
+    if (!e || e.name !== r.event) { e = { name: r.event, teams: [], inds: [] }; c.events.push(e); }
+    (r.type === "Individual" ? e.inds : e.teams).push(r);
+  });
+  return comps;
+}
+// parts: list of {t: text, s: "pl"|"fl"|""}; rendered as HTML or plain text.
+function eventParts(e) {
+  var out = [];
+  e.teams.forEach(function (t, k) {
+    var who = t.type === "Mixed Team" ? t.name : (t.colour ? t.colour + " team" : "Team");
+    out.push({ t: (k ? ", " : "") + who + (t.field ? " (" + t.field + ")" : "") + " " });
+    out.push({ t: ordinal(t.placing), s: t.placing <= 3 ? "pl" : "" });
+  });
+  if (e.teams.length && e.inds.length) out.push({ t: ". " });
+  var field = null;
+  e.inds.forEach(function (r, k) {
+    if (r.field !== field) {
+      if (k) out.push({ t: "; " });
+      if (r.field) out.push({ t: r.field + ": ", s: "fl" });
+      field = r.field;
+    } else out.push({ t: ", " });
+    out.push({ t: r.name + " " });
+    out.push({ t: ordinal(r.placing), s: r.placing <= 3 ? "pl" : "" });
+  });
+  out.push({ t: "." });
+  return out;
+}
+function compactFormatted() {
+  var page = [], html = [], text = [];
+  var F = "font-family:Arial,sans-serif;";
+  compactModel().forEach(function (c) {
+    page.push("<h3>" + esc(c.name) + ' <span class="d">' + esc(shortDate(c.date)) + "</span></h3>");
+    html.push('<p style="' + F + 'font-size:9pt;font-weight:bold;color:#27406e;margin:6pt 0 1pt">' + esc(c.name) +
+      ' <span style="font-weight:normal;color:#5d6578;font-size:8pt">' + esc(shortDate(c.date)) + "</span></p>");
+    text.push(c.name + ", " + shortDate(c.date));
+    c.events.forEach(function (e) {
+      var ph = [], hh = [], tt = [];
+      eventParts(e).forEach(function (p) {
+        var t = esc(p.t);
+        ph.push(p.s === "pl" ? "<b>" + t + "</b>" : p.s === "fl" ? '<span class="fl">' + t + "</span>" : t);
+        hh.push(p.s === "pl" ? "<b>" + t + "</b>" : p.s === "fl" ? "<i>" + t + "</i>" : t);
+        tt.push(p.t);
+      });
+      page.push('<p><b class="ev">' + esc(shortEvent(e.name)) + "</b> " + ph.join("") + "</p>");
+      html.push('<p style="' + F + 'font-size:8pt;margin:0 0 1pt"><b>' + esc(shortEvent(e.name)) + "</b> " + hh.join("") + "</p>");
+      text.push(shortEvent(e.name) + ": " + tt.join(""));
+    });
+    text.push("");
+  });
+  return { page: page.join(""), html: html.join(""), text: text.join("\n") };
+}
+var compactEl = document.getElementById("compact");
+compactEl.innerHTML = compactFormatted().page;
+
+var view = "table";
+function setView(v) {
+  view = v;
+  document.getElementById("results").hidden = v !== "table";
+  compactEl.hidden = v !== "compact";
+  document.getElementById("view-table").setAttribute("aria-pressed", v === "table");
+  document.getElementById("view-compact").setAttribute("aria-pressed", v === "compact");
+  try { localStorage.setItem("maga-yearbook-view", v); } catch (e) {}
+}
+document.getElementById("view-table").addEventListener("click", function () { setView("table"); });
+document.getElementById("view-compact").addEventListener("click", function () { setView("compact"); });
+var saved = null;
+try { saved = localStorage.getItem("maga-yearbook-view"); } catch (e) {}
+if (location.hash === "#compact" || saved === "compact") setView("compact");
+
 // Fallback for viewers whose clipboard API is refused: copy from a hidden element via a selection.
 function fallbackCopy(content, isHtml) {
   var box = document.createElement(isHtml ? "div" : "textarea");
@@ -200,7 +298,7 @@ function fallbackCopy(content, isHtml) {
 
 function report(ok, what) {
   hint.textContent = ok ? what + " copied. Paste it with Ctrl+V (or Cmd+V)."
-    : "Your browser blocked copying. Select the tables below and press Ctrl+C instead.";
+    : "Your browser blocked copying. Select the results below and press Ctrl+C instead.";
 }
 
 document.getElementById("copy-raw").addEventListener("click", function () {
@@ -211,7 +309,8 @@ document.getElementById("copy-raw").addEventListener("click", function () {
 });
 
 document.getElementById("copy-formatted").addEventListener("click", function () {
-  var f = formatted();
+  var f = view === "compact" ? compactFormatted() : formatted();
+  var what = view === "compact" ? "Compact results" : "Formatted results";
   var p;
   try {
     p = navigator.clipboard.write([new ClipboardItem({
@@ -219,8 +318,8 @@ document.getElementById("copy-formatted").addEventListener("click", function () 
       "text/plain": new Blob([f.text], { type: "text/plain" })
     })]);
   } catch (e) { p = Promise.reject(e); }
-  p.then(function () { report(true, "Formatted results"); },
-         function () { report(fallbackCopy(f.html, true), "Formatted results"); });
+  p.then(function () { report(true, what); },
+         function () { report(fallbackCopy(f.html, true), what); });
 });
 </script>
 
