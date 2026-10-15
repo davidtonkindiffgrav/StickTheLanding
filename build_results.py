@@ -321,6 +321,17 @@ _EVENT_POOL_LABELS = {
     4363: "Under",
 }
 
+# Short notes shown under a competition's header, for results that differ from
+# an official GV/host results sheet (e.g. team scores we calculated ourselves).
+_COMP_NOTES = {
+    "jets-state-of-mind-invitational-2026": (
+        "Level 5-7 team results were calculated by Stick The Landing from the individual "
+        "scores (each club's best three scores on each apparatus), as no official team "
+        "results were published for those levels. A club that entered more than one team "
+        "in an event appears as a single team."
+    ),
+}
+
 
 def pool_labels_for_group(rows_by_event: dict) -> dict:
     """rows_by_event: {event_id: [row_dict, ...]}. Returns {event_id: label_or_None}."""
@@ -683,6 +694,7 @@ def render_page(comp: sqlite3.Row, tree: dict, sport: str, club_names: dict = No
     <h1 class="comp-name">{name}</h1>
     {"" if not date_disp else f'<span class="comp-date">{date_disp}</span>'}
   </div>
+  {"" if comp_id not in _COMP_NOTES else f'<p class="comp-note">{_COMP_NOTES[comp_id]}</p>'}
 </div>
 
 <main class="results-main">

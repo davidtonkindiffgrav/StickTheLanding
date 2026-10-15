@@ -14,6 +14,9 @@
 
   "by_competition": {
     "_comment": "Format: { \"Competition Name\": { \"RAW_CODE\": \"CANONICAL_CODE\" } }. Colour codes for already-ingested data — future ingests use the hosts section automatically.",
+    "BTYC MAG and WAG Senior Extravaganza": {
+      "MA9": "MAG"
+    },
     "Knox WAG Senior Invite": {
       "WHI": "KNO", "BLU": "KNO", "RED": "KNO",
       "SIL": "KNO", "NAV": "KNO", "GOL": "KNO",
@@ -66,6 +69,8 @@
   "name_corrections": {
     "_comment": "Global athlete name corrections — applied whenever the wrong spelling is seen regardless of competition. Format: { \"Wrong Spelling\": \"Correct Spelling\" }",
     "Maddie Hayward": "Maddison Hayward",
+    "Ava Kearns Smale": "Ava Kearns-Smale",
+    "Mackenzie Barbara": "MacKenzie Barbara",
     "Sienna Caputo": "Sienna Caputa",
     "Tilly Obrien": "Tilly O'Brien",
     "Ema Oliveria": "Ema Oliveira",

@@ -1,6 +1,12 @@
 [
   {
     "sport": "wag",
+    "comp_id": "jets-state-of-mind-invitational-2026",
+    "name": "Jets State of Mind Invitational",
+    "date": "2026-10-10"
+  },
+  {
+    "sport": "wag",
     "comp_id": "mildura-gymnastics-centre-wag-competition-2026",
     "name": "Mildura Gymnastics Centre WAG Competition",
     "date": "2026-09-20"
