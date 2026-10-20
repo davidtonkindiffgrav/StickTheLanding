@@ -1,6 +1,18 @@
 [
   {
     "sport": "wag",
+    "comp_id": "junior-victorian-championships-2026",
+    "name": "Junior Victorian Championships",
+    "date": "2026-10-15"
+  },
+  {
+    "sport": "wag",
+    "comp_id": "southern-cross-classic-2026",
+    "name": "Southern Cross Classic",
+    "date": "2026-10-15"
+  },
+  {
+    "sport": "wag",
     "comp_id": "jets-state-of-mind-invitational-2026",
     "name": "Jets State of Mind Invitational",
     "date": "2026-10-10"

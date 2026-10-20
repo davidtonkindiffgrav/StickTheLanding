@@ -317,8 +317,18 @@ _EVENT_SESSION_OVERRIDES = {
 # Mildura Gymnastics Centre WAG Competition 2026 (mildura-gymnastics-centre-
 # wag-competition-2026): the Level 5 "DIV1/u" block is the Under age split,
 # stored as Division 1 like every other WAG Under field.
+# Junior Victorian Championships 2026 (junior-victorian-championships-2026):
+# GV's L3/L4 Team PDFs split each division into "(A)" and "(B)" groups
+# (separate sessions, each ranked 1..N), and L5-7 Division 1 individual
+# results come as a main sheet plus an "Under" sheet.
 _EVENT_POOL_LABELS = {
     4363: "Under",
+    4401: "Group A", 4402: "Group B",
+    4403: "Group A", 4404: "Group B",
+    4405: "Group A", 4406: "Group B",
+    4407: "Group A", 4408: "Group B",
+    4409: "Group A", 4410: "Group B",
+    4412: "Under", 4418: "Under", 4425: "Under",
 }
 
 # Short notes shown under a competition's header, for results that differ from

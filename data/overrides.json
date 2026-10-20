@@ -63,7 +63,9 @@
   },
 
   "by_athlete": [
-    { "_comment": "Format: { competition, athlete (exact name), club (canonical code) }" }
+    { "_comment": "Format: { competition, athlete (exact name), club (canonical code) }" },
+    { "competition": "Junior Victorian Championships", "athlete": "Quinn Jennings", "club": "BLK" },
+    { "competition": "Junior Victorian Championships", "athlete": "Holly Lawrence", "club": "BLK" }
   ],
 
   "name_corrections": {
