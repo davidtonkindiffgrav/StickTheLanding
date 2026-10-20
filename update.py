@@ -699,6 +699,11 @@ def main():
     # Build pdf_manifest entries — source_url is the repo-relative path for direct hosting
     by_comp: dict[str, list] = {}
     for pdf in all_pdfs:
+        # An _ignore original with a corrected file of the same name beside it
+        # (e.g. a GV sheet we rebuilt) isn't listed — only the fix is served.
+        if "_ignore" in pdf.stem.lower() and \
+           (pdf.parent / re.sub(r"(?i)_ignore", "", pdf.name)).exists():
+            continue
         cname = comp_name(pdf)
         key   = source_key(pdf)
         src_url = str(pdf).replace("\\", "/")
