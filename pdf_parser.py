@@ -757,7 +757,7 @@ def parse_filename_meta(path, sport=None):
             age_group = "U13"
         elif re.search(r"U14|Under\s*14", name, re.IGNORECASE):
             age_group = "U14"
-        elif re.search(r"Open|(?<=\d)O\b", name, re.IGNORECASE):
+        elif re.search(r"Open|\bOver\b|(?<=\d)O\b", name, re.IGNORECASE):
             age_group = "Open"
         elif re.search(r"Under|(?<=\d)U(?![a-zA-Z\d])", name, re.IGNORECASE):
             age_group = _MAG_LEVEL_AGE.get(level, "Under")
@@ -950,6 +950,14 @@ def parse_team_results(text_pages, pdf_path, sport="WAG"):
                 pl, pd = _split_combined_level_div(code_m.group(1))
                 if pl is not None:
                     page_level, page_div = pl, pd
+        elif page_level is None:
+            # MAG combined Open+Under team file with no O/U in its filename
+            # (e.g. "SGC JNR INV 2 COMB TEAM.pdf", header "Men / 2O,2U / All Ages").
+            # Stored as Open, matching earlier "2O&U Team Results.pdf" files.
+            code_m = re.search(r"Men\s*/\s*(\d+)[OU]\s*,\s*\1[OU]\s*/", text)
+            if code_m:
+                page_level = int(code_m.group(1))
+                page_age = page_age or "Open"
 
         # Fallback: parse "Level N Division N" from page header text
         # Handles files with LAll in filename (e.g. TEAM_Women_S2_LAll_AAll.pdf)

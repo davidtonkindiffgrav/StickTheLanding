@@ -1,5 +1,11 @@
 [
   {
+    "sport": "mag",
+    "comp_id": "junior-victorian-championships-2026",
+    "name": "Junior Victorian Championships",
+    "date": "2026-10-17"
+  },
+  {
     "sport": "wag",
     "comp_id": "junior-victorian-championships-2026",
     "name": "Junior Victorian Championships",
@@ -21,6 +27,12 @@
     "sport": "wag",
     "comp_id": "mildura-gymnastics-centre-wag-competition-2026",
     "name": "Mildura Gymnastics Centre WAG Competition",
+    "date": "2026-09-20"
+  },
+  {
+    "sport": "mag",
+    "comp_id": "sgc-junior-invite-2026",
+    "name": "SGC Junior Invite",
     "date": "2026-09-20"
   },
   {
