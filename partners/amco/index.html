@@ -1,0 +1,941 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-RQH8J568DE"></script>
+<script>  window.dataLayer = window.dataLayer || [];  function gtag(){dataLayer.push(arguments);}  gtag('js', new Date());  gtag('config', 'G-RQH8J568DE');</script>
+  <meta charset="UTF-8" />
+  <meta name="robots" content="noindex,nofollow" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>A Proposal for AMCO Gymnastics | Stick The Landing</title>
+  <meta name="description" content="A private proposal for AMCO Gymnastics to become a community partner of Stick The Landing." />
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="A Proposal for AMCO Gymnastics" />
+  <meta property="og:description" content="A private proposal for AMCO Gymnastics to become a community partner of Stick The Landing." />
+  <link rel="apple-touch-icon" sizes="180x180" href="/assets/favicons/apple-touch-icon.png" />
+  <link rel="icon" type="image/png" sizes="32x32" href="/assets/favicons/favicon-32x32.png" />
+  <link rel="icon" type="image/png" sizes="16x16" href="/assets/favicons/favicon-16x16.png" />
+  <link rel="shortcut icon" href="/assets/favicons/favicon.ico" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700;800&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    /* ---------------------------------------------------------------
+       Brand tokens. --brand is the AMCO side of the partnership, --accent
+       is Stick The Landing. --brand-deep is AMCO's logo indigo (#2a2b87, sampled from amco.com.au); --brand is a brighter step of it that reads on the dark background.
+       --------------------------------------------------------------- */
+    :root{
+      --bg:#0d0d12; --bg2:#13131b; --surface:#1a1a24; --surface2:#222230; --border:#2e2e42;
+      --accent:#7c6dfa; --accent-text:#a89bfc; --accent-glow:rgba(124,109,250,.28);
+      --brand:#3b3dc4; --brand-deep:#2a2b87; --brand-text:#a3a6ff; --brand-glow:rgba(59,61,196,.4);
+      --text:#ececf4; --muted:#8e8eae; --radius:12px;
+      --ease:cubic-bezier(.2,.8,.2,1);
+    }
+    *,*::before,*::after{box-sizing:border-box}
+    html,body{margin:0;padding:0;background:var(--bg);color:var(--text);height:100%;overflow:hidden;
+      font-family:'Inter',system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+    h1,h2,h3{font-family:'Space Grotesk',sans-serif;letter-spacing:-0.02em;margin:0;line-height:1.2}
+    h2{font-size:clamp(1.35rem,3.6vw,2rem)}
+    strong{font-weight:700}
+
+    /* Ambient background: a slow beam of light, one side STL purple, one side AMCO */
+    .ambient{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden}
+    .ambient::before,.ambient::after{content:"";position:absolute;width:70vmax;height:70vmax;border-radius:50%;
+      filter:blur(90px);opacity:.16;transition:transform 1.2s var(--ease)}
+    .ambient::before{background:var(--accent);left:-30vmax;top:-30vmax;transform:translate(var(--ax,0),var(--ay,0))}
+    .ambient::after{background:var(--brand);right:-32vmax;bottom:-34vmax;transform:translate(var(--bx,0),var(--by,0))}
+    .grain{position:fixed;inset:0;z-index:0;pointer-events:none;opacity:.05;
+      background-image:radial-gradient(rgba(255,255,255,.7) 1px,transparent 1px);background-size:3px 3px}
+
+    .hook{font-family:'Space Grotesk',sans-serif;font-weight:800;font-size:clamp(1.9rem,5.6vw,3.1rem);
+      line-height:1.12;color:var(--text);letter-spacing:-0.03em}
+    .eyebrow{font:700 11px/1 'JetBrains Mono',monospace;letter-spacing:.16em;text-transform:uppercase;color:var(--muted)}
+    .eyebrow b{color:var(--brand-text);font-weight:700}
+    .hl-brand{color:var(--brand-text)}
+    .hl-accent{color:var(--accent-text)}
+
+    .mark{position:fixed;top:18px;left:20px;z-index:6;font:700 .95rem/1 'Space Grotesk',sans-serif;color:var(--text);
+      opacity:.8;pointer-events:none;display:flex;align-items:center;gap:8px}
+    .mark span{color:var(--accent-text)}
+    .mark .x{color:var(--muted);font-weight:500;font-size:.8rem}
+    .mark img.amco{height:13px;width:auto;display:block;opacity:.95}
+
+    .progress{position:fixed;top:0;left:0;right:0;height:3px;z-index:7;background:transparent}
+    .progress i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--accent),var(--brand));
+      transition:width .5s var(--ease)}
+
+    .deck{position:relative;z-index:1;height:100svh;height:100vh;width:100%}
+    .slide{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;
+      padding:90px 8vw 120px;text-align:center;overflow-y:auto;
+      opacity:0;visibility:hidden;transform:translateX(40px);
+      transition:opacity .45s var(--ease),transform .55s var(--ease),visibility 0s linear .55s}
+    .slide.prev{transform:translateX(-40px)}
+    .slide.active{opacity:1;visibility:visible;transform:none;transition:opacity .45s var(--ease),transform .55s var(--ease),visibility 0s}
+    .slide-inner{max-width:860px;width:100%;margin:auto;display:flex;flex-direction:column;gap:18px;align-items:center}
+    .slide p{font-size:1.05rem;line-height:1.65;color:var(--muted);margin:0;max-width:720px}
+    .slide p.lead{font-size:1.2rem;color:var(--text)}
+
+    /* Staggered reveal of a slide's children */
+    .slide .slide-inner > *{opacity:0;transform:translateY(14px);transition:opacity .5s var(--ease),transform .6s var(--ease)}
+    .slide.active .slide-inner > *{opacity:1;transform:none}
+    .slide.active .slide-inner > *:nth-child(1){transition-delay:.05s}
+    .slide.active .slide-inner > *:nth-child(2){transition-delay:.13s}
+    .slide.active .slide-inner > *:nth-child(3){transition-delay:.21s}
+    .slide.active .slide-inner > *:nth-child(4){transition-delay:.29s}
+    .slide.active .slide-inner > *:nth-child(5){transition-delay:.37s}
+    .slide.active .slide-inner > *:nth-child(6){transition-delay:.45s}
+    .slide.active .slide-inner > *:nth-child(n+7){transition-delay:.52s}
+
+    /* ---------- Image placeholders ----------
+       <figure class="ph" data-src="file.jpg">. If the file exists next to this page it
+       replaces the placeholder automatically, so dropping real images in needs no code change. */
+    .ph{position:relative;margin:0;width:100%;border-radius:var(--radius);overflow:hidden;
+      border:1.5px dashed #4a4a66;background:
+        repeating-linear-gradient(135deg,rgba(255,255,255,.025) 0 12px,transparent 12px 24px),var(--bg2);
+      display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;padding:22px;text-align:center;
+      color:var(--muted)}
+    .ph > i{font-size:1.6rem;color:#5c5c80}
+    .ph .ph-title{font:700 .9rem/1.3 'Space Grotesk',sans-serif;color:var(--text)}
+    .ph .ph-desc{font-size:.8rem;line-height:1.45;max-width:420px}
+    .ph .ph-file{font:600 10.5px/1 'JetBrains Mono',monospace;letter-spacing:.04em;color:var(--brand-text);
+      background:rgba(59,61,196,.18);padding:5px 8px;border-radius:5px}
+    .ph.loaded{border:1px solid var(--border);padding:0;background:#000;box-shadow:0 24px 60px -24px rgba(0,0,0,.7)}
+    .ph.loaded img{display:block;width:100%;height:100%;object-fit:cover}
+    .ph-portrait{aspect-ratio:4/3;max-width:380px}
+    .ph-wide{aspect-ratio:16/9;max-width:760px}
+    .ph-square{aspect-ratio:1/1}
+
+    /* Cover */
+    .cover-logos{display:flex;align-items:center;justify-content:center;gap:18px;flex-wrap:wrap}
+    .cover-logos .ph{width:auto;min-width:160px;height:64px;padding:8px 16px;flex-direction:row;gap:10px}
+    .cover-logos .ph .ph-desc,.cover-logos .ph .ph-file{display:none}
+    .cover-logos .ph.loaded{background:#fff;border:none;box-shadow:0 10px 30px -12px rgba(0,0,0,.6);min-width:0;padding:10px 16px;border-radius:10px}
+    .cover-logos .ph.loaded img{object-fit:contain;height:44px;width:auto}
+    .cover-logos .ph.ph-bare.loaded{background:transparent;box-shadow:none;padding:0}
+    .cover-logos .ph.ph-bare.loaded img{height:64px;border-radius:14px;box-shadow:0 10px 30px -12px rgba(0,0,0,.6)}
+    .cover-x{font:500 1.4rem 'Space Grotesk',sans-serif;color:var(--muted)}
+    .cover-inner{gap:26px}
+    .cover-headline{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:clamp(2.1rem,6.4vw,4rem);max-width:820px;
+      line-height:1.25;color:var(--text);margin:0;letter-spacing:-0.025em}
+    .nowrap{white-space:nowrap}
+    .begin-hint{margin-top:6px;font:600 11px/1 'JetBrains Mono',monospace;letter-spacing:.12em;
+      text-transform:uppercase;color:var(--muted);display:flex;align-items:center;gap:8px}
+    .begin-hint i{animation:nudge 1.6s var(--ease) infinite}
+    @keyframes nudge{0%,100%{transform:translateX(0)}50%{transform:translateX(5px)}}
+
+    /* Screenshots */
+    .shot-frame{border-radius:var(--radius);overflow:hidden;border:1px solid var(--border);box-shadow:0 24px 50px -20px rgba(0,0,0,.6);max-width:640px;width:100%}
+    .shot-frame img{display:block;width:100%;height:auto}
+    .showcase-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;width:100%;max-width:680px}
+    .showcase-item{background:#0c0c10;border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;
+      box-shadow:0 14px 30px -18px rgba(0,0,0,.55)}
+    .showcase-item img{display:block;width:100%;height:auto}
+    .showcase-cap{display:block;padding:9px 12px;font-size:.76rem;color:var(--muted);border-top:1px solid var(--border);text-align:left}
+    @media (max-width:560px){.showcase-grid{grid-template-columns:1fr}}
+    .showcase-3{grid-template-columns:repeat(3,1fr);max-width:860px}
+    .comp-list{display:flex;flex-direction:column;text-align:left}
+    .comp-list-h{padding:10px 12px 8px;font:600 .74rem/1.2 'JetBrains Mono',monospace;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--border)}
+    .comp-list-h b{font:800 1.05rem 'Space Grotesk',sans-serif;color:var(--accent-text);letter-spacing:0;margin-right:4px}
+    .comp-ticker{position:relative;flex:1 1 0;min-height:150px;overflow:hidden;
+      -webkit-mask-image:linear-gradient(transparent,#000 14%,#000 86%,transparent);mask-image:linear-gradient(transparent,#000 14%,#000 86%,transparent)}
+    .comp-ticker ul{list-style:none;margin:0;padding:4px 12px;animation:compScroll 70s linear infinite}
+    .comp-ticker:hover ul{animation-play-state:paused}
+    .comp-ticker li{display:flex;justify-content:space-between;gap:8px;align-items:baseline;padding:4px 0;font-size:.78rem;line-height:1.3;color:var(--text);border-bottom:1px dashed #26263a}
+    .comp-ticker li b{font:700 9px/1 'JetBrains Mono',monospace;letter-spacing:.08em;color:var(--accent-text);white-space:nowrap}
+    @keyframes compScroll{to{transform:translateY(-100%)}}
+    @media (prefers-reduced-motion:reduce){.comp-ticker{overflow-y:auto}.comp-ticker ul{animation:none}.comp-ticker ul[aria-hidden]{display:none}}
+    @media (max-width:760px){.showcase-3{grid-template-columns:1fr 1fr}.showcase-3 .comp-list{grid-column:1/-1}.comp-ticker{flex:none;height:180px}}
+
+    /* Quote */
+    .quote{font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:clamp(1.3rem,3.4vw,1.95rem);
+      line-height:1.4;color:var(--text);max-width:780px}
+    .quote-free{color:var(--accent-text);font-weight:800}
+    .quote-attr{font:600 12px/1 'JetBrains Mono',monospace;color:var(--muted);letter-spacing:.08em}
+
+    /* Stats */
+    .growth-shot{max-width:460px;background:#fff}
+    .stat-row-mini{display:flex;gap:14px;justify-content:center;flex-wrap:wrap}
+    .mini-stat{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);
+      padding:12px 20px;display:flex;flex-direction:column;gap:3px;min-width:180px}
+    .mini-num{font-family:'JetBrains Mono',monospace;font-weight:800;font-size:1.55rem;color:var(--accent-text)}
+    .mini-label{font-size:.76rem;color:var(--muted)}
+    .minor-note{font-size:.78rem;color:var(--muted);border-top:1px solid var(--border);padding-top:12px;margin-top:2px;max-width:680px;line-height:1.55}
+
+    /* Audience chart */
+    .audience-layout{display:flex;gap:14px;width:100%;max-width:700px;align-items:stretch}
+    .audience-chart{flex:1 1 auto;min-width:0}
+    .chart-card{--c-women:#3987e5;--c-men:#d95926;padding:16px 20px 13px;text-align:left;display:flex;flex-direction:column;gap:10px}
+    .chart-title{font:700 1.05rem/1 'Space Grotesk',sans-serif;color:var(--text)}
+    .chart-sub{font-size:.76rem;color:var(--muted);margin-top:-6px}
+    .chart-legend{display:flex;gap:18px;font-size:.8rem;color:var(--muted)}
+    .chart-legend i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:6px;vertical-align:-1px}
+    .ag-rows{display:flex;flex-direction:column;gap:8px}
+    .ag-row{display:grid;grid-template-columns:52px 1fr auto;gap:14px;align-items:center}
+    .ag-label{font-size:.8rem;color:var(--muted);white-space:nowrap}
+    .ag-pct{font:600 .82rem 'JetBrains Mono',monospace;color:var(--text);text-align:right}
+    .ag-track{position:relative;height:13px}
+    .ag-fill{position:relative;height:100%;display:flex;width:0;transition:width 1s var(--ease) .35s}
+    .ag-seg{flex:0 0 auto;height:100%}
+    .ag-seg.women{background:var(--c-women);border-radius:4px 0 0 4px;margin-right:2px}
+    .ag-seg.men{background:var(--c-men);border-radius:0 4px 4px 0}
+    .audience-stats{display:flex;flex-direction:column;gap:14px;flex:0 0 190px}
+    .big-stat{flex:1;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);
+      padding:14px 16px;display:flex;flex-direction:column;justify-content:center;gap:4px;align-items:center;text-align:center}
+    .big-stat-num{font-family:'Space Grotesk',sans-serif;font-weight:800;font-size:clamp(1.9rem,5.5vw,2.5rem);color:var(--accent-text);line-height:1}
+    .big-stat-label{font-size:.86rem;color:var(--muted)}
+    @media (max-width:560px){.audience-layout{flex-direction:column}.audience-stats{flex-direction:row;flex:0 0 auto}}
+
+    /* Expansion map (inline SVG, outlines from public state boundary data) */
+    .map-wrap{width:100%;max-width:500px;position:relative}
+    .aus-map{display:block;width:100%;height:auto;overflow:visible}
+    .map-state{fill:#272739;stroke:#3d3d58;stroke-width:1.4;stroke-linejoin:round}
+    .map-nsw-fill{fill:rgba(163,166,255,.07)}
+    .map-nsw{fill:none;stroke:#a3a6ff;stroke-width:2.4;stroke-dasharray:9 7;stroke-linejoin:round;animation:mapDash 1.6s linear infinite}
+    @keyframes mapDash{to{stroke-dashoffset:-32}}
+    .map-vic{fill:url(#vicFill);stroke:#d4ceff;stroke-width:1.6;stroke-linejoin:round;animation:vicPulse 3.2s ease-in-out infinite}
+    @keyframes vicPulse{0%,100%{opacity:1}50%{opacity:.82}}
+    .map-arc{fill:none;stroke:#a3a6ff;stroke-width:2.6;stroke-linecap:round;stroke-dasharray:260;stroke-dashoffset:260;
+      transition:stroke-dashoffset 1.4s var(--ease) .7s}
+    .slide.active .map-arc{stroke-dashoffset:0}
+    .map-city{fill:#fff;stroke:#0d0d12;stroke-width:2.5}
+    .nsw-city{fill:#0d0d12;stroke:#a3a6ff;stroke-width:2.5}
+    .map-ripple{fill:none;stroke:#fff;stroke-width:2;transform-box:fill-box;transform-origin:center;animation:ripple 2.4s ease-out infinite}
+    .map-ripple.r2{animation-delay:1.2s}
+    @keyframes ripple{0%{transform:scale(1);opacity:.85}100%{transform:scale(6);opacity:0}}
+    .map-leader{fill:none;stroke:#7c6dfa;stroke-width:1.5;opacity:.7}
+    .map-leader.nsw{stroke:#a3a6ff;stroke-dasharray:4 4}
+    .ml-k{font:700 17px 'JetBrains Mono',monospace;letter-spacing:.14em;fill:#a89bfc}
+    .ml-k.nsw{fill:#a3a6ff}
+    .ml-h{font:800 34px 'Space Grotesk',sans-serif;fill:#ececf4;letter-spacing:-.02em}
+    .map-label{opacity:0;transition:opacity .6s var(--ease) 1s}
+    .slide.active .map-label{opacity:1}
+    .slide.active .nsw-label{transition-delay:1.7s}
+
+    /* What is STL: feature tiles */
+    .feature-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;width:100%;max-width:860px;text-align:left}
+    .feature{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px 16px 15px;
+      display:flex;flex-direction:column;gap:6px}
+    .feature i{font-size:1.15rem;color:var(--accent-text);margin-bottom:4px}
+    .feature b{font:700 1rem/1.25 'Space Grotesk',sans-serif;color:var(--text)}
+    .feature span{font-size:.88rem;line-height:1.5;color:var(--muted)}
+    @media (max-width:760px){.feature-grid{grid-template-columns:1fr 1fr}}
+    @media (max-width:460px){.feature{padding:12px;flex-direction:row;align-items:center;gap:10px}.feature i{margin:0;font-size:1rem}.feature b{font-size:.88rem}.feature span{display:none}}
+
+    /* Cumulative users chart (slide 6), inline SVG from Google Analytics weekly new-user counts */
+    .growth-chart{width:100%;max-width:640px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px 14px 10px}
+    .growth-chart svg{display:block;width:100%;height:auto;overflow:visible}
+    .gc-grid{stroke:#2a2a3c;stroke-width:1}
+    .gc-y{font:600 11px 'JetBrains Mono',monospace;fill:var(--muted);text-anchor:end}
+    .gc-x{font:600 11px 'JetBrains Mono',monospace;fill:var(--muted);text-anchor:middle}
+    .gc-area{fill:url(#gcFill)}
+    .gc-line{fill:none;stroke:url(#gcLine);stroke-width:3.5;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:1;stroke-dashoffset:1}
+    .gc-dot{fill:#fff;stroke:#7c6dfa;stroke-width:3}
+    .gc-end-num{font:800 26px 'Space Grotesk',sans-serif;fill:var(--text);text-anchor:end;letter-spacing:-.02em}
+    .gc-end-k{font:700 11px 'JetBrains Mono',monospace;fill:var(--accent-text);text-anchor:end;letter-spacing:.14em}
+    .gc-cap{font-size:.74rem;color:var(--muted);margin-top:4px}
+    @media (max-width:560px){
+      .gc-y,.gc-x{font-size:20px}.gc-end-num{font-size:40px}.gc-end-k{font-size:17px}
+      .stat-row-mini{flex-wrap:nowrap;gap:8px;width:100%}
+      .stat-row-mini .mini-stat{flex:1 1 0;min-width:0;padding:10px 6px}
+      .stat-row-mini .mini-num{font-size:1.05rem}.stat-row-mini .mini-label{font-size:.66rem;line-height:1.3}
+    }
+
+    /* Testimonials */
+    .tm-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;width:100%;max-width:860px;text-align:left}
+    .tm{position:relative;margin:0;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);
+      padding:18px 48px 14px 20px;display:flex;flex-direction:column;justify-content:space-between;gap:10px}
+    .tm::before{content:"“";position:absolute;top:-6px;right:14px;font:800 4.2rem/1 'Space Grotesk',sans-serif;color:rgba(124,109,250,.22)}
+    .tm blockquote{margin:0;font:600 1.02rem/1.45 'Space Grotesk',sans-serif;color:var(--text)}
+    .tm figcaption{font:600 11px/1.4 'JetBrains Mono',monospace;letter-spacing:.06em;color:var(--accent-text)}
+    .tm figcaption span{color:var(--muted)}
+    .tm.feature-quote{grid-column:1/-1;border-color:rgba(124,109,250,.45);
+      background:linear-gradient(135deg,rgba(124,109,250,.14),rgba(59,61,196,.08)),var(--surface)}
+    .tm.feature-quote blockquote{font-size:1.12rem}
+    @media (max-width:640px){.tm-grid{grid-template-columns:1fr}.tm{padding:14px 14px 12px 16px}.tm blockquote,.tm.feature-quote blockquote{font-size:.95rem}}
+
+    /* Numbered points */
+    .point-list{display:flex;flex-direction:column;gap:12px;width:100%;max-width:760px;text-align:left}
+    .point{display:flex;gap:14px;align-items:flex-start;background:var(--surface);border:1px solid var(--border);
+      border-radius:var(--radius);padding:16px 20px}
+    .point .num{flex-shrink:0;width:30px;height:30px;border-radius:50%;background:var(--accent);color:#fff;
+      font:800 14px/30px 'JetBrains Mono',monospace;text-align:center}
+    .point.brand .num{background:var(--brand)}
+    .point .txt{font-size:1.1rem;color:var(--text);line-height:1.5}
+    .point .txt strong{color:var(--accent-text)}
+    .point.brand .txt strong{color:var(--brand-text)}
+
+    /* Showcase ideas */
+    .compact-head{gap:14px}
+    .compact-head .hook{font-size:clamp(1.6rem,4.4vw,2.4rem)}
+    .compact-head h2{font-size:clamp(1.1rem,2.8vw,1.5rem)}
+    .ideas{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;width:100%;text-align:left}
+    .idea{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;display:flex;flex-direction:column}
+    .idea-vis{height:170px;border-bottom:1px solid var(--border);display:flex}
+    .idea-vis .ph{border:none;border-radius:0;height:100%;padding:14px}
+    .idea-vis .ph .ph-desc{font-size:.74rem}
+    .idea-vis .ph-social.loaded img{object-position:center 68%}
+    .idea-body{padding:14px 16px 16px;display:flex;flex-direction:column;gap:6px}
+    .idea-tag{font:700 10px/1 'JetBrains Mono',monospace;letter-spacing:.12em;text-transform:uppercase;color:var(--brand-text)}
+    .idea-body h3{font-size:1.05rem}
+    .idea-body p{font-size:.85rem;line-height:1.5}
+    @media (max-width:760px){.ideas{grid-template-columns:1fr}}
+
+    /* Recreated "presented by AMCO" leaderboard */
+    .lb{width:100%;height:100%;background:var(--bg2);padding:0 14px 12px;display:flex;flex-direction:column;gap:6px}
+    .lb-sponsor{margin:0 -14px 4px;padding:9px 14px;display:flex;align-items:center;justify-content:space-between;gap:10px;
+      background:linear-gradient(100deg,var(--brand-deep),var(--brand));border-bottom:1px solid #4a4cd6}
+    .lb-sponsor span{font:700 9px/1 'JetBrains Mono',monospace;letter-spacing:.14em;text-transform:uppercase;color:rgba(255,255,255,.8);white-space:nowrap}
+    .lb-sponsor img{height:15px;width:auto;min-width:0;max-width:calc(100% - 92px);object-fit:contain;object-position:right center;display:block}
+    .lb-h{display:flex;justify-content:space-between;align-items:center;margin-bottom:2px}
+    .lb-h b{font:800 .85rem 'Space Grotesk',sans-serif}
+    .lb-pres{font:700 9px/1 'JetBrains Mono',monospace;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);display:flex;align-items:center;gap:5px}
+    .lb-pres em{font-style:normal;color:#fff;background:var(--brand);padding:3px 6px;border-radius:4px;letter-spacing:.1em}
+    .lb-row{display:grid;grid-template-columns:16px 1fr 46px;gap:8px;align-items:center}
+    .lb-rank{font:800 .72rem 'JetBrains Mono',monospace;color:var(--muted)}
+    .lb-row:nth-child(3) .lb-rank{color:#f5c84b}.lb-row:nth-child(4) .lb-rank{color:#c9ccd6}.lb-row:nth-child(5) .lb-rank{color:#d39062}
+    .lb-name{height:8px;border-radius:4px;background:#34344a}
+    .lb-score{height:8px;border-radius:4px;background:linear-gradient(90deg,var(--accent),var(--brand));opacity:.75}
+
+    /* Recreated homepage banner */
+    .banner-mock{width:100%;height:100%;background:var(--bg2);padding:12px;display:flex;flex-direction:column;gap:8px}
+    .bm-nav{display:flex;justify-content:space-between;align-items:center}
+    .bm-nav b{font:800 .72rem 'Space Grotesk',sans-serif}.bm-nav b span{color:var(--accent-text)}
+    .bm-dots{display:flex;gap:4px}.bm-dots i{width:18px;height:5px;border-radius:3px;background:#34344a;display:block}
+    .bm-strip{border-radius:8px;background:linear-gradient(100deg,var(--brand-deep),var(--brand));padding:10px 12px;
+      display:flex;align-items:center;justify-content:space-between;gap:8px}
+    .bm-strip small{font:700 8.5px/1.2 'JetBrains Mono',monospace;letter-spacing:.08em;text-transform:uppercase;color:rgba(255,255,255,.8)}
+    .bm-strip .bm-logo{display:block;height:13px;width:auto;margin-top:5px}
+    .bm-strip u{text-decoration:none;font:700 .62rem 'Inter',sans-serif;background:#fff;color:var(--brand-deep);padding:5px 8px;border-radius:999px;white-space:nowrap}
+    .bm-cards{flex:1;display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+    .bm-cards i{display:block;border-radius:6px;background:#26263a}
+
+    /* The ask */
+    .ask-headline{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:clamp(1.8rem,5vw,2.9rem);
+      line-height:1.25;color:var(--text);max-width:820px;letter-spacing:-0.025em}
+    .ask-headline strong{color:var(--brand-text)}
+    .ask-permonth{font-size:.55em;color:var(--muted);font-weight:600}
+    .ask-sub{font-size:1.1rem;color:var(--text)}
+    .ask-steps{display:grid;grid-template-columns:1fr 1fr;gap:14px;width:100%;max-width:720px;margin-top:6px}
+    .ask-step{display:flex;gap:14px;align-items:flex-start;text-align:left;background:var(--surface);
+      border:1px solid var(--border);border-radius:var(--radius);padding:18px 20px}
+    .ask-step:first-child{border-color:var(--brand);box-shadow:0 14px 34px -16px var(--brand-glow)}
+    .ask-step-n{flex-shrink:0;width:30px;height:30px;border-radius:50%;background:var(--brand);color:#fff;
+      font:800 14px/30px 'JetBrains Mono',monospace;text-align:center}
+    .ask-step-h{font:700 1.05rem/1.3 'Space Grotesk',sans-serif;color:var(--text);margin-bottom:4px}
+    .ask-step-p{font-size:.92rem;line-height:1.5;color:var(--muted)}
+    .ask-step-p strong{color:var(--brand-text)}
+    .slide p.ask-extra{font-size:.9rem;max-width:640px}
+    @media (max-width:640px){.ask-steps{grid-template-columns:1fr}}
+
+    /* Why AMCO */
+    .why-layout{display:grid;grid-template-columns:5fr 6fr;gap:18px;width:100%;align-items:center;text-align:left}
+    .why-layout .ph{aspect-ratio:4/5}
+    @media (max-width:760px){.why-layout{grid-template-columns:1fr}.why-layout .ph{aspect-ratio:16/9}}
+
+    /* Contact */
+    .contact-box{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);
+      padding:22px;width:100%;max-width:420px;text-align:left}
+    .contact-box label{display:block;font:600 11px/1 'JetBrains Mono',monospace;letter-spacing:.05em;
+      text-transform:uppercase;color:var(--muted);margin:12px 0 6px}
+    .contact-box input,.contact-box textarea{width:100%;background:var(--bg);border:1px solid var(--border);
+      border-radius:8px;color:var(--text);padding:10px 12px;font:15px/1.4 'Inter',sans-serif}
+    .contact-box input:focus,.contact-box textarea:focus{outline:none;border-color:var(--brand)}
+    .contact-box textarea{min-height:70px;resize:vertical}
+    .contact-box button{margin-top:16px;width:100%;background:var(--brand);color:#fff;border:none;border-radius:8px;
+      padding:13px;font:700 .95rem 'Space Grotesk',sans-serif;cursor:pointer}
+    .contact-box button:hover{filter:brightness(1.08)}
+    .contact-direct{font-size:.95rem;color:var(--muted)}
+    .contact-direct a{color:var(--brand-text);text-decoration:none}
+    .thanks-msg{font-size:1.05rem;color:var(--text)}
+    .thanks-msg i{color:var(--brand-text);font-size:1.6rem;display:block;margin-bottom:10px}
+
+    /* Nav chrome */
+    .deck-nav{position:fixed;left:0;right:0;bottom:0;z-index:6;display:flex;flex-direction:column;
+      align-items:center;gap:12px;padding:16px 20px calc(16px + env(safe-area-inset-bottom));
+      background:linear-gradient(0deg,var(--bg) 60%,transparent)}
+    .nav-buttons{display:flex;align-items:center;justify-content:center;gap:16px}
+    .btn-circle{background:var(--surface);border:1px solid var(--border);color:var(--text);border-radius:999px;
+      width:46px;height:46px;font-size:1.1rem;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+    .btn-circle:disabled{opacity:.3;cursor:default}
+    .btn-circle:not(:disabled):hover{border-color:var(--brand);color:var(--brand-text)}
+    .btn-restart{background:none;border:none;color:var(--muted);padding:4px 10px;
+      font:600 .74rem 'Space Grotesk',sans-serif;cursor:pointer;display:flex;align-items:center;gap:6px}
+    .btn-restart:hover{color:var(--brand-text)}
+    .btn-next{background:linear-gradient(90deg,var(--accent),var(--brand));border:none;color:#fff;border-radius:999px;
+      padding:16px 32px;font:800 1.1rem 'Space Grotesk',sans-serif;letter-spacing:.03em;cursor:pointer;
+      display:flex;align-items:center;gap:10px;box-shadow:0 14px 30px -12px var(--brand-glow);flex-shrink:0}
+    .btn-next:not(:disabled):hover{filter:brightness(1.08)}
+    .btn-next:disabled{opacity:.35;cursor:default;box-shadow:none}
+    .dots{display:flex;gap:6px;flex-wrap:wrap;justify-content:center}
+    .dots i{width:6px;height:6px;border-radius:50%;background:var(--border);display:inline-block;cursor:pointer;transition:all .3s var(--ease)}
+    .dots i.on{background:var(--brand);width:16px;border-radius:3px}
+    .counter{position:fixed;top:18px;right:20px;z-index:6;display:flex;align-items:baseline;gap:6px;font-family:'JetBrains Mono',monospace}
+    .counter #ctr-cur{font-size:clamp(1.9rem,5.5vw,2.8rem);font-weight:800;color:var(--text);line-height:1}
+    .counter .ctr-sep,.counter #ctr-total{font-size:1.05rem;font-weight:600;color:var(--muted)}
+
+    @media (max-width:700px){
+      .slide{padding:72px 16px calc(185px + env(safe-area-inset-bottom))}
+      .btn-next{padding:16px 24px}
+      .mark .x,.mark img.amco{display:none}
+    }
+    @media (prefers-reduced-motion:reduce){
+      *,*::before,*::after{transition:none!important;animation:none!important}
+    }
+  </style>
+</head>
+<body>
+
+<div class="ambient" id="ambient"></div>
+<div class="grain"></div>
+<div class="progress"><i id="progress"></i></div>
+<div class="mark">Stick The <span>Landing</span><span class="x">&times;</span><img class="amco" src="amco-logo-white.png" alt="AMCO Gymnastics" /></div>
+<div class="counter"><span id="ctr-cur">1</span><span class="ctr-sep">/</span><span id="ctr-total">16</span></div>
+
+<div class="deck">
+
+  <!-- 1. Cover -->
+  <section class="slide active" data-slide="1">
+    <div class="slide-inner cover-inner">
+      <div class="eyebrow">A proposal for <b>AMCO Gymnastics</b></div>
+      <h1 class="cover-headline"><i>Stick The Landing</i> needs a <span class="nowrap hl-brand">community partner</span> <span class="nowrap">for 2027.</span></h1>
+      <div class="cover-logos">
+        <figure class="ph ph-bare" data-src="stl-logo.png"><i class="fas fa-star"></i><span class="ph-title">STL logo</span><span class="ph-desc"></span><span class="ph-file">stl-logo.png</span></figure>
+        <span class="cover-x">&times;</span>
+        <figure class="ph" data-src="amco-logo.png"><i class="fas fa-star"></i><span class="ph-title">AMCO logo</span><span class="ph-desc"></span><span class="ph-file">amco-logo.png</span></figure>
+      </div>
+      <div class="begin-hint"><i class="fas fa-arrow-right"></i> Press next to begin</div>
+    </div>
+  </section>
+
+  <!-- 2. What -->
+  <section class="slide" data-slide="2">
+    <div class="slide-inner">
+      <div class="hook">What is <i>Stick The Landing</i>?</div>
+      <h2>The #1 place for coaches, families and gymnasts to find their results</h2>
+      <p class="lead">A <strong>FREE</strong>, independent home for Victorian WAG and MAG competition results, searchable in seconds, with no login required.</p>
+      <div class="feature-grid">
+        <div class="feature"><i class="fas fa-ranking-star"></i><b>Season leaderboards</b><span>Every level and apparatus, ranked by season-best score and updated after each competition.</span></div>
+        <div class="feature"><i class="fas fa-id-card"></i><b>Athlete profiles</b><span>Every result a gymnast has recorded since 2024, with graphs to track their progress.</span></div>
+        <div class="feature"><i class="fas fa-magnifying-glass"></i><b>Find a gymnast</b><span>Search by name and jump straight to any gymnast's results.</span></div>
+        <div class="feature"><i class="fas fa-newspaper"></i><b>Competition reports</b><span>Write-ups covering the close finishes, standout performances and storylines.</span></div>
+        <div class="feature"><i class="fas fa-people-roof"></i><b>Club profiles</b><span>In-depth features on Victorian clubs, their history and their gymnasts.</span></div>
+        <div class="feature"><i class="fas fa-arrow-trend-up"></i><b>Promotion Watch</b><span>Following which teams and gymnasts have cleared the scores that could see them move up.</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 3. Who -->
+  <section class="slide" data-slide="3">
+    <div class="slide-inner">
+      <div class="hook">Who is <i>Stick The Landing</i>?</div>
+      <figure class="ph" data-src="family.jpg" style="aspect-ratio:600/343;max-width:360px">
+        <i class="fas fa-people-group"></i>
+        <span class="ph-title">Family photo</span>
+        <span class="ph-desc">You and your family, ideally somewhere gymnastics-y (a competition, the gym, or your mum's old club).</span>
+        <span class="ph-file">family.jpg &middot; 1200&times;900</span>
+      </figure>
+      <h2>Built by a gymnastics family, for the gymnastics community</h2>
+      <p class="lead">I'm David, a former MAG gymnast, and now a gymnastics dad. Gymnastics has never really left my family: my mother started her own gym club in my hometown, my sister was a Rhythmic Gymnastics Australian Champion, and my own daughter now trains close to twenty hours a week as a Division 1 WAG gymnast.</p>
+      <p>After many years away from the sport, <i>Stick The Landing</i> is my way of putting something back into a community that, because of my daughter's love of gymnastics, has once again become a major part of my family's life. Every gymnast in the database, whatever their level, deserves to feel like their results matter.</p>
+    </div>
+  </section>
+
+  <!-- 4. What I built -->
+  <section class="slide" data-slide="4">
+    <div class="slide-inner">
+      <div class="hook">Here's what I built.</div>
+      <h2>Every result, in one place</h2>
+      <div class="showcase-grid showcase-3">
+        <div class="showcase-item"><img src="scoreTrend.jpg" alt="Apparatus score trend graph" loading="lazy" /><span class="showcase-cap">Score trends, apparatus by apparatus</span></div>
+        <div class="showcase-item"><img src="ApparatusBarChart.jpg" alt="Apparatus scores bar chart" loading="lazy" /><span class="showcase-cap">Competition-by-competition breakdowns</span></div>
+        <div class="showcase-item comp-list">
+          <div class="comp-list-h"><b>39</b> competitions in 2026</div>
+          <div class="comp-ticker"><ul><li><span>Knox Senior WAG Invitational</span><b>WAG</b></li><li><span>MYC Senior Invitational</span><b>MAG</b></li><li><span>BTYC MAG Senior Extravaganza</span><b>MAG</b></li><li><span>BTYC MAG and WAG Senior Extravaganza</span><b>WAG</b></li><li><span>Knox MAG Senior Invitational</span><b>MAG</b></li><li><span>SGC MAG Level 5-Senior Invitational</span><b>MAG</b></li><li><span>State Trial 1</span><b>MAG</b></li><li><span>Senior Judges Invitational</span><b>WAG</b></li><li><span>WAG Trial 1 and Border Challenge Trial 1</span><b>WAG</b></li><li><span>State Trial 2</span><b>MAG</b></li><li><span>WAG Trial 2 and Border Challenge Trial 2</span><b>WAG</b></li><li><span>Waverley Invite</span><b>WAG</b></li><li><span>Senior Victorian Championships</span><b>WAG/MAG</b></li><li><span>Warrnambool Invite</span><b>WAG</b></li><li><span>Niddrie Invitational 3-4</span><b>WAG</b></li><li><span>BTYC WAG Junior Invite</span><b>WAG</b></li><li><span>Knox WAG Junior Invitational</span><b>WAG</b></li><li><span>Casey Cup</span><b>WAG</b></li><li><span>Jets July Invitational</span><b>WAG</b></li><li><span>Y Invitational</span><b>WAG</b></li><li><span>BTYC MAG Junior Invitational</span><b>MAG</b></li><li><span>Aerodynamix Invitational</span><b>WAG</b></li><li><span>Niddrie Invitational 5-7</span><b>WAG</b></li><li><span>Judge&#x27;s Invitational</span><b>WAG</b></li><li><span>Waverley Classic</span><b>WAG</b></li><li><span>Senior Gippsland Championships</span><b>WAG/MAG</b></li><li><span>Eclipse Invitational</span><b>WAG</b></li><li><span>Eureka Invitational</span><b>WAG</b></li><li><span>PIT Invite</span><b>MAG</b></li><li><span>CYC Junior Invitational</span><b>WAG</b></li><li><span>EKGA Invitational</span><b>WAG</b></li><li><span>MYC Junior MAG Invitational</span><b>MAG</b></li><li><span>WAG Regional Championships (7 regions)</span><b>WAG</b></li><li><span>MAG Junior Qualifier &amp; Team Championships</span><b>MAG</b></li><li><span>Mildura Gymnastics Centre WAG Competition</span><b>WAG</b></li><li><span>SGC Junior Invite</span><b>MAG</b></li><li><span>Jets State of Mind Invitational</span><b>WAG</b></li><li><span>Junior Victorian Championships</span><b>WAG/MAG</b></li><li><span>Southern Cross Classic</span><b>WAG</b></li></ul><ul aria-hidden="true"><li><span>Knox Senior WAG Invitational</span><b>WAG</b></li><li><span>MYC Senior Invitational</span><b>MAG</b></li><li><span>BTYC MAG Senior Extravaganza</span><b>MAG</b></li><li><span>BTYC MAG and WAG Senior Extravaganza</span><b>WAG</b></li><li><span>Knox MAG Senior Invitational</span><b>MAG</b></li><li><span>SGC MAG Level 5-Senior Invitational</span><b>MAG</b></li><li><span>State Trial 1</span><b>MAG</b></li><li><span>Senior Judges Invitational</span><b>WAG</b></li><li><span>WAG Trial 1 and Border Challenge Trial 1</span><b>WAG</b></li><li><span>State Trial 2</span><b>MAG</b></li><li><span>WAG Trial 2 and Border Challenge Trial 2</span><b>WAG</b></li><li><span>Waverley Invite</span><b>WAG</b></li><li><span>Senior Victorian Championships</span><b>WAG/MAG</b></li><li><span>Warrnambool Invite</span><b>WAG</b></li><li><span>Niddrie Invitational 3-4</span><b>WAG</b></li><li><span>BTYC WAG Junior Invite</span><b>WAG</b></li><li><span>Knox WAG Junior Invitational</span><b>WAG</b></li><li><span>Casey Cup</span><b>WAG</b></li><li><span>Jets July Invitational</span><b>WAG</b></li><li><span>Y Invitational</span><b>WAG</b></li><li><span>BTYC MAG Junior Invitational</span><b>MAG</b></li><li><span>Aerodynamix Invitational</span><b>WAG</b></li><li><span>Niddrie Invitational 5-7</span><b>WAG</b></li><li><span>Judge&#x27;s Invitational</span><b>WAG</b></li><li><span>Waverley Classic</span><b>WAG</b></li><li><span>Senior Gippsland Championships</span><b>WAG/MAG</b></li><li><span>Eclipse Invitational</span><b>WAG</b></li><li><span>Eureka Invitational</span><b>WAG</b></li><li><span>PIT Invite</span><b>MAG</b></li><li><span>CYC Junior Invitational</span><b>WAG</b></li><li><span>EKGA Invitational</span><b>WAG</b></li><li><span>MYC Junior MAG Invitational</span><b>MAG</b></li><li><span>WAG Regional Championships (7 regions)</span><b>WAG</b></li><li><span>MAG Junior Qualifier &amp; Team Championships</span><b>MAG</b></li><li><span>Mildura Gymnastics Centre WAG Competition</span><b>WAG</b></li><li><span>SGC Junior Invite</span><b>MAG</b></li><li><span>Jets State of Mind Invitational</span><b>WAG</b></li><li><span>Junior Victorian Championships</span><b>WAG/MAG</b></li><li><span>Southern Cross Classic</span><b>WAG</b></li></ul></div>
+          <span class="showcase-cap">Every 2026 competition on the site</span>
+        </div>
+      </div>
+      <p>Results are compiled and published after each competition, sourced from official Gymnastics Victoria result documents.</p>
+      <p>Behind the scenes, custom software reads the many different PDF formats Gymnastics Victoria publishes results in and pulls every score straight into the database, so nobody has to dig through dozens of separate documents to find the result they're after.</p>
+    </div>
+  </section>
+
+  <!-- 5. Quote -->
+  <section class="slide" data-slide="5">
+    <div class="slide-inner">
+      <div class="quote">"A <strong class="quote-free">FREE</strong>, unified, searchable database covering multiple seasons, thousands of athletes, and tens of thousands of scores, something that doesn't exist anywhere else in Australian club gymnastics."</div>
+      <div class="quote-attr">INDEPENDENT &middot; NO LOGIN REQUIRED &middot; NO PAYWALL</div>
+    </div>
+  </section>
+
+  <!-- 6. Traction -->
+  <section class="slide" data-slide="6">
+    <div class="slide-inner">
+      <div class="hook">And people are noticing.</div>
+      <div class="growth-chart">
+        <svg viewBox="0 0 640 300" role="img" aria-label="Total users of Stick The Landing, building up week by week from 57 in mid-June to 5,268 by 15 November 2026">
+          <defs>
+            <linearGradient id="gcFill" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#7c6dfa" stop-opacity=".45"/><stop offset="1" stop-color="#7c6dfa" stop-opacity="0"/></linearGradient>
+            <clipPath id="gcClip"><rect id="gcClipRect" x="0" y="0" width="640" height="300"/></clipPath>
+            <linearGradient id="gcLine" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#7c6dfa"/><stop offset="1" stop-color="#a3a6ff"/></linearGradient>
+          </defs>
+          <line class="gc-grid" x1="46" x2="616" y1="264.0" y2="264.0"/><text class="gc-y" x="38" y="268.0">0</text><line class="gc-grid" x1="46" x2="616" y1="184.0" y2="184.0"/><text class="gc-y" x="38" y="188.0">2k</text><line class="gc-grid" x1="46" x2="616" y1="104.0" y2="104.0"/><text class="gc-y" x="38" y="108.0">4k</text><line class="gc-grid" x1="46" x2="616" y1="24.0" y2="24.0"/><text class="gc-y" x="38" y="28.0">6k</text><text class="gc-x" x="46.0" y="288">Jun</text><text class="gc-x" x="148.4" y="288">Jul</text><text class="gc-x" x="254.2" y="288">Aug</text><text class="gc-x" x="360.0" y="288">Sep</text><text class="gc-x" x="462.4" y="288">Oct</text><text class="gc-x" x="568.2" y="288">Nov</text>
+          <path class="gc-area" clip-path="url(#gcClip)" d="M90.4,264.0 L114.3,261.7 L138.2,258.4 L162.0,256.2 L185.9,253.8 L209.8,248.5 L233.7,242.7 L257.6,229.3 L281.5,215.6 L305.4,203.9 L329.3,189.1 L353.2,175.8 L377.1,158.0 L401.0,142.3 L424.9,124.2 L448.8,116.1 L472.6,109.0 L496.5,101.9 L520.4,85.1 L544.3,70.2 L568.2,64.6 L592.1,58.9 L616.0,53.3 L616.0,264.0 L90.4,264.0 Z"/>
+          <path class="gc-line" d="M90.4,264.0 L114.3,261.7 L138.2,258.4 L162.0,256.2 L185.9,253.8 L209.8,248.5 L233.7,242.7 L257.6,229.3 L281.5,215.6 L305.4,203.9 L329.3,189.1 L353.2,175.8 L377.1,158.0 L401.0,142.3 L424.9,124.2 L448.8,116.1 L472.6,109.0 L496.5,101.9 L520.4,85.1 L544.3,70.2 L568.2,64.6 L592.1,58.9 L616.0,53.3" pathLength="1"/>
+          <circle class="gc-dot" cx="616.0" cy="53.3" r="6"/>
+          <g class="gc-end"><text class="gc-end-num" x="604.0" y="25.3" id="gcNum">5,268</text><text class="gc-end-k" x="604.0" y="41.3">USERS</text></g>
+        </svg>
+        <div class="gc-cap">Total users since tracking began in June 2026, week by week (Google Analytics)</div>
+      </div>
+      <div class="stat-row-mini">
+        <div class="mini-stat"><span class="mini-num" data-count="5268">5,268</span><span class="mini-label">Users since June</span></div>
+        <div class="mini-stat"><span class="mini-num" data-count="45000" data-fmt="k0">45k</span><span class="mini-label">Page views</span></div>
+        <div class="mini-stat"><span class="mini-num">7m 05s</span><span class="mini-label">Average engaged time per user</span></div>
+      </div>
+      <p class="lead">Returning visitors now consistently outnumber new ones, gymnastics families keep coming back throughout the season.</p>
+      <div class="minor-note">Also covering 2024-2026: <span id="stat-comps">128</span> competitions and <span id="stat-gymnasts">2,730</span> gymnasts across WAG and MAG. <i>Stick The Landing</i> launched in 2026; 2024-2025 results were backfilled for trend context, not years of site growth.</div>
+    </div>
+  </section>
+
+  <!-- 7. Audience -->
+  <section class="slide" data-slide="7">
+    <div class="slide-inner">
+      <div class="hook">So who's actually visiting?</div>
+      <h2>A known, local, engaged Victorian audience</h2>
+      <div class="audience-layout">
+        <div class="showcase-item audience-chart">
+          <div class="chart-card" role="img" aria-label="Audience age and gender breakdown: 35-44 42.9%, 45-54 31.4%, 25-34 9.5%, 55-64 8.6%, 18-24 3.8%, 65+ 3.8%, majority women in every bracket">
+            <div class="chart-title">Age &amp; gender</div>
+            <div class="chart-sub">Lifetime</div>
+            <div class="chart-legend"><span><i style="background:var(--c-women)"></i>Women</span><span><i style="background:var(--c-men)"></i>Men</span></div>
+            <div class="ag-rows">
+              <div class="ag-row"><span class="ag-label">35-44</span><div class="ag-track"><div class="ag-fill" data-w="100%"><span class="ag-seg women" style="width:86.6%"></span><span class="ag-seg men" style="width:13.4%"></span></div></div><span class="ag-pct">42.9%</span></div>
+              <div class="ag-row"><span class="ag-label">45-54</span><div class="ag-track"><div class="ag-fill" data-w="73.2%"><span class="ag-seg women" style="width:69.9%"></span><span class="ag-seg men" style="width:30.1%"></span></div></div><span class="ag-pct">31.4%</span></div>
+              <div class="ag-row"><span class="ag-label">25-34</span><div class="ag-track"><div class="ag-fill" data-w="22.1%"><span class="ag-seg women" style="width:59.4%"></span><span class="ag-seg men" style="width:40.6%"></span></div></div><span class="ag-pct">9.5%</span></div>
+              <div class="ag-row"><span class="ag-label">55-64</span><div class="ag-track"><div class="ag-fill" data-w="20%"><span class="ag-seg women" style="width:43.1%"></span><span class="ag-seg men" style="width:56.9%"></span></div></div><span class="ag-pct">8.6%</span></div>
+              <div class="ag-row"><span class="ag-label">18-24</span><div class="ag-track"><div class="ag-fill" data-w="8.9%"><span class="ag-seg women" style="width:48%"></span><span class="ag-seg men" style="width:52%"></span></div></div><span class="ag-pct">3.8%</span></div>
+              <div class="ag-row"><span class="ag-label">65+</span><div class="ag-track"><div class="ag-fill" data-w="8.9%"><span class="ag-seg women" style="width:48%"></span><span class="ag-seg men" style="width:52%"></span></div></div><span class="ag-pct">3.8%</span></div>
+            </div>
+          </div>
+          <span class="showcase-cap">Mostly parents, aged 35-54</span>
+        </div>
+        <div class="audience-stats">
+          <div class="big-stat"><span class="big-stat-num" data-count="95" data-fmt="pct">95%</span><span class="big-stat-label">Australian traffic</span></div>
+          <div class="big-stat"><span class="big-stat-num" data-count="90" data-fmt="pct">90%</span><span class="big-stat-label">Victorian, of that Australian traffic</span></div>
+        </div>
+      </div>
+      <div class="point-list">
+        <div class="point"><span class="num">1</span><span class="txt">Mostly <strong>parents and gymnasts</strong>, based on the feedback I hear, checking results, tracking progress, and following their season.</span></div>
+        <div class="point"><span class="num">2</span><span class="txt">Also plenty of <strong>coaches</strong>. Many tell me they check results here instead of the official Gymnastics Victoria site, because it's so much easier to find and search.</span></div>
+        <div class="point brand"><span class="num">3</span><span class="txt">And the coaches and club staff using the site are often <strong>the people choosing a club's equipment</strong>.</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 8. Testimonials -->
+  <section class="slide" data-slide="8">
+    <div class="slide-inner">
+      <div class="hook">And here's what they're saying.</div>
+      <p>A few quotes from some of the emails I've received.</p>
+      <div class="tm-grid">
+        <figure class="tm feature-quote"><blockquote>The girls love seeing their names in the comp reports, it makes them feel like pro athletes. Angie was upset after the last comp, but when she read that she got a PB on bars, and she got a mention in the article even though she didn't place, she was so happy!</blockquote><figcaption>Sharna <span>&middot; Parent</span></figcaption></figure>
+        <figure class="tm"><blockquote>My husband found your site last week, it's so much better than GV's website!</blockquote><figcaption>Parent <span>&middot; Melbourne Acrobatic Gymnastics Academy</span></figcaption></figure>
+        <figure class="tm"><blockquote>Thank you for all you do. We love looking at updates on <i>Stick The Landing</i>.</blockquote><figcaption>Lyn <span>&middot; Essendon Keilor Gym Academy</span></figcaption></figure>
+        <figure class="tm"><blockquote>I think this thing you guys are doing is really cool.</blockquote><figcaption>Krystal <span>&middot; Gymnast</span></figcaption></figure>
+        <figure class="tm"><blockquote>Thank you for your great work.</blockquote><figcaption>Narrissa <span>&middot; Niddrie Gymnastic Club</span></figcaption></figure>
+      </div>
+    </div>
+  </section>
+
+  <!-- 9. The problem -->
+  <section class="slide" data-slide="9">
+    <div class="slide-inner">
+      <div class="hook">But <i>Stick The Landing</i> <span class="nowrap">has a problem&hellip;</span></div>
+      <h2>The 2026 season is over, and in 2027 I'll be handling more comps, more athletes and more results.</h2>
+      <p>Right now, <i>Stick The Landing</i> runs on free static hosting. It's worked well to get here, but it wasn't built to keep scaling with a growing database. Moving to a secure, paid hosting plan is what keeps the site fast, reliable, and free for every gymnastics family in Victoria.</p>
+    </div>
+  </section>
+
+  <!-- 10. Beyond Victoria -->
+  <section class="slide" data-slide="10">
+    <div class="slide-inner">
+      <div class="hook">And this is just the beginning.</div>
+      <h2>Beyond Victoria</h2>
+<div class="map-wrap">
+        <svg class="aus-map" viewBox="0 0 1200 914" role="img" aria-label="Map of Australia: Victoria highlighted as covered now, New South Wales outlined as coming next">
+          <defs>
+            <radialGradient id="vicFill" cx="45%" cy="40%" r="75%">
+              <stop offset="0" stop-color="#b3a8ff"/><stop offset=".55" stop-color="#7c6dfa"/><stop offset="1" stop-color="#4b3fc4"/>
+            </radialGradient>
+            <filter id="vicGlow" x="-60%" y="-60%" width="220%" height="220%">
+              <feGaussianBlur stdDeviation="14" result="b"/>
+              <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+            </filter>
+            <marker id="arrowHead" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+              <path d="M0,0 L10,5 L0,10 z" fill="#a3a6ff"/>
+            </marker>
+          </defs>
+          <g class="map-others"><path class="map-state" d="M703.3,123.6L701.5,119.6L699.9,109.4L701.7,98.8L698.5,92.3L699.8,84.3L704.0,76.0L701.3,68.5L705.1,64.6L708.9,57.4L707.1,57.7L704.4,55.4L702.8,57.0L701.5,56.5L707.8,40.7L709.3,39.9L709.4,45.7L709.8,43.1L711.8,42.2L710.1,39.7L714.4,23.8L714.7,12.3L719.2,11.4L722.2,5.7L724.5,5.1L726.4,6.8L723.3,13.1L725.9,10.1L730.7,15.8L730.9,21.4L732.7,24.2L731.7,26.8L732.4,36.9L735.3,39.3L738.3,38.2L740.0,40.4L741.9,40.3L737.9,45.5L737.9,50.4L742.0,51.6L743.4,56.3L746.7,57.9L744.5,65.8L749.2,64.3L748.1,67.2L748.6,75.7L750.6,80.2L748.9,89.3L752.6,96.4L755.0,107.0L757.6,109.3L761.1,109.3L764.5,106.5L765.2,103.2L768.8,104.5L773.0,100.6L775.0,103.2L774.7,105.9L776.3,105.9L775.5,109.1L777.3,111.6L779.3,111.0L779.5,112.3L782.6,112.9L783.8,116.5L790.5,118.9L791.7,122.3L793.4,122.1L790.6,127.3L791.3,130.4L793.1,129.7L793.5,131.1L791.8,132.2L790.4,136.2L792.7,139.1L793.6,148.5L796.5,153.0L795.6,155.7L796.8,158.5L795.1,160.2L794.9,163.5L802.6,173.0L803.9,176.7L805.6,174.8L808.3,175.5L806.6,179.9L811.1,189.2L811.2,192.2L810.1,192.4L810.0,193.5L811.0,192.4L812.9,196.2L809.7,212.5L813.9,218.8L817.6,220.3L816.4,230.3L820.4,235.3L825.9,238.5L828.1,238.3L830.9,241.6L832.7,241.7L834.1,238.2L836.8,244.8L844.5,244.8L844.0,242.1L850.2,256.0L852.3,256.3L852.1,252.6L853.9,252.7L856.2,258.2L860.1,257.4L860.9,259.1L864.6,260.1L863.8,261.9L866.8,265.2L869.6,264.5L869.2,262.3L872.0,262.5L872.4,266.1L874.8,265.6L874.6,268.4L877.0,267.2L880.9,275.3L879.1,275.2L878.3,272.4L876.7,272.2L876.9,273.9L876.2,273.9L875.1,272.8L874.8,272.8L875.7,274.3L874.4,276.8L878.7,282.4L877.4,283.1L878.8,284.7L883.8,285.5L883.0,287.9L884.8,287.5L888.2,289.9L888.1,292.2L887.9,291.5L887.5,291.9L886.6,291.8L886.4,292.1L887.9,292.1L887.0,295.9L889.9,295.6L890.4,298.9L889.4,299.1L890.7,299.4L890.9,299.8L889.7,302.0L892.3,301.7L891.8,302.8L893.5,304.4L894.5,302.7L893.4,305.7L894.4,308.5L893.0,308.5L892.9,309.3L894.0,313.5L897.2,323.3L898.7,325.3L901.4,325.8L901.0,327.5L902.5,326.1L908.2,333.7L905.0,325.0L906.4,324.6L905.0,324.4L906.0,320.7L908.1,319.0L911.4,325.5L919.3,330.9L919.1,329.9L920.5,332.5L921.7,330.9L920.1,327.9L921.5,328.3L920.0,326.6L920.8,324.3L922.9,325.0L922.4,327.7L923.4,328.0L923.4,325.1L924.0,327.4L925.5,327.8L924.8,329.8L922.8,328.6L923.7,331.3L924.8,331.0L924.4,333.0L925.0,333.2L925.1,332.7L925.4,333.0L925.6,332.8L926.3,330.1L926.1,333.1L927.5,334.3L925.4,346.5L927.3,349.5L925.9,351.3L928.4,356.2L926.4,357.0L928.6,358.2L927.5,358.2L928.0,360.0L929.9,357.9L929.7,360.1L930.9,358.3L932.2,358.7L935.8,365.4L939.3,366.5L939.0,367.7L942.0,370.1L942.2,372.6L942.4,371.2L942.9,372.4L943.6,372.3L942.3,370.2L944.8,371.3L943.8,371.7L944.9,373.6L945.6,371.4L948.2,373.3L946.5,369.9L949.4,371.1L949.0,372.8L950.2,370.9L950.4,374.0L953.0,375.2L952.3,376.4L953.0,375.8L953.2,374.6L957.1,384.9L967.4,392.8L969.0,400.3L971.5,402.1L969.6,402.6L969.2,403.1L969.4,403.5L971.0,402.9L973.7,405.3L975.9,404.6L978.3,405.9L978.6,409.7L976.1,411.4L979.4,409.8L977.1,413.1L977.5,416.7L979.9,419.1L978.9,420.3L980.9,420.7L980.4,424.5L981.8,423.4L981.6,420.1L983.4,423.5L985.1,423.5L981.9,433.9L983.4,435.7L982.9,443.0L984.1,447.3L981.0,452.4L984.0,454.8L981.0,456.2L981.4,458.2L983.3,458.2L983.1,460.0L981.8,459.1L982.1,461.4L984.4,463.1L983.9,464.2L981.7,464.9L981.7,465.4L983.1,464.9L984.5,463.8L984.3,463.5L984.8,462.7L985.1,462.9L985.1,465.8L986.3,465.5L988.2,468.7L987.7,472.3L989.8,472.2L989.4,470.6L990.6,470.4L990.9,474.1L989.4,474.7L990.7,479.7L990.7,478.6L991.1,478.4L991.5,482.5L993.5,485.1L992.1,484.5L989.2,487.1L984.8,487.0L983.1,490.0L977.5,488.7L974.4,490.2L971.0,487.6L970.2,489.5L969.1,487.4L967.3,487.3L965.4,490.3L954.9,494.5L957.8,499.6L956.2,505.1L952.3,505.1L950.6,506.6L948.8,504.1L944.9,506.4L941.2,512.5L938.4,510.4L938.3,506.0L932.6,503.4L931.8,500.5L925.5,497.6L918.0,498.5L914.2,495.0L899.8,497.6L894.9,496.0L892.1,499.3L884.6,503.3L881.6,507.6L687.0,507.6L687.0,425.2L613.7,425.2L613.7,165.9L621.6,171.5L629.1,172.0L639.1,176.0L642.0,179.2L641.9,182.9L644.0,187.1L648.3,188.6L648.8,190.0L649.8,189.4L654.0,193.1L658.2,194.0L662.7,198.0L672.0,197.0L677.1,194.8L684.3,188.9L686.0,178.3L694.3,164.5L694.0,162.1L697.6,153.0L696.2,148.6L697.7,141.5L703.3,123.6ZM993.8,464.7L991.5,472.8L990.5,473.1L991.2,463.6L993.8,464.7ZM979.2,413.6L981.7,407.4L981.7,404.6L980.3,403.9L985.9,397.8L986.0,395.5L983.3,392.8L986.9,389.6L987.0,395.0L989.3,398.1L983.1,413.3L982.3,419.6L980.8,419.0L979.2,413.6ZM939.2,363.8L936.4,364.4L932.7,360.1L931.0,356.4L932.0,355.4L936.5,357.1L936.0,357.9L937.3,356.3L937.1,359.7L939.2,363.8ZM815.1,213.5L814.7,211.1L816.8,212.4L816.0,214.5L818.1,217.3L816.7,219.4L814.8,218.9L811.0,212.6L815.1,213.5ZM655.6,165.5L652.7,166.1L652.0,163.9L651.5,163.6L649.8,165.4L650.5,166.7L650.0,166.2L649.2,166.6L649.2,169.2L647.3,168.5L645.8,171.0L643.8,171.0L641.8,168.3L645.6,163.6L651.5,161.6L654.7,163.3L655.6,165.5Z"/><path class="map-state" d="M625.9,668.0L627.5,667.5L626.7,665.1L620.2,657.9L619.1,653.4L615.6,648.5L610.9,658.8L610.4,666.2L607.0,673.8L607.8,675.4L604.8,676.9L599.6,675.0L593.5,678.8L589.3,678.4L586.4,680.5L584.9,679.0L587.8,675.8L587.5,673.1L589.6,669.4L596.0,669.4L598.4,671.0L600.2,669.8L601.7,661.8L601.1,656.9L599.4,657.5L601.5,653.4L600.2,648.6L602.0,648.4L603.1,646.1L602.1,645.0L604.7,642.7L603.9,641.5L613.1,632.8L609.1,624.7L613.7,621.0L614.0,622.3L614.3,622.4L615.0,620.6L612.5,617.6L611.3,611.3L612.3,610.8L609.7,609.1L610.5,608.2L608.9,606.7L609.7,605.7L607.6,601.4L607.6,609.4L609.0,610.5L608.8,614.5L607.6,615.3L608.5,617.4L604.9,616.2L600.3,621.0L598.1,629.5L594.5,635.6L579.3,642.1L573.7,646.8L570.5,653.0L567.5,654.7L567.0,659.8L566.2,658.0L563.1,659.4L563.3,662.7L562.1,661.8L561.2,663.1L562.1,665.5L559.6,667.1L564.3,666.4L565.0,665.1L563.8,668.1L564.9,671.8L563.7,672.5L559.7,668.5L555.5,670.8L551.9,665.3L548.3,663.7L548.7,662.1L546.5,660.0L543.0,661.0L545.4,656.6L545.8,658.5L549.0,659.2L547.6,660.0L550.2,662.2L549.3,662.5L553.0,661.7L550.9,661.4L551.2,659.6L550.2,658.8L550.7,661.4L549.9,661.2L548.8,652.2L546.2,649.0L546.5,644.3L541.3,638.1L536.2,634.6L536.6,629.4L535.5,626.4L532.0,623.8L533.5,623.7L533.1,622.2L529.5,621.8L531.6,622.4L531.3,624.1L526.9,621.4L524.9,622.2L524.7,620.9L522.6,618.1L522.7,620.4L524.7,621.5L523.9,622.9L521.5,618.6L520.0,618.9L519.3,617.9L520.8,616.4L517.4,614.9L519.3,613.0L517.4,609.8L517.9,609.4L520.9,609.9L519.6,609.8L521.3,611.6L523.0,609.0L522.4,605.7L517.3,602.1L518.0,602.9L512.2,604.8L512.6,600.9L513.9,601.7L514.7,600.6L511.5,596.4L510.3,597.2L509.9,595.6L508.0,595.5L507.7,592.8L505.9,592.4L505.0,594.6L503.0,592.7L501.1,593.9L501.5,594.9L502.8,594.7L503.5,595.3L503.4,595.6L495.5,594.6L494.5,595.7L493.6,593.5L485.2,588.6L480.0,588.2L477.9,589.2L478.6,590.8L471.9,590.7L461.1,582.3L446.2,575.3L437.8,579.2L421.8,578.4L393.7,581.4L393.7,425.3L687.0,425.2L686.2,756.2L678.8,756.3L672.3,752.4L665.5,741.7L662.4,740.5L658.7,736.0L656.2,732.2L657.5,730.3L654.5,726.0L658.8,722.8L659.0,717.5L654.2,705.8L647.4,696.8L639.5,690.1L632.3,686.6L629.1,687.2L626.5,689.9L618.4,690.5L616.0,689.5L617.7,686.6L624.5,681.9L626.3,673.2L625.3,668.4L625.8,665.8L625.9,668.0ZM617.0,695.4L614.7,697.1L607.4,695.7L604.2,697.4L604.0,700.0L600.5,701.8L598.3,699.7L594.4,699.0L592.4,700.7L585.7,700.2L582.0,701.5L577.8,696.4L579.2,692.8L596.9,688.2L604.4,687.7L603.2,689.7L605.0,690.2L603.4,692.2L608.3,692.2L608.9,693.1L607.5,694.3L607.7,695.4L609.2,694.9L608.2,693.8L610.1,694.1L612.2,692.0L614.8,692.7L617.0,695.4Z"/><path class="map-state" d="M12.1,436.1L11.1,433.6L10.7,433.6L11.9,431.2L11.3,425.8L14.8,435.3L14.3,438.6L15.6,433.0L16.1,441.1L17.1,442.2L17.9,438.0L18.7,443.8L19.2,441.8L22.2,442.1L24.0,439.3L24.0,434.5L19.3,431.3L16.6,428.0L16.1,423.9L13.7,420.1L14.1,419.4L14.0,417.4L13.9,419.4L12.6,417.8L14.9,411.7L15.3,414.6L21.1,422.0L19.6,430.8L22.3,430.2L24.1,427.0L23.9,423.8L26.2,434.7L28.8,438.1L32.7,433.9L31.5,430.3L32.4,428.6L33.1,429.3L31.7,424.9L32.2,424.5L32.4,425.0L32.9,425.1L33.4,424.8L33.4,422.3L27.0,414.9L22.4,402.7L18.7,398.5L19.4,395.9L18.2,394.5L19.7,393.8L17.5,394.0L17.7,390.9L12.4,383.7L12.0,376.6L13.3,375.4L12.8,371.6L15.5,364.3L21.5,356.1L21.0,346.3L22.6,341.8L20.9,336.3L18.8,335.2L18.4,331.5L27.5,311.5L30.9,309.7L31.6,310.5L28.9,319.8L29.7,324.7L31.3,323.9L29.9,327.0L30.4,330.3L33.8,327.5L35.2,329.7L36.8,328.4L36.8,325.2L37.9,325.5L36.9,324.7L37.5,323.7L38.2,324.6L38.0,321.3L39.1,321.6L38.0,319.9L39.3,320.6L39.5,317.4L43.1,313.1L42.7,311.3L43.6,311.9L49.2,307.0L54.8,306.2L62.5,302.1L63.4,303.1L63.0,302.0L63.8,302.5L63.8,300.7L65.2,300.7L67.3,296.8L69.8,295.1L70.4,296.0L70.7,294.9L71.7,295.0L71.7,293.8L73.8,290.3L79.4,288.5L81.3,284.9L80.8,283.6L82.8,284.9L85.6,283.2L87.0,283.8L88.9,282.2L88.7,281.3L90.6,281.4L90.0,279.7L91.4,279.2L90.5,280.7L91.2,280.2L91.2,280.8L91.4,280.6L92.0,281.0L92.6,280.1L91.5,280.0L94.5,278.1L95.6,275.2L97.0,275.1L95.0,278.9L96.0,280.1L98.3,281.0L100.0,278.7L103.4,278.6L104.7,276.9L105.1,278.0L104.1,278.7L104.7,278.4L105.1,279.0L104.4,279.9L108.7,280.9L108.8,282.1L109.3,280.8L109.6,282.2L109.9,280.7L111.4,281.5L115.7,278.9L116.3,280.3L116.9,279.0L117.5,279.7L120.0,279.2L119.2,278.9L121.8,275.8L124.1,275.8L123.2,273.9L129.1,269.9L129.5,271.8L133.2,269.7L133.6,270.9L138.4,268.8L138.8,270.5L140.1,269.9L138.7,269.4L139.3,268.6L141.0,270.1L145.4,268.5L145.3,267.0L146.1,267.3L146.0,267.6L146.3,267.9L146.6,265.3L151.6,259.6L153.1,261.0L154.2,261.3L153.3,259.5L160.7,260.8L163.1,262.9L166.3,260.6L166.9,261.4L167.8,259.5L178.4,258.3L189.0,254.4L200.8,248.0L210.5,235.8L214.0,228.7L213.2,225.2L217.4,223.8L215.9,221.6L218.0,218.2L221.2,217.9L231.5,209.0L231.7,205.5L226.8,205.1L227.7,202.3L226.0,193.7L226.7,185.6L227.7,185.0L228.0,183.5L228.6,182.7L230.3,182.7L228.7,181.7L231.5,178.3L234.0,176.6L233.0,177.9L234.3,177.9L234.2,175.5L234.9,177.1L235.4,176.9L236.0,177.3L237.5,177.4L235.5,173.9L236.7,171.8L238.1,172.9L241.6,171.4L243.2,172.7L240.6,169.7L241.4,167.1L242.3,165.9L244.1,165.5L245.1,161.6L247.9,160.8L247.3,162.1L248.8,163.0L246.5,163.7L247.1,165.4L245.8,166.8L246.8,168.5L247.9,168.0L248.2,169.9L250.3,169.8L249.5,172.4L250.9,173.4L250.6,176.3L253.4,178.7L261.1,194.4L260.7,189.5L262.7,183.4L261.2,179.3L262.8,178.4L268.0,184.3L269.3,184.2L266.4,178.5L270.4,174.3L270.2,173.4L266.4,175.9L264.3,171.6L259.2,169.0L262.0,166.1L259.8,165.9L259.5,167.3L259.5,166.5L258.4,165.1L257.4,165.0L257.4,164.6L259.1,165.0L258.5,163.8L262.7,165.5L261.2,164.6L263.2,164.4L259.3,162.4L261.2,162.7L259.4,161.7L259.4,161.4L263.2,162.9L264.0,162.3L262.3,160.7L264.5,161.1L260.4,158.7L262.0,158.1L260.6,155.8L263.9,155.1L264.1,156.1L264.1,154.5L265.8,155.6L266.9,157.0L265.1,158.1L268.1,159.9L268.4,161.3L267.4,160.6L268.2,163.2L269.4,160.6L268.6,159.3L271.1,161.1L269.8,159.1L271.4,158.9L269.2,156.7L274.4,158.6L276.8,162.4L279.3,162.3L279.2,163.8L280.9,163.1L281.4,165.8L282.8,164.6L280.9,162.3L279.6,162.4L280.9,160.4L282.4,162.2L289.6,161.6L291.9,162.8L293.8,162.5L294.6,161.7L291.3,162.4L288.3,160.4L281.0,160.2L280.7,156.9L282.3,152.7L283.8,156.6L285.1,154.2L286.0,154.4L287.2,153.6L285.8,153.9L285.8,150.2L287.1,150.6L286.3,147.9L289.5,146.0L288.6,144.1L287.9,145.0L288.6,143.8L286.9,144.9L283.6,150.9L282.7,145.5L281.4,147.2L280.8,143.2L281.1,143.5L281.8,143.6L282.1,143.0L280.4,141.9L281.5,141.0L282.2,141.9L282.4,140.0L282.5,140.4L283.6,141.0L282.5,139.7L281.3,140.4L281.6,138.6L283.9,137.9L282.3,137.4L284.1,136.3L286.8,137.9L287.2,135.1L287.9,137.2L287.9,134.5L289.6,133.4L287.6,133.2L288.6,130.4L290.2,131.8L289.4,132.9L289.8,133.2L290.5,131.6L292.1,131.7L292.1,133.2L295.3,134.7L294.7,136.9L296.3,136.4L295.9,137.7L296.3,138.4L297.0,136.5L298.0,136.2L301.4,139.2L306.1,142.6L297.6,135.6L298.1,133.2L299.9,132.6L298.0,132.8L298.8,130.5L297.6,130.5L297.8,132.1L296.6,131.0L293.3,132.8L294.1,129.8L296.0,130.1L297.2,128.0L295.7,128.9L295.1,128.0L292.8,130.7L293.3,128.2L291.8,127.8L296.6,126.6L296.1,123.0L297.7,122.8L297.6,125.3L298.9,124.7L299.8,127.6L302.7,126.2L304.0,128.0L307.6,127.7L304.6,126.5L307.6,123.4L305.3,124.4L302.1,121.9L301.1,122.7L304.0,120.2L301.6,119.8L301.8,118.9L301.0,119.8L299.3,116.6L303.4,113.9L300.8,113.9L304.7,109.9L304.5,112.1L305.9,111.0L306.4,113.6L308.6,109.8L308.9,111.5L310.5,111.5L310.4,102.6L313.7,103.8L311.8,106.6L312.7,109.7L311.7,113.8L313.2,109.4L315.6,108.2L316.8,109.1L316.2,112.1L318.7,113.7L318.4,110.8L321.5,110.6L319.7,106.8L322.5,105.7L321.6,103.0L323.6,102.4L324.4,100.1L322.8,98.1L320.1,97.9L319.7,97.1L319.9,95.8L320.5,97.8L321.2,95.5L322.8,97.2L322.9,95.4L320.6,94.0L324.2,93.7L323.0,96.8L324.9,95.2L325.6,95.2L323.8,96.5L325.6,97.2L324.2,97.6L324.0,98.2L325.0,97.9L324.5,98.3L324.3,99.2L325.5,98.1L324.8,100.6L326.2,100.9L325.6,102.5L326.5,102.6L329.1,101.3L327.6,99.9L328.5,97.4L333.4,94.2L331.3,98.3L333.1,98.3L332.5,99.6L334.2,99.9L335.0,102.5L336.1,98.2L337.3,99.7L338.9,97.4L337.6,95.3L342.4,95.6L340.0,94.1L338.5,90.3L339.0,89.9L340.9,91.0L341.1,89.4L343.8,89.0L344.9,91.2L346.7,91.7L346.2,93.5L347.3,92.9L348.2,95.6L349.4,93.4L349.8,95.3L350.8,93.3L352.5,95.0L353.2,93.5L355.3,94.5L355.8,97.7L361.1,101.3L368.0,112.1L369.0,111.3L374.6,115.8L373.9,119.1L372.1,119.7L371.5,131.2L370.2,131.5L371.4,134.2L369.2,137.7L372.0,135.2L372.3,128.5L375.5,131.9L376.3,136.1L377.2,137.3L377.5,137.2L373.9,126.0L375.7,123.0L377.3,124.5L376.9,121.4L378.0,125.3L377.9,123.2L379.2,124.4L378.0,120.3L380.2,123.5L379.5,120.2L381.9,123.9L378.8,118.1L382.7,117.1L393.7,120.2L393.7,581.4L376.9,589.4L352.7,597.0L336.7,598.4L325.3,596.3L319.1,597.9L308.9,605.0L296.5,610.0L291.3,613.9L277.2,617.9L273.9,622.3L270.8,632.7L265.9,636.6L265.6,639.2L260.0,643.2L256.0,642.0L250.9,645.3L250.2,642.2L247.5,640.9L246.4,642.2L237.6,641.9L236.5,643.8L231.4,642.5L229.3,644.9L225.3,645.3L222.5,640.2L217.4,642.4L206.9,639.8L202.4,641.5L188.1,641.7L184.3,644.1L174.6,642.8L165.0,647.3L160.3,652.8L163.2,655.5L159.3,655.1L158.5,658.2L156.2,657.3L155.4,659.5L150.8,657.4L147.0,657.6L147.0,658.7L143.2,659.8L143.8,661.6L142.4,662.9L135.5,665.7L134.6,670.0L129.0,670.7L129.5,672.9L127.4,671.9L123.8,672.7L123.4,670.8L122.7,673.3L121.0,673.5L122.5,674.6L122.7,673.4L125.2,675.3L122.2,675.7L117.0,673.5L115.2,676.0L108.4,672.9L111.6,672.9L111.4,671.4L109.3,671.5L108.4,672.1L108.2,673.5L105.0,672.8L103.9,674.0L94.6,672.7L91.2,674.0L87.6,672.7L82.2,669.0L75.8,668.0L74.5,664.6L65.5,656.4L59.8,653.5L55.5,653.7L55.7,652.1L54.6,655.2L51.9,651.8L50.8,641.1L51.4,632.0L56.4,635.3L60.3,635.0L67.6,626.3L68.2,620.4L66.2,608.3L66.7,606.4L68.7,604.3L67.0,606.9L68.8,611.6L67.6,606.9L69.6,607.7L70.4,606.3L68.9,605.5L69.5,599.1L68.1,597.3L69.4,597.4L70.3,595.3L69.2,591.5L72.0,590.0L72.4,591.2L72.0,589.0L73.0,589.1L73.0,588.3L73.3,588.7L73.7,588.6L73.6,588.2L74.2,588.1L74.4,587.8L74.6,587.9L74.9,587.5L74.8,587.1L75.2,587.1L74.8,587.1L74.6,587.8L74.4,587.8L73.6,588.2L73.7,588.6L73.0,588.3L72.9,589.1L71.9,589.0L71.0,590.1L70.3,589.7L70.4,590.5L69.1,591.5L69.7,585.8L68.1,580.5L56.0,557.7L52.8,549.1L50.2,536.4L51.3,521.2L48.2,510.9L41.0,501.7L41.9,498.5L39.9,493.8L31.2,483.3L29.5,476.1L31.3,471.4L26.0,459.1L16.7,443.8L9.7,436.3L6.3,429.5L9.0,432.0L9.8,425.8L10.4,434.6L12.1,436.1ZM63.0,280.8L61.6,284.4L59.2,285.2L59.2,282.9L61.9,279.0L63.0,280.8ZM8.2,428.2L7.7,429.8L1.6,419.4L0.5,414.0L1.7,411.1L3.0,411.6L5.1,421.7L6.3,422.3L5.8,424.7L6.6,423.8L8.2,428.2Z"/><path class="map-state" d="M870.0,821.4L866.8,823.0L865.8,821.2L860.3,822.1L857.8,820.6L866.3,817.5L870.0,821.4ZM778.8,838.6L778.6,838.5L777.4,838.3L777.1,838.0L776.6,838.4L775.2,837.2L775.3,835.2L777.8,833.1L777.0,829.2L778.1,827.1L779.1,829.9L779.6,828.9L784.3,829.9L787.8,832.5L788.9,832.0L787.5,831.3L791.2,831.6L791.2,829.0L792.4,830.5L791.9,830.5L791.4,831.8L792.7,832.8L795.5,834.0L797.3,832.9L798.5,834.7L802.7,835.4L803.0,836.5L801.9,836.2L805.3,838.5L815.4,841.3L815.4,842.3L815.5,841.1L818.0,841.3L817.8,842.9L818.8,843.5L818.3,841.5L822.3,840.2L823.1,843.8L823.6,842.6L823.8,843.8L824.1,844.1L824.2,841.3L823.1,841.0L826.6,838.7L828.1,839.1L829.3,840.7L828.0,841.0L828.1,841.5L831.9,841.6L831.2,842.5L832.4,844.1L833.1,843.8L833.0,845.4L834.6,846.7L835.6,846.3L835.4,846.7L835.5,847.5L836.7,849.1L837.2,848.7L837.3,848.4L837.6,848.4L835.5,846.0L833.2,845.4L834.1,844.5L831.6,842.8L832.9,842.2L831.3,840.7L829.5,840.7L828.5,838.4L834.3,836.4L837.6,837.8L840.6,835.3L842.2,835.3L842.4,836.5L843.1,836.4L843.6,837.3L844.4,837.3L843.4,837.0L845.7,836.4L848.3,832.8L850.1,832.0L852.1,833.5L852.2,833.2L853.8,833.8L855.8,833.6L856.7,829.8L859.0,830.1L862.5,832.3L861.0,831.8L861.3,832.4L863.6,832.7L866.7,836.7L864.3,838.3L865.5,838.7L864.4,842.2L866.5,844.1L864.0,845.8L867.0,844.6L864.3,850.3L865.9,852.7L864.7,859.1L866.1,862.1L865.1,865.5L866.7,870.5L865.4,872.1L864.3,871.0L865.5,867.8L863.6,866.3L862.0,866.4L864.1,864.1L862.2,864.3L862.2,865.8L860.5,866.6L863.9,867.1L861.2,866.9L859.3,867.6L860.2,869.0L856.5,873.8L858.6,873.0L858.4,878.4L856.9,879.6L856.3,878.0L855.1,879.6L856.9,881.0L856.9,884.4L853.1,889.2L848.6,888.2L848.9,887.6L848.3,886.7L848.5,886.3L848.3,885.8L848.1,885.7L844.4,885.6L848.7,887.6L846.1,888.1L847.3,891.4L846.5,892.4L844.0,893.2L843.3,891.2L845.2,892.6L845.5,889.3L843.7,890.1L840.2,884.4L840.0,885.2L838.6,884.3L836.5,885.6L838.6,884.7L841.6,887.2L842.2,893.2L840.7,892.1L840.2,892.4L841.1,894.2L839.8,895.2L840.1,898.0L837.8,899.6L835.9,898.5L836.6,897.6L835.8,896.3L835.3,898.0L833.4,897.0L834.5,893.4L832.5,896.3L836.2,899.8L833.3,900.9L835.2,901.5L834.2,904.0L831.9,903.2L833.8,905.0L832.3,904.9L833.2,905.4L831.7,906.8L831.3,906.0L831.8,908.3L830.6,909.3L828.5,908.3L826.5,909.2L823.0,904.6L823.9,906.7L816.4,906.8L816.0,905.5L814.6,905.1L814.4,906.5L812.9,905.6L810.1,907.5L809.2,903.0L807.4,902.3L808.7,901.6L809.1,902.6L809.0,900.9L811.3,902.0L810.7,901.3L812.5,901.6L812.4,902.1L812.7,903.0L812.8,903.0L813.1,901.8L814.8,902.5L815.0,900.7L813.4,899.8L812.0,901.4L810.9,899.8L809.4,901.0L808.8,898.3L807.3,897.6L805.9,899.3L807.5,900.1L805.4,900.5L802.8,895.0L801.1,894.5L801.5,893.2L799.3,891.1L796.9,891.6L793.8,882.4L791.3,881.4L792.3,880.1L788.9,869.8L795.9,875.5L795.8,876.4L796.4,878.8L796.0,876.3L796.9,876.0L797.8,876.7L798.4,876.5L799.7,876.8L800.0,876.6L797.4,876.3L798.5,874.2L797.4,874.7L796.9,873.2L796.6,874.4L793.0,868.5L791.9,870.6L790.3,870.4L791.3,867.5L789.8,862.6L782.7,855.9L786.1,854.1L785.7,853.9L786.1,853.6L786.1,853.4L782.9,855.3L778.6,848.5L779.7,847.8L777.1,843.4L776.5,838.5L778.8,838.6ZM866.4,815.2L863.3,815.3L861.2,817.0L859.3,816.3L858.4,812.4L854.7,810.1L855.9,808.8L855.3,807.0L852.0,806.0L854.4,805.0L854.5,802.7L857.3,802.0L862.5,808.2L865.3,808.5L865.2,811.4L863.6,812.8L865.2,811.7L866.4,815.2ZM858.5,897.9L855.7,897.1L854.8,894.8L855.1,897.5L853.3,898.5L851.1,897.2L850.5,895.6L851.9,894.4L849.0,893.2L850.0,890.3L851.6,890.6L851.3,892.6L854.8,893.4L856.4,892.3L854.4,892.2L853.6,890.8L854.9,890.4L853.4,888.9L855.9,889.3L854.8,888.4L855.5,887.5L857.5,888.1L858.2,890.8L856.4,892.4L858.5,897.9ZM838.7,903.8L837.3,905.5L836.0,903.6L838.1,904.4L838.1,901.5L839.5,901.8L840.9,898.5L841.2,900.0L842.5,898.8L843.0,896.7L840.5,896.4L842.4,895.7L841.2,894.9L842.3,893.6L844.3,898.2L841.6,900.2L843.0,902.5L840.9,906.0L838.7,903.8ZM763.8,807.7L763.0,810.7L758.6,813.8L757.3,812.7L756.6,801.7L759.1,798.0L763.1,800.4L763.8,807.7Z"/><path class="map-state" d="M430.8,61.2L432.9,60.9L433.4,62.3L433.3,60.5L434.9,61.8L436.2,60.7L432.4,59.9L431.4,58.6L432.4,59.3L433.0,57.7L433.8,58.8L432.9,57.0L432.0,57.1L433.2,51.6L436.8,53.2L435.9,55.6L437.1,54.2L437.0,56.1L435.9,57.1L436.0,57.5L437.1,56.5L436.9,57.7L437.1,57.6L437.2,58.2L437.5,58.2L437.9,56.0L439.4,59.2L440.3,59.2L439.7,57.8L441.2,58.7L441.7,58.4L439.1,55.1L441.4,56.4L441.2,54.1L438.2,53.8L438.1,52.3L440.0,50.2L442.8,51.2L442.8,50.9L443.9,50.7L442.4,46.3L443.3,45.2L446.7,45.9L448.0,47.4L447.6,47.7L447.6,48.6L448.0,49.0L449.8,42.3L450.4,46.5L453.0,48.7L459.2,49.0L464.0,47.0L468.7,49.5L472.8,45.8L473.8,47.3L475.6,46.6L476.5,47.6L477.8,45.2L482.4,43.5L483.0,38.1L481.2,35.3L482.9,33.5L483.0,32.5L481.5,33.8L479.2,32.4L479.4,31.2L482.1,31.7L479.1,27.0L472.8,26.2L469.8,28.5L467.8,27.0L468.4,25.6L465.6,24.7L466.7,24.0L465.0,23.5L465.6,22.5L461.2,22.4L463.5,21.3L462.5,19.5L464.0,20.2L464.1,18.7L466.0,20.7L466.8,17.1L469.8,19.5L469.4,22.7L470.3,21.8L471.2,25.3L472.8,23.0L471.2,22.6L471.9,19.9L470.3,17.1L473.9,21.3L473.5,18.5L475.1,16.9L476.1,21.8L478.0,19.7L483.3,27.9L484.9,28.0L487.6,24.6L488.9,25.4L488.1,23.1L489.4,22.8L496.1,33.7L499.8,32.8L499.3,34.8L501.3,33.8L502.7,35.7L504.5,34.6L504.4,36.0L506.4,36.8L510.9,33.6L513.8,34.1L514.4,34.9L512.1,36.0L511.7,37.5L513.6,39.2L516.6,37.2L517.7,39.6L519.0,38.3L520.6,41.9L520.0,44.3L521.9,40.7L527.9,43.3L534.2,39.8L536.8,44.8L539.6,45.5L541.7,48.4L543.9,47.7L545.6,49.3L544.3,47.3L548.7,47.9L545.8,46.3L549.3,43.5L551.5,44.3L553.0,42.8L554.3,43.9L556.3,42.2L562.6,39.9L556.5,45.3L557.7,49.7L560.0,46.6L563.8,45.3L565.9,42.9L563.0,47.3L563.6,48.8L566.3,47.8L564.2,51.3L564.5,53.8L566.1,54.3L566.3,53.0L570.5,53.9L573.6,47.5L568.9,45.6L578.6,37.8L579.0,38.8L575.8,40.8L576.7,42.3L577.8,40.9L580.6,48.6L582.9,48.6L583.2,47.0L581.5,46.3L583.9,45.5L586.9,47.9L587.3,50.6L588.7,50.6L583.7,56.4L584.2,53.5L582.4,53.7L583.1,55.8L582.7,56.6L582.4,56.4L581.8,56.7L581.7,57.3L581.2,57.4L581.4,57.7L583.1,56.3L583.4,57.0L581.7,58.5L581.8,60.7L579.9,60.1L580.0,64.2L578.2,61.5L578.1,63.3L576.1,62.3L581.1,68.7L575.9,68.0L578.6,70.2L576.2,75.4L575.5,74.6L572.9,77.5L572.8,75.5L574.3,74.8L572.9,69.5L572.5,73.0L570.1,72.4L570.8,74.4L568.8,75.2L569.2,76.3L568.1,74.3L568.3,71.9L565.9,77.1L565.1,74.5L563.9,76.7L562.8,76.0L561.9,78.6L564.1,79.6L563.1,81.4L561.4,80.7L560.8,84.8L562.9,87.2L561.8,88.1L563.7,89.0L565.4,86.5L566.8,86.6L562.6,95.8L562.4,101.3L557.5,103.5L556.7,107.7L555.5,107.7L553.5,111.4L553.6,114.0L549.7,116.0L552.0,122.8L570.7,134.9L572.6,140.7L574.9,140.7L578.4,144.1L580.5,141.9L582.5,142.6L580.5,144.6L582.1,149.0L583.7,147.9L588.1,149.2L587.1,148.2L588.7,146.8L598.4,154.6L607.1,157.3L613.7,165.9L613.7,425.2L393.7,425.3L393.7,120.2L396.1,121.2L396.3,123.2L396.8,122.1L398.3,123.1L397.5,128.9L398.5,127.5L399.3,128.3L399.4,125.3L401.0,124.5L399.4,123.7L399.2,119.1L405.4,121.9L408.4,126.4L407.4,128.4L410.4,127.4L405.9,117.7L408.1,120.5L407.8,117.9L413.3,119.6L415.7,117.3L412.4,118.8L413.4,116.9L410.1,117.0L407.9,113.0L410.6,112.9L412.5,110.8L410.0,112.0L406.5,111.2L406.4,108.8L405.4,109.8L405.4,108.4L404.7,108.3L404.7,109.9L402.4,107.7L402.6,105.3L406.2,99.5L405.4,97.4L406.7,97.6L407.3,99.9L408.3,96.3L409.3,97.3L411.9,95.4L411.1,92.7L413.1,90.3L413.6,82.4L415.3,82.4L415.6,80.7L415.9,82.7L418.3,83.2L424.9,77.8L420.9,73.1L421.5,66.8L424.1,67.2L426.4,65.6L426.7,59.6L428.0,60.4L429.4,58.7L430.8,61.2ZM591.8,144.7L591.1,146.7L588.7,143.0L587.5,143.4L589.0,139.5L590.9,140.7L591.8,144.7ZM588.4,100.6L588.4,103.8L586.9,104.6L583.3,103.1L580.7,104.2L575.5,101.4L572.7,102.8L575.6,99.4L574.8,91.4L576.9,91.7L577.8,90.1L578.6,91.4L580.4,90.1L578.9,87.5L580.2,88.4L582.6,86.5L581.4,88.9L582.8,89.8L582.5,91.7L585.3,91.7L585.3,90.6L584.3,91.5L585.3,89.1L587.4,90.7L585.8,93.7L583.8,94.2L584.5,97.0L582.4,98.0L582.1,100.7L584.0,101.3L584.4,100.1L586.0,101.8L587.1,99.8L588.4,100.6ZM558.3,39.4L562.4,35.9L561.8,34.5L563.0,35.0L559.8,40.2L554.1,43.1L554.9,39.8L558.3,39.4ZM481.3,13.4L481.2,18.1L482.4,18.8L481.4,23.5L478.5,18.0L479.5,16.3L478.3,14.6L480.3,15.2L481.3,13.4ZM427.9,23.7L427.0,20.6L427.9,18.3L430.2,21.4L432.6,21.7L432.0,24.6L434.1,22.9L435.4,27.8L435.8,26.6L438.2,28.5L435.3,24.3L440.0,22.2L443.3,23.8L446.2,20.6L447.7,23.2L447.5,20.2L449.3,18.9L450.0,21.3L453.2,21.0L453.7,25.2L454.8,24.2L455.8,26.1L453.9,27.4L454.0,30.4L451.6,29.7L449.4,34.0L441.3,39.5L430.1,31.7L427.9,23.7ZM423.3,33.3L423.1,33.6L423.9,34.2L423.5,32.1L425.6,33.8L424.6,31.9L422.8,31.4L422.4,29.0L423.6,27.6L424.5,29.4L425.0,28.5L423.7,27.0L421.7,26.9L424.2,23.2L426.3,22.5L429.5,32.0L433.8,34.5L432.9,36.4L425.7,34.9L421.3,36.4L418.7,35.6L420.1,34.8L420.0,32.1L421.9,33.1L423.0,31.5L423.3,33.3Z"/></g>
+          <path class="map-nsw-fill" d="M935.1,640.0L935.1,640.2L935.7,640.4L935.9,640.4L935.8,640.5L934.9,640.4L934.8,640.6L933.8,639.9L932.8,640.0L936.2,641.5L938.1,641.3L938.4,640.3L938.0,644.0L934.4,644.6L934.9,645.9L935.5,644.9L937.2,645.6L933.0,646.6L935.7,647.2L929.8,653.5L928.7,657.4L929.6,658.4L928.5,659.6L928.8,658.3L927.4,658.2L926.6,659.8L928.2,659.6L929.2,661.2L925.4,668.3L926.3,671.9L927.9,672.7L927.5,674.3L926.1,674.6L925.5,672.0L923.5,673.3L924.2,675.7L921.4,674.7L920.5,675.1L921.7,677.5L918.8,680.3L917.0,686.9L913.9,692.2L911.4,691.6L912.9,694.3L910.8,696.8L910.7,707.1L904.8,724.8L905.7,728.7L904.0,729.5L907.2,731.1L908.4,734.4L905.7,734.8L906.5,741.0L863.0,721.6L860.9,721.7L863.5,716.2L861.5,715.3L861.2,712.5L859.1,710.4L858.2,701.0L851.1,697.8L847.2,698.8L847.2,699.9L845.8,698.2L843.6,698.2L841.6,701.4L837.3,700.8L836.8,699.6L835.0,702.7L832.7,701.9L832.4,702.9L824.3,699.0L819.6,698.8L818.3,701.1L816.2,700.0L813.8,700.9L812.6,699.8L808.6,700.2L806.9,698.4L804.7,699.5L797.9,694.3L793.5,696.1L787.6,694.8L784.1,696.0L783.0,699.4L784.4,701.7L781.5,701.4L779.4,703.3L777.2,701.4L775.5,701.9L770.4,697.1L768.9,693.3L766.9,692.9L759.7,686.0L754.3,682.9L751.1,682.9L749.7,681.6L749.9,678.0L745.6,677.6L743.8,673.3L744.4,666.6L738.7,663.5L733.2,663.5L730.8,659.9L728.6,661.3L728.6,664.7L726.6,664.9L727.1,666.3L724.3,665.7L722.9,660.3L720.5,659.4L721.2,654.1L717.3,653.3L716.9,649.9L713.5,649.6L712.4,647.6L709.9,648.7L703.6,647.6L699.5,650.8L699.2,649.1L695.0,648.7L693.0,646.5L691.6,647.4L687.1,645.9L687.0,507.6L881.6,507.6L884.6,503.3L892.1,499.3L894.9,496.0L899.8,497.6L914.2,495.0L918.0,498.5L925.5,497.6L931.8,500.5L932.6,503.4L938.3,506.0L938.4,510.4L941.2,512.5L944.9,506.4L948.8,504.1L950.6,506.6L952.3,505.1L956.2,505.1L957.8,499.6L954.9,494.5L965.4,490.3L967.3,487.3L969.1,487.4L970.2,489.5L971.0,487.6L974.4,490.2L977.5,488.7L983.1,490.0L984.8,487.0L989.3,487.0L992.1,484.5L994.0,484.8L992.9,485.4L992.5,486.3L993.6,485.3L994.0,486.7L994.0,484.9L994.0,494.8L996.1,497.7L995.3,503.4L993.3,504.2L994.9,504.3L991.8,508.2L991.6,511.5L988.9,515.8L988.6,526.2L980.2,555.2L980.8,558.7L982.6,560.1L982.0,564.1L979.9,567.2L978.9,575.6L976.7,578.3L974.4,585.7L970.9,588.5L968.5,593.2L969.9,595.9L969.2,602.1L964.2,604.4L960.8,607.8L961.0,609.2L955.2,607.9L954.4,610.2L957.7,610.2L957.6,609.1L960.6,610.3L953.2,613.0L950.8,615.2L951.0,614.2L950.5,614.7L950.5,614.4L949.5,614.1L950.2,615.3L950.7,615.4L951.2,615.1L947.7,619.7L947.3,616.7L946.4,616.5L946.5,619.7L945.0,619.1L944.0,620.2L945.4,620.6L944.0,621.2L945.4,622.2L945.8,620.2L946.1,621.8L947.1,619.3L947.2,622.2L943.8,626.9L945.3,623.9L944.0,623.5L942.3,625.8L943.9,627.4L941.7,631.8L940.0,632.4L940.4,631.7L940.0,631.3L937.9,633.1L938.0,630.7L937.1,632.0L936.4,631.0L937.4,630.5L937.3,629.9L936.2,630.8L936.4,632.1L935.6,629.1L933.9,630.6L933.5,629.6L933.3,629.7L933.2,630.0L933.5,629.7L933.6,630.5L934.0,630.7L935.3,630.2L934.1,633.5L935.8,631.5L937.6,633.3L936.1,633.7L935.2,635.4L938.7,633.1L938.1,635.4L939.2,635.7L939.0,634.9L939.7,634.5L939.3,633.9L939.7,633.4L939.9,634.6L938.9,637.4L939.3,637.8L938.7,637.9L938.9,640.0L936.5,638.6L937.6,640.8L935.1,640.0ZM892.4,681.1L887.7,681.8L886.2,683.7L886.1,688.6L884.5,688.4L885.0,695.5L883.8,697.6L881.6,696.9L879.9,692.0L879.1,693.2L877.0,690.1L877.9,680.8L885.6,675.7L887.6,678.6L892.4,681.1Z"/>
+          <path class="map-nsw" d="M935.1,640.0L935.1,640.2L935.7,640.4L935.9,640.4L935.8,640.5L934.9,640.4L934.8,640.6L933.8,639.9L932.8,640.0L936.2,641.5L938.1,641.3L938.4,640.3L938.0,644.0L934.4,644.6L934.9,645.9L935.5,644.9L937.2,645.6L933.0,646.6L935.7,647.2L929.8,653.5L928.7,657.4L929.6,658.4L928.5,659.6L928.8,658.3L927.4,658.2L926.6,659.8L928.2,659.6L929.2,661.2L925.4,668.3L926.3,671.9L927.9,672.7L927.5,674.3L926.1,674.6L925.5,672.0L923.5,673.3L924.2,675.7L921.4,674.7L920.5,675.1L921.7,677.5L918.8,680.3L917.0,686.9L913.9,692.2L911.4,691.6L912.9,694.3L910.8,696.8L910.7,707.1L904.8,724.8L905.7,728.7L904.0,729.5L907.2,731.1L908.4,734.4L905.7,734.8L906.5,741.0L863.0,721.6L860.9,721.7L863.5,716.2L861.5,715.3L861.2,712.5L859.1,710.4L858.2,701.0L851.1,697.8L847.2,698.8L847.2,699.9L845.8,698.2L843.6,698.2L841.6,701.4L837.3,700.8L836.8,699.6L835.0,702.7L832.7,701.9L832.4,702.9L824.3,699.0L819.6,698.8L818.3,701.1L816.2,700.0L813.8,700.9L812.6,699.8L808.6,700.2L806.9,698.4L804.7,699.5L797.9,694.3L793.5,696.1L787.6,694.8L784.1,696.0L783.0,699.4L784.4,701.7L781.5,701.4L779.4,703.3L777.2,701.4L775.5,701.9L770.4,697.1L768.9,693.3L766.9,692.9L759.7,686.0L754.3,682.9L751.1,682.9L749.7,681.6L749.9,678.0L745.6,677.6L743.8,673.3L744.4,666.6L738.7,663.5L733.2,663.5L730.8,659.9L728.6,661.3L728.6,664.7L726.6,664.9L727.1,666.3L724.3,665.7L722.9,660.3L720.5,659.4L721.2,654.1L717.3,653.3L716.9,649.9L713.5,649.6L712.4,647.6L709.9,648.7L703.6,647.6L699.5,650.8L699.2,649.1L695.0,648.7L693.0,646.5L691.6,647.4L687.1,645.9L687.0,507.6L881.6,507.6L884.6,503.3L892.1,499.3L894.9,496.0L899.8,497.6L914.2,495.0L918.0,498.5L925.5,497.6L931.8,500.5L932.6,503.4L938.3,506.0L938.4,510.4L941.2,512.5L944.9,506.4L948.8,504.1L950.6,506.6L952.3,505.1L956.2,505.1L957.8,499.6L954.9,494.5L965.4,490.3L967.3,487.3L969.1,487.4L970.2,489.5L971.0,487.6L974.4,490.2L977.5,488.7L983.1,490.0L984.8,487.0L989.3,487.0L992.1,484.5L994.0,484.8L992.9,485.4L992.5,486.3L993.6,485.3L994.0,486.7L994.0,484.9L994.0,494.8L996.1,497.7L995.3,503.4L993.3,504.2L994.9,504.3L991.8,508.2L991.6,511.5L988.9,515.8L988.6,526.2L980.2,555.2L980.8,558.7L982.6,560.1L982.0,564.1L979.9,567.2L978.9,575.6L976.7,578.3L974.4,585.7L970.9,588.5L968.5,593.2L969.9,595.9L969.2,602.1L964.2,604.4L960.8,607.8L961.0,609.2L955.2,607.9L954.4,610.2L957.7,610.2L957.6,609.1L960.6,610.3L953.2,613.0L950.8,615.2L951.0,614.2L950.5,614.7L950.5,614.4L949.5,614.1L950.2,615.3L950.7,615.4L951.2,615.1L947.7,619.7L947.3,616.7L946.4,616.5L946.5,619.7L945.0,619.1L944.0,620.2L945.4,620.6L944.0,621.2L945.4,622.2L945.8,620.2L946.1,621.8L947.1,619.3L947.2,622.2L943.8,626.9L945.3,623.9L944.0,623.5L942.3,625.8L943.9,627.4L941.7,631.8L940.0,632.4L940.4,631.7L940.0,631.3L937.9,633.1L938.0,630.7L937.1,632.0L936.4,631.0L937.4,630.5L937.3,629.9L936.2,630.8L936.4,632.1L935.6,629.1L933.9,630.6L933.5,629.6L933.3,629.7L933.2,630.0L933.5,629.7L933.6,630.5L934.0,630.7L935.3,630.2L934.1,633.5L935.8,631.5L937.6,633.3L936.1,633.7L935.2,635.4L938.7,633.1L938.1,635.4L939.2,635.7L939.0,634.9L939.7,634.5L939.3,633.9L939.7,633.4L939.9,634.6L938.9,637.4L939.3,637.8L938.7,637.9L938.9,640.0L936.5,638.6L937.6,640.8L935.1,640.0Z"/>
+          <path class="map-vic" d="M788.1,765.3L785.6,768.0L782.1,768.3L776.3,763.0L780.3,764.7L783.0,764.2L787.7,758.6L787.3,755.4L785.3,754.1L784.1,750.8L782.3,750.3L772.8,757.1L769.2,757.5L769.3,758.6L772.1,759.1L777.3,757.9L777.7,760.4L775.6,761.5L776.8,761.9L768.5,763.5L761.3,767.7L756.4,773.6L748.4,778.2L744.7,775.3L741.6,775.7L737.9,772.5L732.5,771.2L720.6,764.2L715.1,765.4L709.8,762.3L705.2,761.6L701.8,763.2L702.4,765.8L700.3,766.5L698.3,764.6L696.2,765.2L696.6,763.4L694.3,760.7L686.2,756.2L686.2,644.3L687.6,646.5L693.0,646.5L695.0,648.7L699.1,649.1L699.5,650.8L704.9,647.4L708.5,648.6L712.4,647.6L713.5,649.6L715.5,649.0L717.5,650.6L717.3,653.3L721.2,654.1L720.5,659.4L722.9,660.3L722.6,662.2L725.1,666.1L726.9,666.4L726.6,664.9L728.6,664.8L728.3,661.8L730.8,659.9L733.2,663.5L738.7,663.5L744.4,666.6L743.8,673.3L745.6,677.6L749.9,678.0L749.7,681.6L751.1,682.9L754.3,682.9L759.7,686.0L766.9,692.9L768.9,693.3L773.0,699.6L778.2,703.0L780.1,703.1L781.5,701.4L784.4,701.7L783.0,699.4L784.7,695.7L788.0,694.8L793.5,696.1L797.9,694.3L804.7,699.5L806.9,698.4L808.6,700.2L818.3,701.1L819.6,698.8L821.6,698.6L832.4,702.9L832.7,701.9L835.0,702.7L836.8,699.6L837.3,700.8L841.6,701.4L843.6,698.2L845.8,698.2L847.2,699.9L847.2,698.8L851.1,697.8L856.0,699.6L859.1,703.6L859.1,710.4L861.2,712.5L861.5,715.3L863.5,716.2L860.9,721.7L863.0,721.6L906.5,741.0L901.6,742.5L899.2,746.0L894.5,748.5L865.3,749.4L853.0,753.4L830.9,772.0L831.9,770.9L826.3,773.2L825.3,772.3L822.8,773.9L814.5,773.6L813.8,775.0L816.0,776.7L816.4,779.4L821.0,776.3L819.8,782.4L821.1,783.7L819.8,783.9L819.7,785.6L817.7,785.5L817.9,783.7L812.6,777.6L810.1,776.9L807.4,779.6L803.6,772.9L799.7,773.2L796.7,769.9L793.9,769.3L795.5,768.2L795.0,765.8L797.4,766.0L798.3,764.8L796.8,761.0L791.1,760.7L789.3,764.9L790.6,765.9L788.1,765.3Z" filter="url(#vicGlow)"/>
+          <path class="map-arc" d="M783.9,749.5 Q933.9,789.5 942.7,655.3" marker-end="url(#arrowHead)"/>
+          <circle class="map-ripple" cx="783.9" cy="749.5" r="6"/>
+          <circle class="map-ripple r2" cx="783.9" cy="749.5" r="6"/>
+          <circle class="map-city vic-city" cx="783.9" cy="749.5" r="6"/>
+          <circle class="map-city nsw-city" cx="936.7" cy="641.3" r="5"/>
+          <g class="map-label vic-label">
+            <path class="map-leader" d="M706,712 L560,712"/>
+            <text x="548" y="700" class="ml-k" text-anchor="end">NOW COVERING</text>
+            <text x="548" y="740" class="ml-h" text-anchor="end">Victoria</text>
+          </g>
+          <g class="map-label nsw-label">
+            <path class="map-leader nsw" d="M894.0,564.5 L1000,540 L1010,540"/>
+            <text x="1012" y="528" class="ml-k nsw">COMING NEXT</text>
+            <text x="1012" y="568" class="ml-h">New South</text>
+            <text x="1012" y="604" class="ml-h">Wales</text>
+          </g>
+        </svg>
+      </div>
+      <p class="lead">Work is already underway on expanding this same free, unified results experience into other states, starting with New South Wales.</p>
+      <p>As <i>Stick The Landing</i> grows into new states, so does the audience seeing your brand, from one state's gymnastics community to a genuinely national one.</p>
+    </div>
+  </section>
+
+  <!-- 11. Ways to show AMCO off -->
+  <section class="slide" data-slide="11">
+    <div class="slide-inner compact-head">
+      <div class="hook">I'd love to show you off.</div>
+      <div class="ideas">
+        <div class="idea">
+          <div class="idea-vis">
+            <div class="banner-mock" aria-hidden="true">
+              <div class="bm-nav"><b>Stick The <span>Landing</span></b><div class="bm-dots"><i></i><i></i><i></i></div></div>
+              <div class="bm-strip"><div><small>Proudly supported by</small><img class="bm-logo" src="amco-logo-white.png" alt="AMCO Gymnastics" /></div><u>Shop now</u></div>
+              <div class="bm-cards"><i></i><i></i><i></i></div>
+            </div>
+          </div>
+          <!-- TRIAL: card text hidden to let the examples speak for themselves
+          <div class="idea-body">
+            <span class="idea-tag">Homepage</span>
+            <h3>Partner banner</h3>
+            <p>An everyday brand mark, or a campaign banner when you're running a sale or launching new equipment.</p>
+          </div>
+          -->
+        </div>
+        <div class="idea">
+          <div class="idea-vis">
+            <div class="lb" aria-hidden="true">
+              <div class="lb-sponsor"><span>Presented by</span><img src="amco-logo-white.png" alt="AMCO Gymnastics" /></div>
+              <div class="lb-h"><b>Beam, Level 7</b><span class="lb-pres">Season best</span></div>
+              <div class="lb-row"><span class="lb-rank">1</span><span class="lb-name" style="width:78%"></span><span class="lb-score" style="width:100%"></span></div>
+              <div class="lb-row"><span class="lb-rank">2</span><span class="lb-name" style="width:64%"></span><span class="lb-score" style="width:94%"></span></div>
+              <div class="lb-row"><span class="lb-rank">3</span><span class="lb-name" style="width:70%"></span><span class="lb-score" style="width:90%"></span></div>
+              <div class="lb-row"><span class="lb-rank">4</span><span class="lb-name" style="width:58%"></span><span class="lb-score" style="width:86%"></span></div>
+            </div>
+          </div>
+          <!-- TRIAL: card text hidden to let the examples speak for themselves
+          <div class="idea-body">
+            <span class="idea-tag">Leaderboards</span>
+            <h3>Apparatus rankings, presented by AMCO</h3>
+            <p>Season leaderboards for every apparatus, from vault to high bar, with AMCO's name on each one. A natural fit for an apparatus specialist.</p>
+          </div>
+          -->
+        </div>
+        <div class="idea">
+          <div class="idea-vis">
+            <figure class="ph ph-social" data-src="social-mockup.jpg">
+              <i class="fas fa-mobile-screen"></i>
+              <span class="ph-title">Social post mockup</span>
+              <span class="ph-desc">A phone frame showing a results post on Facebook/Instagram with "Results supported by AMCO".</span>
+              <span class="ph-file">social-mockup.jpg</span>
+            </figure>
+          </div>
+          <!-- TRIAL: card text hidden to let the examples speak for themselves
+          <div class="idea-body">
+            <span class="idea-tag">Articles &amp; socials</span>
+            <h3>Named in every post</h3>
+            <p>Your logo on every article, and a mention by name in the social posts announcing new articles and results.</p>
+          </div>
+          -->
+        </div>
+      </div>
+      <figure class="ph ph-wide" data-src="page_mockup.jpg">
+        <i class="fas fa-desktop"></i>
+        <span class="ph-title">Stick The Landing homepage mockup showing AMCO as supporting partner</span>
+        <span class="ph-desc">Same idea as the Chalk Active mockup: a real homepage screenshot with a "Proudly supported by AMCO" banner dropped in.</span>
+        <span class="ph-file">page_mockup.jpg &middot; 1600&times;900</span>
+      </figure>
+    </div>
+  </section>
+
+  <!-- 12. Partnership -->
+  <section class="slide" data-slide="12">
+    <div class="slide-inner">
+      <div class="hook">This isn't about ad space.</div>
+      <h2>It's a genuine local partnership</h2>
+      <p class="lead"><i>Stick The Landing</i> is run by one person, for one community.</p>
+      <p>I'm not looking for a generic ad buyer, I'm looking for a genuine community partner who supports Victorian gymnastics the way you already do. This is about how we can help each other.</p>
+    </div>
+  </section>
+
+  <!-- 13. Why AMCO -->
+  <section class="slide" data-slide="13">
+    <div class="slide-inner">
+      <div class="hook">Why AMCO?</div>
+      <div class="why-layout">
+        <figure class="ph" data-src="amco-showroom.jpg">
+          <i class="fas fa-warehouse"></i>
+          <span class="ph-title">AMCO Gymnastics building in Clayton</span>
+          <span class="ph-desc">AMCO's Clayton showroom (by appointment, 6/173 Wellington Rd), or Spieth apparatus they've installed at a Victorian club. Ask them for one, or take it yourself if you visit.</span>
+          <span class="ph-file">amco-showroom.jpg &middot; 1000&times;1250</span>
+        </figure>
+        <div style="display:flex;flex-direction:column;gap:14px">
+          <h2>Started by a gymnastics family, just like this site</h2>
+          <div class="point-list" id="why-points">
+            <div class="point brand"><span class="num">1</span><span class="txt">Founded in 1983 by Arlette and Michael Ulrich, whose own children were gymnasts in Melbourne. Still <strong>family-run</strong>, still in Clayton.</span></div>
+            <div class="point brand"><span class="num">2</span><span class="txt">Gymnastics Victoria's listed <strong>Equipment Supplier</strong>, and a Gymnastics Australia Technical Partner. You're already part of the sport I cover.</span></div>
+            <div class="point brand"><span class="num">3</span><span class="txt">From apparatus to grips and wrist supports, much of what you stock is chosen by <strong>coaches and clubs</strong>, the same people following results on this site through the season.</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 14. The ask -->
+  <section class="slide" data-slide="14">
+    <div class="slide-inner">
+      <div class="ask-headline"><i>Stick The Landing</i> needs approximately <strong>$35</strong><span class="ask-permonth">/month</span> for secure database hosting and ongoing website costs.</div>
+      <div class="ask-sub">That's what it takes to move off free hosting and keep the platform reliable as it grows.</div>
+      <div class="ask-steps">
+        <div class="ask-step">
+          <span class="ask-step-n">1</span>
+          <div><div class="ask-step-h">Start with a 3-month trial</div><div class="ask-step-p"><strong>$105 total</strong>, a low-risk way to see how it works for both of us.</div></div>
+        </div>
+        <div class="ask-step">
+          <span class="ask-step-n">2</span>
+          <div><div class="ask-step-h">Then yearly support</div><div class="ask-step-p">If it's working well, <strong>$420 a year</strong> to keep the partnership going.</div></div>
+        </div>
+      </div>
+      <p class="ask-extra">During the trial, I'd love to show any promotions you have on the site, or perhaps a small discount code for anyone who mentions "<i>Stick The Landing</i>", to help you track exposure.</p>
+    </div>
+  </section>
+
+  <!-- 15. Where it goes -->
+  <section class="slide" data-slide="15">
+    <div class="slide-inner">
+      <div class="hook">So, where does it actually go?</div>
+      <div class="point-list">
+        <div class="point"><span class="num">1</span><span class="txt">Moving off <strong>free hosting</strong> onto a secure plan that can grow with the database.</span></div>
+        <div class="point"><span class="num">2</span><span class="txt">Keeping the platform <strong>fast and reliable</strong> as more competitions and athletes are added.</span></div>
+        <div class="point"><span class="num">3</span><span class="txt">Keeping it <strong>free for every athlete and family</strong>, no paywall, no subscription.</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 16. Contact -->
+  <section class="slide" data-slide="16">
+    <div class="slide-inner">
+      <div class="hook">Let's make it happen.</div>
+      <h2>Interested in partnering?</h2>
+      <p class="contact-direct">Reach me directly at <a href="mailto:dptonkin@gmail.com">dptonkin@gmail.com</a>, or leave your details below and I'll come to you.</p>
+      <div class="contact-box">
+        <form id="talk-form">
+          <input type="hidden" name="_subject" value="AMCO, let's talk" />
+          <input type="text" name="_gotcha" style="display:none" tabindex="-1" autocomplete="off" />
+          <label for="t-name">Name</label>
+          <input type="text" id="t-name" name="name" placeholder="Your name" required />
+          <label for="t-contact">Email or phone</label>
+          <input type="text" id="t-contact" name="contact" placeholder="How should I reach you?" required />
+          <label for="t-note">Note (optional)</label>
+          <textarea id="t-note" name="message" placeholder="Anything you'd like to add"></textarea>
+          <button type="submit">I'm interested, let's talk</button>
+        </form>
+        <div id="talk-thanks" class="thanks-msg" style="display:none">
+          <i class="fas fa-circle-check"></i>
+          Thanks! David will be in touch.
+        </div>
+      </div>
+    </div>
+  </section>
+
+</div>
+
+<div class="deck-nav">
+  <div class="dots" id="nav-dots"></div>
+  <div class="nav-buttons">
+    <button id="nav-back" class="btn-circle" aria-label="Back"><i class="fas fa-arrow-left"></i></button>
+    <button id="nav-next" class="btn-next" aria-label="Next"><span>NEXT</span><i class="fas fa-arrow-right"></i></button>
+  </div>
+  <button id="nav-restart" class="btn-restart" aria-label="Restart"><i class="fas fa-rotate-left"></i><span>Restart</span></button>
+</div>
+
+<script>
+(function(){
+  var slides = Array.prototype.slice.call(document.querySelectorAll('.slide'));
+  var TOTAL = slides.length;
+  var idx = 1;
+  var FORMSPREE_URL = "https://formspree.io/f/mrerjrgn";
+  var reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  document.getElementById('ctr-total').textContent = TOTAL;
+
+  /* Image placeholders: swap in the real file if it exists */
+  document.querySelectorAll('.ph[data-src]').forEach(function(ph){
+    var img = new Image();
+    img.onload = function(){
+      img.alt = (ph.querySelector('.ph-title') || {}).textContent || '';
+      ph.innerHTML = ''; ph.appendChild(img); ph.classList.add('loaded');
+    };
+    img.src = ph.getAttribute('data-src');
+  });
+
+  var dotsEl = document.getElementById('nav-dots');
+  for (var i = 1; i <= TOTAL; i++) {
+    var d = document.createElement('i');
+    d.dataset.slide = i;
+    d.addEventListener('click', function(){ goTo(parseInt(this.dataset.slide, 10)); });
+    dotsEl.appendChild(d);
+  }
+
+  var backBtn = document.getElementById('nav-back');
+  var nextBtn = document.getElementById('nav-next');
+  var curEl = document.getElementById('ctr-cur');
+  var progEl = document.getElementById('progress');
+  var ambient = document.getElementById('ambient');
+
+  function fmt(n, kind){
+    if (kind === 'k') return (n / 1000).toFixed(1) + 'k';
+    if (kind === 'k0') return Math.round(n / 1000) + 'k';
+    if (kind === 'pct') return Math.round(n) + '%';
+    return Math.round(n).toLocaleString('en-AU');
+  }
+  function countUp(el){
+    var target = parseFloat(el.dataset.count), kind = el.dataset.fmt;
+    if (reduceMotion) { el.textContent = fmt(target, kind); return; }
+    var start = null, dur = 1300;
+    function step(t){
+      if (!start) start = t;
+      var p = Math.min(1, (t - start) / dur), e = 1 - Math.pow(1 - p, 3);
+      el.textContent = fmt(target * e, kind);
+      if (p < 1) requestAnimationFrame(step);
+    }
+    requestAnimationFrame(step);
+  }
+
+  // Slide 6 chart: draw the cumulative line, fill the area behind it, ride a dot along
+  // the leading edge and count the total up, all on the same easing as countUp().
+  function drawGrowth(slide){
+    var svg = slide.querySelector('.growth-chart svg'); if (!svg) return;
+    var line = svg.querySelector('.gc-line'), dot = svg.querySelector('.gc-dot'),
+        clip = svg.querySelector('#gcClipRect'), num = svg.querySelector('#gcNum');
+    var len = line.getTotalLength(), y0 = 264, yTop = 24, yMax = 6000, total = 5268;
+    function frame(p){
+      var pt = line.getPointAtLength(len * p);
+      line.style.strokeDashoffset = 1 - p;
+      dot.setAttribute('cx', pt.x); dot.setAttribute('cy', pt.y);
+      clip.setAttribute('width', pt.x);
+      var v = p >= 1 ? total : Math.max(0, (y0 - pt.y) / (y0 - yTop) * yMax);
+      num.textContent = Math.round(Math.min(v, total)).toLocaleString('en-AU');
+    }
+    if (reduceMotion) { frame(1); return; }
+    var start = null, dur = 1300;
+    frame(0);
+    function step(t){
+      if (!start) start = t;
+      var p = Math.min(1, (t - start) / dur);
+      frame(1 - Math.pow(1 - p, 3));
+      if (p < 1) requestAnimationFrame(step);
+    }
+    requestAnimationFrame(step);
+  }
+
+  function render(){
+    slides.forEach(function(s){
+      var n = parseInt(s.dataset.slide, 10);
+      s.classList.toggle('active', n === idx);
+      s.classList.toggle('prev', n < idx);
+    });
+    document.querySelectorAll('#nav-dots i').forEach(function(d){
+      d.classList.toggle('on', parseInt(d.dataset.slide, 10) === idx);
+    });
+    backBtn.disabled = idx === 1;
+    nextBtn.disabled = idx === TOTAL;
+    curEl.textContent = idx;
+    progEl.style.width = ((idx - 1) / (TOTAL - 1) * 100) + '%';
+    var t = (idx - 1) / (TOTAL - 1);
+    ambient.style.setProperty('--ax', (t * 18) + 'vmax'); ambient.style.setProperty('--ay', (t * 10) + 'vmax');
+    ambient.style.setProperty('--bx', (-t * 14) + 'vmax'); ambient.style.setProperty('--by', (-t * 8) + 'vmax');
+
+    var active = slides[idx - 1];
+    active.scrollTop = 0;
+    active.querySelectorAll('[data-count]').forEach(countUp);
+    drawGrowth(active);
+    active.querySelectorAll('.ag-fill').forEach(function(f){ f.style.width = '0'; });
+    setTimeout(function(){ active.querySelectorAll('.ag-fill').forEach(function(f){ f.style.width = f.dataset.w; }); }, 30);
+    if (idx === TOTAL) notifyArrival();
+  }
+
+  function goTo(n){
+    n = Math.max(1, Math.min(TOTAL, n));
+    if (n === idx) return;
+    idx = n;
+    if (history.replaceState) history.replaceState(null, '', '#' + idx);
+    render();
+  }
+
+  backBtn.addEventListener('click', function(){ goTo(idx - 1); });
+  nextBtn.addEventListener('click', function(){ goTo(idx + 1); });
+  document.getElementById('nav-restart').addEventListener('click', function(){ goTo(1); });
+
+  document.addEventListener('keydown', function(e){
+    var tag = (e.target.tagName || '').toLowerCase();
+    if (tag === 'input' || tag === 'textarea') return;
+    if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'PageDown') { e.preventDefault(); goTo(idx + 1); }
+    else if (e.key === 'ArrowLeft' || e.key === 'PageUp') { goTo(idx - 1); }
+  });
+
+  var touchStartX = null, touchStartY = null;
+  document.addEventListener('touchstart', function(e){
+    touchStartX = e.changedTouches[0].clientX; touchStartY = e.changedTouches[0].clientY;
+  }, {passive:true});
+  document.addEventListener('touchend', function(e){
+    if (touchStartX === null) return;
+    var dx = e.changedTouches[0].clientX - touchStartX, dy = e.changedTouches[0].clientY - touchStartY;
+    if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy) * 1.5) { if (dx < 0) goTo(idx + 1); else goTo(idx - 1); }
+    touchStartX = null;
+  }, {passive:true});
+
+  function notifyArrival(){
+    try { if (sessionStorage.getItem('stl-amco-pitch-notified')) return; sessionStorage.setItem('stl-amco-pitch-notified', '1'); } catch(e){}
+    var body = new FormData();
+    body.append('_subject', 'AMCO deck, reached final slide');
+    body.append('event', 'reached_final_slide');
+    body.append('timestamp', new Date().toISOString());
+    body.append('page', location.href);
+    fetch(FORMSPREE_URL, { method: 'POST', headers: { Accept: 'application/json' }, body: body }).catch(function(){});
+  }
+
+  var talkForm = document.getElementById('talk-form');
+  talkForm.addEventListener('submit', function(e){
+    e.preventDefault();
+    fetch(FORMSPREE_URL, { method: 'POST', headers: { Accept: 'application/json' }, body: new FormData(talkForm) })
+      .then(function(r){
+        if (r.ok) { talkForm.style.display = 'none'; document.getElementById('talk-thanks').style.display = 'block'; }
+        else { talkForm.submit(); }
+      })
+      .catch(function(){ talkForm.submit(); });
+  });
+
+  fetch('/data/stats.json').then(function(r){ return r.json(); }).then(function(d){
+    if (d.gymnasts) document.getElementById('stat-gymnasts').textContent = d.gymnasts.toLocaleString('en-AU');
+    if (d.competitions) document.getElementById('stat-comps').textContent = d.competitions.toLocaleString('en-AU');
+  }).catch(function(){});
+
+  var startHash = parseInt(location.hash.replace('#', ''), 10);
+  if (startHash >= 1 && startHash <= TOTAL) idx = startHash;
+  idx = idx; render();
+})();
+</script>
+
+</body>
+</html>
