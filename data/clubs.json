@@ -811,6 +811,24 @@
       "logo": null
     },
     {
+      "code": "MLCT/STA",
+      "name": "Millicent / Stawell (Joint)",
+      "region": "Multi-Region",
+      "aliases": [
+        "MILLICENT/STAWELL"
+      ],
+      "logo": null
+    },
+    {
+      "code": "BLK/BGS/NAT",
+      "name": "Blue Lake / Ballarat Gymsports / Natimuk (Joint)",
+      "region": "Regional West",
+      "aliases": [
+        "BL/ BGS/ NATI/"
+      ],
+      "logo": null
+    },
+    {
       "code": "MOR",
       "name": "Mordialloc Gymnastics",
       "region": "Metro South",
