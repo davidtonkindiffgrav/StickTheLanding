@@ -829,6 +829,78 @@
       "logo": null
     },
     {
+      "code": "ARA",
+      "name": "Ararat and District Gymnastics Club",
+      "region": "Regional West",
+      "aliases": [
+        "ARARAT"
+      ],
+      "logo": null
+    },
+    {
+      "code": "NAT/BLK",
+      "name": "Natimuk / Blue Lake (Joint)",
+      "region": "Regional West",
+      "aliases": [
+        "NATIMUK & BLUE LAKE"
+      ],
+      "logo": null
+    },
+    {
+      "code": "NAT/POR",
+      "name": "Natimuk / Portland (Joint)",
+      "region": "Regional West",
+      "aliases": [
+        "NATIMUK & PORTLAND"
+      ],
+      "logo": null
+    },
+    {
+      "code": "SBY/WYN",
+      "name": "Sunbury / Wyndham (Joint)",
+      "region": "Metro West",
+      "aliases": [
+        "SUNBURY/WYNDHAM"
+      ],
+      "logo": null
+    },
+    {
+      "code": "SBY/STA",
+      "name": "Sunbury / Stawell (Joint)",
+      "region": "Multi-Region",
+      "aliases": [
+        "SUNBURY/STAWELL"
+      ],
+      "logo": null
+    },
+    {
+      "code": "EUR/SBY",
+      "name": "Eureka / Sunbury (Joint)",
+      "region": "Multi-Region",
+      "aliases": [
+        "EUREKA BLUE/SUNBURY"
+      ],
+      "logo": null
+    },
+    {
+      "code": "EUR/WYN/BLK",
+      "name": "Eureka / Wyndham / Blue Lake (Joint)",
+      "region": "Multi-Region",
+      "aliases": [
+        "EUREKA/WYNDHAM/BLUE LAKE"
+      ],
+      "logo": null
+    },
+    {
+      "code": "WYN/BLK/MIL",
+      "name": "Wyndham / Blue Lake / Mildura (Joint)",
+      "region": "Multi-Region",
+      "aliases": [
+        "WYNDHAM/BLUE LAKE/MILDURA"
+      ],
+      "logo": null
+    },
+    {
       "code": "MOR",
       "name": "Mordialloc Gymnastics",
       "region": "Metro South",

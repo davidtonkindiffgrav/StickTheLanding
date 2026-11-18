@@ -324,19 +324,25 @@
     <priority>0.7</priority>
   </url>
   <url>
+    <loc>https://stickthelanding.com.au/results/wag/natimuk-invitational-2026/</loc>
+    <lastmod>2026-11-11</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
     <loc>https://stickthelanding.com.au/results/mag/junior-victorian-championships-2026/</loc>
     <lastmod>2026-10-17</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://stickthelanding.com.au/results/wag/junior-victorian-championships-2026/</loc>
+    <loc>https://stickthelanding.com.au/results/wag/southern-cross-classic-2026/</loc>
     <lastmod>2026-10-15</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://stickthelanding.com.au/results/wag/southern-cross-classic-2026/</loc>
+    <loc>https://stickthelanding.com.au/results/wag/junior-victorian-championships-2026/</loc>
     <lastmod>2026-10-15</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
@@ -402,13 +408,13 @@
     <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://stickthelanding.com.au/results/wag/west-region-wag-regional-championships-2026/</loc>
+    <loc>https://stickthelanding.com.au/results/wag/metro-east-wag-regional-championships-2026/</loc>
     <lastmod>2026-09-05</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://stickthelanding.com.au/results/wag/metro-east-wag-regional-championships-2026/</loc>
+    <loc>https://stickthelanding.com.au/results/wag/west-region-wag-regional-championships-2026/</loc>
     <lastmod>2026-09-05</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
@@ -420,13 +426,13 @@
     <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://stickthelanding.com.au/results/wag/ekga-invitational-2026/</loc>
+    <loc>https://stickthelanding.com.au/results/wag/cyc-junior-invitational-2026/</loc>
     <lastmod>2026-08-29</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://stickthelanding.com.au/results/wag/cyc-junior-invitational-2026/</loc>
+    <loc>https://stickthelanding.com.au/results/wag/ekga-invitational-2026/</loc>
     <lastmod>2026-08-29</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
@@ -492,12 +498,6 @@
     <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://stickthelanding.com.au/results/wag/y-invitational-2026/</loc>
-    <lastmod>2026-07-25</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.6</priority>
-  </url>
-  <url>
     <loc>https://stickthelanding.com.au/results/wag/casey-cup-2026/</loc>
     <lastmod>2026-07-25</lastmod>
     <changefreq>monthly</changefreq>
@@ -505,6 +505,12 @@
   </url>
   <url>
     <loc>https://stickthelanding.com.au/results/wag/jets-july-invitational-2026/</loc>
+    <lastmod>2026-07-25</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://stickthelanding.com.au/results/wag/y-invitational-2026/</loc>
     <lastmod>2026-07-25</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
