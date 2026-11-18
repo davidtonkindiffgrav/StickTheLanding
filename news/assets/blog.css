@@ -576,3 +576,34 @@ h2[id] { scroll-margin-top: 20px; }
   .author-box { flex-direction: column; align-items: center; text-align: center; }
   .author-avatar-stack { flex-direction: row; }
 }
+
+/* Region club lists (2027 GV regions article) */
+.region-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin: 8px 0 28px; }
+.region-col { border: 1px solid var(--border); border-top: 4px solid var(--rc); border-radius: 8px; background: var(--surface2); padding: 10px 12px; }
+.region-col h4 { margin: 0 0 8px; font-size: 0.95rem; display: flex; align-items: baseline; gap: 6px; }
+.region-col h4 .rc-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--rc); display: inline-block; }
+.region-col h4 .rc-count { font-size: 0.72rem; font-weight: 400; color: var(--muted); margin-left: auto; }
+.region-col ul { list-style: none; margin: 0; padding: 0; font-size: 0.82rem; line-height: 1.45; }
+.region-col li { padding: 3px 0; border-bottom: 1px solid var(--border); }
+.region-col li:last-child { border-bottom: none; }
+.region-col.ra { --rc: #7a2d8c; } .region-col.rb { --rc: #74cf55; } .region-col.rc { --rc: #1b8fd6; } .region-col.rd { --rc: #f0663e; }
+@media (max-width: 760px) { .region-grid { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 380px) { .region-grid { grid-template-columns: 1fr; } }
+.xtab-wrap { overflow-x: auto; margin-bottom: 28px; }
+.post-table.region-xtab { margin-bottom: 0; table-layout: fixed; min-width: 340px; }
+.post-table.region-xtab th, .post-table.region-xtab td { text-align: center; width: 13%; }
+.post-table.region-xtab th:first-child, .post-table.region-xtab td:first-child { text-align: left; width: auto; }
+.post-table.region-xtab th:last-child, .post-table.region-xtab td:last-child { width: 15%; }
+.post-table.region-xtab th .rc-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 5px; vertical-align: 1px; }
+.post-table.region-xtab th.ra .rc-dot { background: #7a2d8c; } .post-table.region-xtab th.rb .rc-dot { background: #74cf55; }
+.post-table.region-xtab th.rc .rc-dot { background: #1b8fd6; } .post-table.region-xtab th.rd .rc-dot { background: #f0663e; }
+.post-table.region-xtab td.tot { font-weight: 700; }
+.post-table.region-xtab tr.tot-row td { font-weight: 700; border-top: 2px solid var(--border); background: var(--surface2); }
+.post-body .side-table { margin: 0 0 28px; }
+.post-body .side-table .post-table { margin-bottom: 0; }
+.post-body .side-table caption { font-family: inherit; text-align: left; font-weight: 700; font-size: 1rem; color: var(--text); padding: 0 0 12px; }
+
+.post-body .side-table td:first-child, .post-body .side-table th:first-child { width: auto; }
+.post-body .side-table td:not(:first-child), .post-body .side-table th:not(:first-child) { text-align: center; width: 15%; }
+.post-body .side-table td:not(:first-child) { font-weight: 700; }
+.post-body .clear-float { clear: both; }
