@@ -302,6 +302,12 @@ h2[id] { scroll-margin-top: 20px; }
 .post-body figure.fig-float img { width: 100%; height: auto; border-radius: 8px; display: block; }
 .post-body figure.fig-float figcaption { font-size: 0.7rem; color: var(--muted); text-align: center; margin-top: 5px; line-height: 1.3; }
 .post-body h3 { clear: both; }
+
+/* Side-by-side photo pair — use matching aspect-ratio crops */
+.post-body .fig-pair { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin: 28px 0; }
+.post-body .fig-pair figure { margin: 0; }
+.post-body .fig-pair figure img { aspect-ratio: 4 / 5; object-fit: cover; border-radius: 8px; }
+.post-body .fig-pair figcaption { font-size: 0.7rem; line-height: 1.3; margin-top: 6px; }
 @media (max-width: 500px) {
   .post-body figure.fig-float { float: none; width: 100%; max-width: 100%; margin: 20px auto; text-align: center; }
 }
